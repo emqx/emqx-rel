@@ -5,6 +5,7 @@ deps
 *.plt
 erl_crash.dump
 ebin
-rel/example_project
+_rel/*
 .concrete/DEV_MODE
 .rebar
+.erlang.mk/
