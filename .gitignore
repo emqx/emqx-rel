@@ -9,3 +9,4 @@ _rel/*
 .concrete/DEV_MODE
 .rebar
 .erlang.mk/
+etc/plugins/
