@@ -26,7 +26,6 @@ COVER = true
 include erlang.mk
 
 plugins:
-	@rm etc/plugins/*
 	@for config in ./deps/*/etc/*.conf ; do cp $${config} etc/plugins/ ; done
 
 app:: plugins
