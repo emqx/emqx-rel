@@ -4,7 +4,7 @@ PROJECT_VERSION = 2.0
 
 DEPS = emqttd emqttd_dashboard emqttd_recon emqttd_reloader emqttd_stomp \
 	   emqttd_auth_http emqttd_auth_mysql emqttd_auth_pgsql emqttd_auth_redis \
-	   emqttd_auth_mongo emqttd_plugin_template emqtt_sn emqtt_coap
+	   emqttd_auth_mongo emqttd_plugin_template emqttd_sn emqttd_coap
 
 # emqttd
 dep_emqttd 			 = git https://github.com/emqtt/emqttd emq20
@@ -22,8 +22,8 @@ dep_emqttd_auth_mongo      = git https://github.com/emqtt/emqttd_plugin_mongo em
 dep_emqttd_plugin_template = git https://github.com/emqtt/emqttd_plugin_template emq20
 
 # mqtt-sn and coap
-dep_emqtt_sn 	= git https://github.com/emqtt/emqtt_sn master
-dep_emqtt_coap 	= git https://github.com/emqtt/emqtt_coap master
+dep_emqttd_sn 	= git https://github.com/emqtt/emqttd_sn master
+dep_emqttd_coap = git https://github.com/emqtt/emqttd_coap master
 
 COVER = true
 
