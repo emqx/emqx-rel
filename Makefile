@@ -22,8 +22,8 @@ dep_emqttd_auth_mongo      = git https://github.com/emqtt/emqttd_plugin_mongo em
 dep_emqttd_plugin_template = git https://github.com/emqtt/emqttd_plugin_template emq20
 
 # mqtt-sn and coap
-dep_emqttd_sn 	= git https://github.com/emqtt/emqttd_sn master
-dep_emqttd_coap = git https://github.com/emqtt/emqttd_coap master
+dep_emqttd_sn 	= git https://github.com/emqtt/emqttd_sn emq20
+dep_emqttd_coap = git https://github.com/emqtt/emqttd_coap emq20
 
 COVER = true
 
