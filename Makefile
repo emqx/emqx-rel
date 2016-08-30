@@ -26,7 +26,7 @@ dep_emqttd_plugin_template = git https://github.com/emqtt/emqttd_plugin_template
 dep_emqttd_sn 	= git https://github.com/emqtt/emqttd_sn emq20
 #dep_emqttd_coap = git https://github.com/emqtt/emqttd_coap emq20
 
-COVER = true
+# COVER = true
 
 include erlang.mk
 
