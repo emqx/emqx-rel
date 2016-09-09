@@ -18,7 +18,7 @@
 )
 
 @set vm_args=%runner_etc_dir%\vm.args
-@set sys_config=%runner_etc_dir%\emqttd.config
+@set sys_config=%releases_dir%\%release_version%\sys.config
 @set node_boot_script=%releases_dir%\%release_version%\%node_name%
 @set clean_boot_script=%releases_dir%\%release_version%\start_clean
 
