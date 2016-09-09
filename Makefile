@@ -16,10 +16,10 @@ dep_emqttd_stomp	 = git https://github.com/emqtt/emqttd_stomp emq20
 # emqttd auth plugins
 dep_emqttd_auth_ldap       = git https://github.com/emqtt/emqttd_auth_ldap emq20
 dep_emqttd_auth_http       = git https://github.com/emqtt/emqttd_auth_http emq20
-dep_emqttd_auth_mysql      = git https://github.com/emqtt/emqttd_plugin_mysql emq20
-dep_emqttd_auth_pgsql      = git https://github.com/emqtt/emqttd_plugin_pgsql emq20
-dep_emqttd_auth_redis      = git https://github.com/emqtt/emqttd_plugin_redis emq20
-dep_emqttd_auth_mongo      = git https://github.com/emqtt/emqttd_plugin_mongo emq20
+dep_emqttd_auth_mysql      = git https://github.com/emqtt/emqttd_auth_mysql emq20
+dep_emqttd_auth_pgsql      = git https://github.com/emqtt/emqttd_auth_pgsql emq20
+dep_emqttd_auth_redis      = git https://github.com/emqtt/emqttd_auth_redis emq20
+dep_emqttd_auth_mongo      = git https://github.com/emqtt/emqttd_auth_mongo emq20
 dep_emqttd_plugin_template = git https://github.com/emqtt/emqttd_plugin_template emq20
 
 # mqtt-sn and coap
