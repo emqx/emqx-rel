@@ -17,7 +17,7 @@
     @call :set_trim release_version %%J
 )
 
-@set vm_args=%runner_etc_dir%\vm.args
+@set vm_args=%releases_dir%\%release_version%\vm.args
 @set sys_config=%releases_dir%\%release_version%\sys.config
 @set node_boot_script=%releases_dir%\%release_version%\%node_name%
 @set clean_boot_script=%releases_dir%\%release_version%\start_clean
