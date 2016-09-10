@@ -46,8 +46,8 @@ relx_nodetool() {
 
 # Use $CWD/vm.args if exists, otherwise releases/VSN/vm.args
 if [ -z "$VMARGS_PATH" ]; then
-    if [ -f "$RELEASE_ROOT_DIR/etc/vm.args" ]; then
-        VMARGS_PATH="$RELEASE_ROOT_DIR/etc/vm.args"
+    if [ -f "$RELEASE_ROOT_DIR/vm.args" ]; then
+        VMARGS_PATH="$RELEASE_ROOT_DIR/vm.args"
     else
         VMARGS_PATH="$REL_DIR/vm.args"
     fi
