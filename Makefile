@@ -1,5 +1,5 @@
 PROJECT = emqttd-relx
-PROJECT_DESCRIPTION = Release project for emqttd 2.0
+PROJECT_DESCRIPTION = Release project for EMQ 2.0
 PROJECT_VERSION = 2.0
 
 DEPS = emqttd emqttd_dashboard emqttd_recon emqttd_reloader emqttd_stomp emqttd_auth_ldap \

@@ -1,6 +1,6 @@
 # emqttd-relx
 
-The release project for emqttd 2.0
+The release project for EMQ 2.0
 
 ## Build
 
