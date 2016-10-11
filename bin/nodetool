@@ -19,6 +19,22 @@ main(Args) ->
 
     %% any commands that don't need a running node
     case RestArgs of
+        ["merge_config", MainConf, PluginsEtc, DestConf] ->
+			case file:open(DestConf, [write]) of
+				{ok, DestFd} ->
+					{ok, Data} = file:read_file(MainConf),
+					file:write(DestFd, Data),
+					CfgFiles = 	filelib:wildcard("*.conf", PluginsEtc),
+					lists:foreach(fun(CfgFile) ->
+					    {ok, CfgData} = file:read_file(filename:join(PluginsEtc, CfgFile)),
+						file:write(DestFd, CfgData)
+					end, CfgFiles),
+					io:format("Merge config: ~s ok\n", [DestConf]),
+					halt(0);
+			    {error, Error} ->
+                    io:format(standard_error, ["Error opening file: ", file:format_error(Error), "\n"], []),
+					halt(1)
+			end;
         ["chkconfig", File] ->
             case file:consult(File) of
                 {ok, Terms} ->

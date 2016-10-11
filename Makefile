@@ -31,7 +31,11 @@ dep_emq_coap = git https://github.com/emqtt/emqttd_coap emq30
 include erlang.mk
 
 plugins:
+	@rm -rf etc/plugins/*.conf
 	@for config in ./deps/*/etc/*.conf ; do cp $${config} etc/plugins/ ; done
 
 app:: plugins
+
+app.config::
+	cuttlefish -l info -e etc/ -c etc/emqttd.conf -i priv/emqttd.schema -d data/configs/
 

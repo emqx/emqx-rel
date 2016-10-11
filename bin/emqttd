@@ -17,6 +17,8 @@ CODE_LOADING_MODE="${CODE_LOADING_MODE:-embedded}"
 REL_DIR="$RELEASE_ROOT_DIR/releases/$REL_VSN"
 ERL_OPTS="{{ erl_opts }}"
 RUNNER_LOG_DIR="${RUNNER_LOG_DIR:-$RELEASE_ROOT_DIR/log}"
+RUNNER_ETC_DIR="${RUNNER_ETC_DIR:-$RELEASE_ROOT_DIR/etc}"
+RUNNER_DATA_DIR="${RUNNER_DATA_DIR:-$RELEASE_ROOT_DIR/data}"
 
 # Warn the user if ulimit -n is less than 1024
 ULIMIT_F=`ulimit -n`
