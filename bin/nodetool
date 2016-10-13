@@ -19,8 +19,8 @@ main(Args) ->
 
     %% any commands that don't need a running node
     case RestArgs of
-        ["mergeconf", Etc, PluginsEtc, DestConf] ->
-            mergeconf(Etc, PluginsEtc, DestConf);
+        ["mergeconf", Etc, PluginsEtc, DestDir] ->
+            mergeconf(Etc, PluginsEtc, DestDir);
         ["chkconfig", File] ->
             chkconfig(File);
         ["chkconfig", "-config", File|_] ->
@@ -135,7 +135,6 @@ process_args(["-sname", TargetName | Rest], Acc, _) ->
 process_args([Arg | Rest], Acc, Opts) ->
     process_args(Rest, [Arg | Acc], Opts).
 
-
 start_epmd() ->
     [] = os:cmd("\"" ++ epmd_path() ++ "\" -daemon"),
     ok.
@@ -155,7 +154,6 @@ epmd_path() ->
         Epmd ->
             Epmd
     end.
-
 
 nodename(Name) ->
     case string:tokens(Name, "@") of

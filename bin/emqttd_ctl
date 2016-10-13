@@ -9,19 +9,20 @@ if [ -z $SCRIPT ]; then
     SCRIPT=$0
 fi;
 SCRIPT_DIR="$(cd `dirname "$SCRIPT"` && pwd -P)"
-RELEASE_ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd -P)"
+RUNNER_ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd -P)"
 REL_NAME="emqttd"
 REL_VSN="{{ rel_vsn }}"
 ERTS_VSN="{{ erts_vsn }}"
-REL_DIR="$RELEASE_ROOT_DIR/releases/$REL_VSN"
+REL_DIR="$RUNNER_ROOT_DIR/releases/$REL_VSN"
 ERL_OPTS="{{ erl_opts }}"
-RUNNER_LOG_DIR="${RUNNER_LOG_DIR:-$RELEASE_ROOT_DIR/log}"
+RUNNER_LOG_DIR="${RUNNER_LOG_DIR:-$RUNNER_ROOT_DIR/log}"
+RUNNER_ETC_DIR="${RUNNER_ETC_DIR:-$RUNNER_ROOT_DIR/etc}"
 
 find_erts_dir() {
-    __erts_dir="$RELEASE_ROOT_DIR/erts-$ERTS_VSN"
+    __erts_dir="$RUNNER_ROOT_DIR/erts-$ERTS_VSN"
     if [ -d "$__erts_dir" ]; then
         ERTS_DIR="$__erts_dir";
-        ROOTDIR="$RELEASE_ROOT_DIR"
+        ROOTDIR="$RUNNER_ROOT_DIR"
     else
         __erl="$(which erl)"
         code="io:format(\"~s\", [code:root_dir()]), halt()."
@@ -44,20 +45,18 @@ relx_nodetool() {
                                 -setcookie "$COOKIE" "$command" $@
 }
 
-# Use $CWD/vm.args if exists, otherwise releases/VSN/vm.args
-if [ -z "$VMARGS_PATH" ]; then
-    if [ -f "$RELEASE_ROOT_DIR/vm.args" ]; then
-        VMARGS_PATH="$RELEASE_ROOT_DIR/vm.args"
-    else
-        VMARGS_PATH="$REL_DIR/vm.args"
-    fi
-fi
 
 # Extract the target node name from node.args
-NAME_ARG=$(egrep '^-s?name' "$VMARGS_PATH" || true)
+# NAME_ARG=`egrep '^\-name' $RUNNER_ETC_DIR/vm.args 2> /dev/null`
 if [ -z "$NAME_ARG" ]; then
-    echo "vm.args needs to have either -name or -sname parameter."
-    exit 1
+    NODENAME=`egrep '^[ \t]*node.name[ \t]*=[ \t]*' $RUNNER_ETC_DIR/emq.conf 2> /dev/null | tail -1 | cut -d = -f 2`
+    if [ -z "$NODENAME" ]; then
+        echoerr "vm.args needs to have a -name parameter."
+        echoerr "  -sname is not supported."
+        exit 1
+    else
+        NAME_ARG="-name ${NODENAME# *}"
+    fi
 fi
 
 # Extract the name type and name from the NAME_ARG for REMSH
@@ -65,17 +64,22 @@ NAME_TYPE="$(echo "$NAME_ARG" | awk '{print $1}')"
 NAME="$(echo "$NAME_ARG" | awk '{print $2}')"
 
 # Extract the target cookie
-COOKIE_ARG="$(grep '^-setcookie' "$VMARGS_PATH" || true)"
+# COOKIE_ARG=`grep '^\-setcookie' $RUNNER_ETC_DIR/vm.args 2> /dev/null`
 if [ -z "$COOKIE_ARG" ]; then
-    echo "vm.args needs to have a -setcookie parameter."
-    exit 1
+    COOKIE=`egrep '^[ \t]*node.cookie[ \t]*=[ \t]*' $RUNNER_ETC_DIR/emq.conf 2> /dev/null | tail -1 | cut -d = -f 2`
+    if [ -z "$COOKIE" ]; then
+        echoerr "vm.args needs to have a -setcookie parameter."
+        exit 1
+    else
+        COOKIE_ARG="-setcookie $COOKIE"
+    fi
 fi
 
 # Extract cookie name from COOKIE_ARG
 COOKIE="$(echo "$COOKIE_ARG" | awk '{print $2}')"
 
 find_erts_dir
-export ROOTDIR="$RELEASE_ROOT_DIR"
+export ROOTDIR="$RUNNER_ROOT_DIR"
 export BINDIR="$ERTS_DIR/bin"
 cd "$ROOTDIR"
 

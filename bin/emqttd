@@ -9,18 +9,18 @@ if [ -z $SCRIPT ]; then
     SCRIPT=$0
 fi;
 SCRIPT_DIR="$(cd `dirname "$SCRIPT"` && pwd -P)"
-RELEASE_ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd -P)"
+RUNNER_ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd -P)"
 REL_NAME="emqttd"
 REL_VSN="{{ rel_vsn }}"
 ERTS_VSN="{{ erts_vsn }}"
-ERTS_PATH=$RELEASE_ROOT_DIR/erts-$ERTS_VSN/bin
+ERTS_PATH=$RUNNER_ROOT_DIR/erts-$ERTS_VSN/bin
 CODE_LOADING_MODE="${CODE_LOADING_MODE:-embedded}"
-REL_DIR="$RELEASE_ROOT_DIR/releases/$REL_VSN"
+REL_DIR="$RUNNER_ROOT_DIR/releases/$REL_VSN"
 ERL_OPTS="{{ erl_opts }}"
-RUNNER_LOG_DIR=$RELEASE_ROOT_DIR/log
-RUNNER_LIB_DIR=$RELEASE_ROOT_DIR/lib
-RUNNER_ETC_DIR=$RELEASE_ROOT_DIR/etc
-RUNNER_DATA_DIR=$RELEASE_ROOT_DIR/data
+RUNNER_LOG_DIR=$RUNNER_ROOT_DIR/log
+RUNNER_LIB_DIR=$RUNNER_ROOT_DIR/lib
+RUNNER_ETC_DIR=$RUNNER_ROOT_DIR/etc
+RUNNER_DATA_DIR=$RUNNER_ROOT_DIR/data
 
 # Warn the user if ulimit -n is less than 1024
 ULIMIT_F=`ulimit -n`
@@ -42,10 +42,10 @@ else
 fi
 
 find_erts_dir() {
-    __erts_dir="$RELEASE_ROOT_DIR/erts-$ERTS_VSN"
+    __erts_dir="$RUNNER_ROOT_DIR/erts-$ERTS_VSN"
     if [ -d "$__erts_dir" ]; then
         ERTS_DIR="$__erts_dir";
-        ROOTDIR="$RELEASE_ROOT_DIR"
+        ROOTDIR="$RUNNER_ROOT_DIR"
     else
         __erl="$(which erl)"
         code="io:format(\"~s\", [code:root_dir()]), halt()."
@@ -103,14 +103,14 @@ relx_nodetool() {
 # Run an escript in the node's environment
 relx_escript() {
     shift; scriptpath="$1"; shift
-    export RELEASE_ROOT_DIR
+    export RUNNER_ROOT_DIR
 
     "$ERTS_DIR/bin/escript" "$ROOTDIR/$scriptpath" $@
 }
 
 # Output a start command for the last argument of run_erl
 relx_start_command() {
-    printf "exec \"%s\" \"%s\"" "$RELEASE_ROOT_DIR/bin/$REL_NAME" \
+    printf "exec \"%s\" \"%s\"" "$RUNNER_ROOT_DIR/bin/$REL_NAME" \
            "$START_OPTION"
 }
 
@@ -183,7 +183,7 @@ fi
 COOKIE="$(echo "$COOKIE_ARG" | awk '{print $2}')"
 
 find_erts_dir
-export ROOTDIR="$RELEASE_ROOT_DIR"
+export ROOTDIR="$RUNNER_ROOT_DIR"
 export BINDIR="$ERTS_DIR/bin"
 export EMU="beam"
 export PROGNAME="erl"
@@ -236,7 +236,7 @@ case "$1" in
         [ "$RUN_PARAM" ] && set -- "$@" "$RUN_PARAM"
 
         # Export the HEART_COMMAND
-        HEART_COMMAND="$RELEASE_ROOT_DIR/bin/$REL_NAME $CMD"
+        HEART_COMMAND="$RUNNER_ROOT_DIR/bin/$REL_NAME $CMD"
         export HEART_COMMAND
 
         mkdir -p "$PIPE_DIR"
@@ -397,7 +397,7 @@ case "$1" in
         echo "Root: $ROOTDIR"
 
         # Log the startup
-        echo "$RELEASE_ROOT_DIR"
+        echo "$RUNNER_ROOT_DIR"
         logger -t "$REL_NAME[$$]" "Starting up"
 
         # Start the VM
