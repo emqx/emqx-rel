@@ -148,6 +148,15 @@ generate_config() {
 # Make sure log directory exists
 mkdir -p "$RUNNER_LOG_DIR"
 
+# Use $CWD/etc/sys.config if exists
+if [ -z "$RELX_CONFIG_PATH" ]; then
+    if [ -f "$RUNNER_ETC_DIR/sys.config" ]; then
+        RELX_CONFIG_PATH="-config $RUNNER_ETC_DIR/sys.config"
+    else
+        RELX_CONFIG_PATH=""
+    fi
+fi
+
 # Extract the target node name from node.args
 # NAME_ARG=`egrep '^\-name' $RUNNER_ETC_DIR/vm.args 2> /dev/null`
 if [ -z "$NAME_ARG" ]; then
@@ -390,7 +399,7 @@ case "$1" in
         set -- "$BINDIR/erlexec" -boot "$BOOTFILE" -mode "$CODE_LOADING_MODE" \
             -boot_var ERTS_LIB_DIR "$ERTS_LIB_DIR" \
             -mnesia dir "\"${MNESIA_DATA_DIR}\"" \
-            $CONFIG_ARGS
+            $RELX_CONFIG_PATH $CONFIG_ARGS
 
         # Dump environment info for logging purposes
         echo "Exec: $@" -- ${1+$ARGS}
@@ -408,6 +417,9 @@ case "$1" in
         # start up the release in the foreground for use by runit
         # or other supervision services
 
+        #generate app.config and vm.args
+        generate_config
+
         [ -f "$REL_DIR/$REL_NAME.boot" ] && BOOTFILE="$REL_NAME" || BOOTFILE=start
         FOREGROUNDOPTIONS="-noshell -noinput +Bd"
 
@@ -424,10 +436,10 @@ case "$1" in
         # Build an array of arguments to pass to exec later on
         # Build it here because this command will be used for logging.
         set -- "$BINDIR/erlexec" $FOREGROUNDOPTIONS \
-            -boot "$REL_DIR/$BOOTFILE" -mode "$CODE_LOADING_MODE" -config "$RELX_CONFIG_PATH" \
+            -boot "$REL_DIR/$BOOTFILE" -mode "$CODE_LOADING_MODE" \
             -boot_var ERTS_LIB_DIR "$ERTS_LIB_DIR" \
             -mnesia dir "\"${MNESIA_DATA_DIR}\"" \
-            -args_file "$VMARGS_PATH"
+            $RELX_CONFIG_PATH $CONFIG_ARGS
 
         # Dump environment info for logging purposes
         echo "Exec: $@" -- ${1+$ARGS}
