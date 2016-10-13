@@ -1,7 +1,8 @@
+
 emqttd-relx
 ===========
 
-The release project for EMQ 2.0
+The release project for EMQ 3.0
 
 Build
 -----
@@ -14,11 +15,13 @@ cd emqttd-relx && make
 cd _rel/emqttd && ./bin/emqttd console
 ```
 
-## License
+License
+-------
 
 Apache License Version 2.0
 
-## Author
+Author
+------
 
 Feng Lee <feng@emqtt.io>
 
