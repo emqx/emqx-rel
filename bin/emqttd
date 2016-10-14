@@ -141,8 +141,6 @@ generate_config() {
         echoerr "Error reading $CONFIG_ARGS"
         exit 1
     fi
-    echo "config is OK"
-    echo $CONFIG_ARGS
 }
 
 # Make sure log directory exists

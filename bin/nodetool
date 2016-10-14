@@ -203,7 +203,6 @@ chkconfig(File) ->
         {ok, Terms} ->
             case validate(Terms) of
                 ok ->
-                    io:format("ok\n"),
                     halt(0);
                 {error, Problems} ->
                     lists:foreach(fun print_issue/1, Problems),
