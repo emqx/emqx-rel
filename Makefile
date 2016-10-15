@@ -3,8 +3,9 @@ PROJECT_DESCRIPTION = Release project for EMQ 3.0
 PROJECT_VERSION = 3.0
 
 DEPS = emqttd emq_dashboard emq_recon emq_reloader emq_stomp emq_mod_rewrite \
-	   emq_auth_ldap emq_auth_http emq_auth_mysql emq_auth_pgsql emq_auth_redis \
-	   emq_auth_mongo emq_plugin_template emq_sn emq_coap cuttlefish
+	   emq_auth_clientid emq_auth_username emq_auth_ldap emq_auth_http \
+	   emq_auth_mysql emq_auth_pgsql emq_auth_redis emq_auth_mongo \
+	   emq_plugin_template emq_sn emq_coap cuttlefish
 
 # emq deps
 dep_emqttd        = git https://github.com/emqtt/emqttd emq30
@@ -17,6 +18,9 @@ dep_emq_stomp     = git https://github.com/emqtt/emqttd_stomp emq30
 dep_emq_mod_rewrite  = git https://github.com/emqtt/emq_mod_rewrite emq30
 
 # emq auth plugins
+
+dep_emq_auth_clientid   = git https://github.com/emqtt/emq_auth_clientid emq30
+dep_emq_auth_username   = git https://github.com/emqtt/emq_auth_username emq30
 dep_emq_auth_ldap       = git https://github.com/emqtt/emqttd_auth_ldap emq30
 dep_emq_auth_http       = git https://github.com/emqtt/emqttd_auth_http emq30
 dep_emq_auth_mysql      = git https://github.com/emqtt/emqttd_auth_mysql emq30
@@ -41,6 +45,8 @@ plugins:
 	@mkdir -p rel/conf/plugins/ rel/schema/
 	@for conf in $(DEPS_DIR)/*/etc/*.conf* ; do \
 		if [ "emq.conf" = "$${conf##*/}" ] ; then \
+			cp $${conf} rel/conf/ ; \
+		elif [ "acl.conf" = "$${conf##*/}" ] ; then \
 			cp $${conf} rel/conf/ ; \
 		else \
 			cp $${conf} rel/conf/plugins ; \
