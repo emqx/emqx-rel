@@ -19,8 +19,8 @@ main(Args) ->
 
     %% any commands that don't need a running node
     case RestArgs of
-        ["mergeconf", Etc, PluginsEtc, DestDir] ->
-            mergeconf(Etc, PluginsEtc, DestDir);
+        ["mergeconf", EmqCfg, PluginsEtc, DestDir] ->
+            mergeconf(EmqCfg, PluginsEtc, DestDir);
         ["chkconfig", File] ->
             chkconfig(File);
         ["chkconfig", "-config", File|_] ->
@@ -172,11 +172,11 @@ append_node_suffix(Name, Suffix) ->
             list_to_atom(lists:concat([Node, Suffix, os:getpid()]))
     end.
 
-mergeconf(Etc, PluginsEtc, DestDir) ->
+mergeconf(EmqCfg, PluginsEtc, DestDir) ->
     AppConf = filename:join(DestDir, appconf()),
     case file:open(AppConf, [write]) of
         {ok, DestFd} ->
-            CfgFiles = cfgfiles(Etc) ++ cfgfiles(PluginsEtc),
+            CfgFiles = [EmqCfg | cfgfiles(PluginsEtc)],
             lists:foreach(fun(CfgFile) ->
                             {ok, CfgData} = file:read_file(CfgFile),
                             file:write(DestFd, CfgData)
