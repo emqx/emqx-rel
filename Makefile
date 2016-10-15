@@ -30,7 +30,7 @@ dep_emq_sn 	= git https://github.com/emqtt/emqttd_sn emq30
 dep_emq_coap = git https://github.com/emqtt/emqttd_coap emq30
 
 # cuttlefish
-dep_cuttlefish = git https://github.com/basho/cuttlefish master
+dep_cuttlefish = git https://github.com/emqtt/cuttlefish
 
 # COVER = true
 
