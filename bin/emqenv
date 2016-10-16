@@ -1,0 +1,10 @@
+#!/bin/sh
+
+[ "x" = "x$EMQ_NODE_NAME" ] && EMQ_NODE_NAME=emqttd@127.0.0.1
+[ "x" = "x$EMQ_NODE_COOKIE" ] && EMQ_NODE_COOKIE=emq_dist_cookie
+[ "x" = "x$EMQ_MAX_PORTS" ] && EMQ_MAX_PORTS=65536
+[ "x" = "x$EMQ_TCP_PORT" ] && EMQ_TCP_PORT=1883
+[ "x" = "x$EMQ_SSL_PORT" ] && EMQ_SSL_PORT=8883
+[ "x" = "x$EMQ_HTTP_PORT" ] && EMQ_HTTP_PORT=8083
+[ "x" = "x$EMQ_HTTPS_PORT" ] && EMQ_HTTPS_PORT=8084
+
