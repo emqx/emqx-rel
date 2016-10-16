@@ -41,6 +41,17 @@ else
     CUTTLEFISH_COMMAND_PREFIX="$ERTS_PATH/escript $SCRIPT_DIR/cuttlefish -s $REL_DIR/schema -d $RUNNER_DATA_DIR/configs"
 fi
 
+SED_REPLACE="sed -i"
+case `uname -s` in
+    'FreeBSD')
+        SED_REPLACE="sed -i ''"
+        ;;
+    'Darwin')
+        SED_REPLACE="sed -i ''"
+        ;;
+    *);;
+esac
+
 find_erts_dir() {
     __erts_dir="$RUNNER_ROOT_DIR/erts-$ERTS_VSN"
     if [ -d "$__erts_dir" ]; then
@@ -129,6 +140,7 @@ generate_config() {
             echoerr "Error merging configs!"
             exit 1
         fi
+        replace_env_in_conf
         CONFIG_ARGS=`$CUTTLEFISH_COMMAND_PREFIX -c $APPCONF generate`
         if [ "$?" -ne 0 ]; then
             echoerr "Error generating config with cuttlefish"
@@ -143,6 +155,16 @@ generate_config() {
     fi
 }
 
+replace_env_in_conf() {
+    [ "x" = "x$EMQ_NODE_NAME" ]   || $SED_REPLACE "s/^[ \t]*node.name[ \t]*=.*$/node.name= $EMQ_NODE_NAME/" $APPCONF
+    [ "x" = "x$EMQ_NODE_COOKIE" ] || $SED_REPLACE "s/^[ \t]*node.cookie[ \t]*=.*$/node.cookie= $EMQ_NODE_COOKIE/" $APPCONF
+    [ "x" = "x$EMQ_MAX_PORTS" ]   || $SED_REPLACE "s/^[ \t]*node.max_ports[ \t]*=.*$/node.max_ports = $EMQ_MAX_PORTS/" $APPCONF
+    [ "x" = "x$EMQ_TCP_PORT" ]    || $SED_REPLACE "s/^[ \t]*mqtt.listener.tcp[ \t]*=.*$/mqtt.listener.tcp = $EMQ_TCP_PORT/" $APPCONF
+    [ "x" = "x$EMQ_SSL_PORT" ]    || $SED_REPLACE "s/^[ \t]*mqtt.listener.ssl[ \t]*=.*$/mqtt.listener.ssl = $EMQ_SSL_PORT/" $APPCONF
+    [ "x" = "x$EMQ_HTTP_PORT" ]   || $SED_REPLACE "s/^[ \t]*mqtt.listener.http[ \t]*=.*$/mqtt.listener.http = $EMQ_HTTP_PORT/" $APPCONF
+    [ "x" = "x$EMQ_HTTPS_PORT" ]  || $SED_REPLACE "s/^[ \t]*mqtt.listener.https[ \t]*=.*$/mqtt.listener.https = $EMQ_HTTPS_PORT/" $APPCONF
+}
+
 # Make sure log directory exists
 mkdir -p "$RUNNER_LOG_DIR"
 
@@ -155,8 +177,8 @@ if [ -z "$RELX_CONFIG_PATH" ]; then
     fi
 fi
 
+[ "x" = "x$EMQ_NODE_NAME" ] || NAME_ARG="-name $EMQ_NODE_NAME"
 # Extract the target node name from node.args
-# NAME_ARG=`egrep '^\-name' $RUNNER_ETC_DIR/vm.args 2> /dev/null`
 if [ -z "$NAME_ARG" ]; then
     NODENAME=`egrep '^[ \t]*node.name[ \t]*=[ \t]*' $RUNNER_ETC_DIR/emq.conf 2> /dev/null | tail -1 | cut -d = -f 2`
     if [ -z "$NODENAME" ]; then
@@ -174,8 +196,8 @@ NAME="$(echo "$NAME_ARG" | awk '{print $2}')"
 
 PIPE_DIR="${PIPE_DIR:-/tmp/erl_pipes/$NAME/}"
 
+[ "x" = "x$EMQ_NODE_COOKIE" ] || COOKIE_ARG="-setcookie $EMQ_NODE_COOKIE"
 # Extract the target cookie
-# COOKIE_ARG=`grep '^\-setcookie' $RUNNER_ETC_DIR/vm.args 2> /dev/null`
 if [ -z "$COOKIE_ARG" ]; then
     COOKIE=`egrep '^[ \t]*node.cookie[ \t]*=[ \t]*' $RUNNER_ETC_DIR/emq.conf 2> /dev/null | tail -1 | cut -d = -f 2`
     if [ -z "$COOKIE" ]; then

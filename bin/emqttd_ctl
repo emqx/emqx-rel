@@ -46,8 +46,8 @@ relx_nodetool() {
 }
 
 
+[ "x" = "x$EMQ_NODE_NAME" ] || NAME_ARG="-name $EMQ_NODE_NAME"
 # Extract the target node name from node.args
-# NAME_ARG=`egrep '^\-name' $RUNNER_ETC_DIR/vm.args 2> /dev/null`
 if [ -z "$NAME_ARG" ]; then
     NODENAME=`egrep '^[ \t]*node.name[ \t]*=[ \t]*' $RUNNER_ETC_DIR/emq.conf 2> /dev/null | tail -1 | cut -d = -f 2`
     if [ -z "$NODENAME" ]; then
@@ -63,8 +63,8 @@ fi
 NAME_TYPE="$(echo "$NAME_ARG" | awk '{print $1}')"
 NAME="$(echo "$NAME_ARG" | awk '{print $2}')"
 
+[ "x" = "x$EMQ_NODE_COOKIE" ] || COOKIE_ARG="-setcookie $EMQ_NODE_COOKIE"
 # Extract the target cookie
-# COOKIE_ARG=`grep '^\-setcookie' $RUNNER_ETC_DIR/vm.args 2> /dev/null`
 if [ -z "$COOKIE_ARG" ]; then
     COOKIE=`egrep '^[ \t]*node.cookie[ \t]*=[ \t]*' $RUNNER_ETC_DIR/emq.conf 2> /dev/null | tail -1 | cut -d = -f 2`
     if [ -z "$COOKIE" ]; then
