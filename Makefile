@@ -8,29 +8,29 @@ DEPS = emqttd emq_dashboard emq_recon emq_reloader emq_stomp emq_mod_rewrite \
 	   emq_plugin_template emq_sn emq_coap
 
 # emq deps
-dep_emqttd        = git https://github.com/emqtt/emqttd emq20
-dep_emq_dashboard = git https://github.com/emqtt/emqttd_dashboard emq20
-dep_emq_recon     = git https://github.com/emqtt/emqttd_recon emq20
-dep_emq_reloader  = git https://github.com/emqtt/emqttd_reloader emq20
-dep_emq_stomp     = git https://github.com/emqtt/emqttd_stomp emq20
+dep_emqttd        = git https://github.com/emqtt/emqttd master
+dep_emq_dashboard = git https://github.com/emqtt/emqttd_dashboard master
+dep_emq_recon     = git https://github.com/emqtt/emqttd_recon master
+dep_emq_reloader  = git https://github.com/emqtt/emqttd_reloader master
+dep_emq_stomp     = git https://github.com/emqtt/emqttd_stomp master
 
 # emq modules
-dep_emq_mod_rewrite  = git https://github.com/emqtt/emq_mod_rewrite emq20
+dep_emq_mod_rewrite  = git https://github.com/emqtt/emq_mod_rewrite master
 
 # emq auth plugins
-dep_emq_auth_clientid   = git https://github.com/emqtt/emq_auth_clientid emq20
-dep_emq_auth_username   = git https://github.com/emqtt/emq_auth_username emq20
-dep_emq_auth_ldap       = git https://github.com/emqtt/emqttd_auth_ldap emq20
-dep_emq_auth_http       = git https://github.com/emqtt/emqttd_auth_http emq20
-dep_emq_auth_mysql      = git https://github.com/emqtt/emqttd_auth_mysql emq20
-dep_emq_auth_pgsql      = git https://github.com/emqtt/emqttd_auth_pgsql emq20
-dep_emq_auth_redis      = git https://github.com/emqtt/emqttd_auth_redis emq20
-dep_emq_auth_mongo      = git https://github.com/emqtt/emqttd_auth_mongo emq20
-dep_emq_plugin_template = git https://github.com/emqtt/emqttd_plugin_template emq20
+dep_emq_auth_clientid   = git https://github.com/emqtt/emq_auth_clientid master
+dep_emq_auth_username   = git https://github.com/emqtt/emq_auth_username master
+dep_emq_auth_ldap       = git https://github.com/emqtt/emqttd_auth_ldap master
+dep_emq_auth_http       = git https://github.com/emqtt/emqttd_auth_http master
+dep_emq_auth_mysql      = git https://github.com/emqtt/emqttd_auth_mysql master
+dep_emq_auth_pgsql      = git https://github.com/emqtt/emqttd_auth_pgsql master
+dep_emq_auth_redis      = git https://github.com/emqtt/emqttd_auth_redis master
+dep_emq_auth_mongo      = git https://github.com/emqtt/emqttd_auth_mongo master
+dep_emq_plugin_template = git https://github.com/emqtt/emqttd_plugin_template master
 
 # mqtt-sn and coap
-dep_emq_sn 	= git https://github.com/emqtt/emqttd_sn emq20
-dep_emq_coap = git https://github.com/emqtt/emqttd_coap emq20
+dep_emq_sn 	= git https://github.com/emqtt/emqttd_sn master
+dep_emq_coap = git https://github.com/emqtt/emqttd_coap master
 
 # COVER = true
 
