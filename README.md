@@ -1,7 +1,7 @@
 emqttd-relx
 ===========
 
-The release project for the tEMQ Broker.
+The release project for the EMQ Broker.
 
 Build
 -----
