@@ -1,1 +1,5 @@
+emq_recon.
 emq_dashboard.
+emq_mod_presence.
+emq_mod_retainer.
+emq_mod_subscription.

@@ -21,7 +21,7 @@ dep_emq_mod_retainer     = git https://github.com/emqtt/emq_mod_retainer emq20
 dep_emq_mod_rewrite      = git https://github.com/emqtt/emq_mod_rewrite emq20
 dep_emq_mod_subscription = git https://github.com/emqtt/emq_mod_subscription emq20
 
-# emq auth plugins
+# emq auth/acl plugins
 dep_emq_auth_clientid   = git https://github.com/emqtt/emq_auth_clientid emq20
 dep_emq_auth_username   = git https://github.com/emqtt/emq_auth_username emq20
 dep_emq_auth_ldap       = git https://github.com/emqtt/emq_auth_ldap emq20
