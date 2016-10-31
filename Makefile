@@ -2,10 +2,11 @@ PROJECT = emqttd-relx
 PROJECT_DESCRIPTION = Release project for the EMQ Broker
 PROJECT_VERSION = 2.0
 
-DEPS = emqttd emq_dashboard emq_recon emq_reloader emq_stomp emq_mod_rewrite \
+DEPS = emqttd emq_dashboard emq_recon emq_reloader emq_stomp emq_plugin_template \
+	   emq_mod_rewrite emq_mod_presence emq_mod_retainer emq_mod_subscription \
 	   emq_auth_clientid emq_auth_username emq_auth_ldap emq_auth_http \
 	   emq_auth_mysql emq_auth_pgsql emq_auth_redis emq_auth_mongo \
-	   emq_plugin_template emq_sn emq_coap
+	   emq_sn emq_coap
 
 # emq deps
 dep_emqttd        = git https://github.com/emqtt/emqttd master
@@ -15,9 +16,12 @@ dep_emq_reloader  = git https://github.com/emqtt/emq_reloader master
 dep_emq_stomp     = git https://github.com/emqtt/emq_stomp master
 
 # emq modules
-dep_emq_mod_rewrite  = git https://github.com/emqtt/emq_mod_rewrite master
+dep_emq_mod_presence     = git https://github.com/emqtt/emq_mod_presence master
+dep_emq_mod_retainer     = git https://github.com/emqtt/emq_mod_retainer master
+dep_emq_mod_rewrite      = git https://github.com/emqtt/emq_mod_rewrite master
+dep_emq_mod_subscription = git https://github.com/emqtt/emq_mod_subscription master
 
-# emq auth plugins
+# emq auth/acl plugins
 dep_emq_auth_clientid   = git https://github.com/emqtt/emq_auth_clientid master
 dep_emq_auth_username   = git https://github.com/emqtt/emq_auth_username master
 dep_emq_auth_ldap       = git https://github.com/emqtt/emq_auth_ldap master
