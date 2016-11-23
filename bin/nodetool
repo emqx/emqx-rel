@@ -21,6 +21,8 @@ main(Args) ->
     case RestArgs of
         ["mnesia_dir", DataDir, NodeName] ->
             create_mnesia_dir(DataDir, NodeName), halt(0);
+        ["mergeconf", EmqCfg, PluginsEtc, DestDir] ->
+            mergeconf(EmqCfg, PluginsEtc, DestDir);
         ["chkconfig", File] ->
             chkconfig(File);
         ["chkconfig", "-config", File|_] ->
