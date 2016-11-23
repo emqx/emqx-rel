@@ -19,6 +19,8 @@ main(Args) ->
 
     %% any commands that don't need a running node
     case RestArgs of
+        ["mnesia_dir", DataDir, NodeName] ->
+            create_mnesia_dir(DataDir, NodeName), halt(0);
         ["mergeconf", EmqCfg, PluginsEtc, DestDir] ->
             mergeconf(EmqCfg, PluginsEtc, DestDir);
         ["chkconfig", File] ->
@@ -171,6 +173,12 @@ append_node_suffix(Name, Suffix) ->
         [Node] ->
             list_to_atom(lists:concat([Node, Suffix, os:getpid()]))
     end.
+
+%% For windows???
+create_mnesia_dir(DataDir, NodeName) ->
+    MnesiaDir = filename:join(DataDir, NodeName),
+    file:make_dir(MnesiaDir),
+    io:format("~s", [MnesiaDir]).
 
 mergeconf(EmqCfg, PluginsEtc, DestDir) ->
     AppConf = filename:join(DestDir, appconf()),
