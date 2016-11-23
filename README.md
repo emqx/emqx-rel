@@ -30,7 +30,9 @@ Build on Windows
 
 1. Install Erlang/OTP-R18.3 and MSYS2-x86_64 for erlang.mk:
 
+```
 https://erlang.mk/guide/installation.html#_on_windows
+```
 
 2. Clone and build the EMQ broker with erlang.mk:
 
