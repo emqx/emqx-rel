@@ -15,9 +15,9 @@
 
 :: Set variables that describe the release
 @set rel_name=emqttd
-@set rel_vsn={{ rel_vsn }}
-@set erts_vsn={{ erts_vsn }}
-@set erl_opts={{ erl_opts }}
+@set rel_vsn=2.0
+@set erts_vsn=7.3
+@set erl_opts=
 
 @set script=%~n0
 
