@@ -35,8 +35,10 @@ Clone and build the EMQ broker with erlang.mk:
 
 ```
 git clone https://github.com/emqtt/emq-relx.git
-cd emq-relx && make
-cd _rel/emqttd && ./bin/emqttd console
+cd emq-relx
+make
+cd _rel\emqttd
+.\bin\emqttd console
 ```
 
 License
