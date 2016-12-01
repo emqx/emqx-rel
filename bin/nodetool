@@ -51,7 +51,7 @@ main(Args) ->
             %% a "pong"
             io:format("pong\n");
         ["stop"] ->
-            io:format("unload plugins: ~p\n", [rpc:call(TargetNode, emqttd_plugins, unload, [], 60000)]),
+            rpc:call(TargetNode, emqttd_plugins, unload, [], 60000),
             io:format("~p\n", [rpc:call(TargetNode, init, stop, [], 60000)]);
         ["restart"] ->
             io:format("~p\n", [rpc:call(TargetNode, init, restart, [], 60000)]);
