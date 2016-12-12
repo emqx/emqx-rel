@@ -278,10 +278,10 @@ case "$1" in
             if ! relx_nodetool "ping" >/dev/null 2>&1; then
                 continue
             fi
-            echo "EMQ-2.0 is started successfully!"
+            echo "emqttd {{ rel_vsn }} is started successfully!"
             exit 0
         done
-        echo "The EMQ broker failed to start within ${WAIT_FOR_ERLANG:-15} seconds,"
+        echo "The broker failed to start within ${WAIT_FOR_ERLANG:-15} seconds,"
         echo "see the output of './bin/emqttd console' for more information."
         echo "If you want to wait longer, set the environment variable"
         echo "WAIT_FOR_ERLANG to the number of seconds to wait."
