@@ -202,8 +202,8 @@
 :: @%erlsrv% start %service_name%
 @call :create_mnesia_dir
 @call :generate_app_config
-@set args=-detached -noshell %sys_config% %args_file% %generated_config_args% -mnesia dir '%mnesia_dir%'
-@%erl_exe% -boot "%boot_script%" %args%
+@set args=-detached %sys_config% %args_file% %generated_config_args% -mnesia dir '%mnesia_dir%'
+@start "%rel_name%" %werl% -boot "%boot_script%" %args%
 @goto :eof
 
 :: Stop the Windows service
