@@ -38,7 +38,7 @@ CUTTLEFISH="on"
 if [ -z "$CUTTLEFISH" ]; then
     CUTTLEFISH_COMMAND_PREFIX=""
 else
-    CUTTLEFISH_COMMAND_PREFIX="$ERTS_PATH/escript $SCRIPT_DIR/cuttlefish -s $REL_DIR/schema -d $RUNNER_DATA_DIR/configs"
+    CUTTLEFISH_COMMAND_PREFIX="$ERTS_PATH/escript $RUNNER_ROOT_DIR/bin/cuttlefish -s $REL_DIR/schema -d $RUNNER_DATA_DIR/configs"
 fi
 
 SED_REPLACE="sed -i"
