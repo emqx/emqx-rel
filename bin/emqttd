@@ -17,10 +17,10 @@ ERTS_PATH=$RUNNER_ROOT_DIR/erts-$ERTS_VSN/bin
 CODE_LOADING_MODE="${CODE_LOADING_MODE:-embedded}"
 REL_DIR="$RUNNER_ROOT_DIR/releases/$REL_VSN"
 ERL_OPTS="{{ erl_opts }}"
-RUNNER_LOG_DIR={{runner_log_dir}}
-RUNNER_LIB_DIR=$RUNNER_ROOT_DIR/lib
+RUNNER_LOG_DIR={{ runner_log_dir }}
+RUNNER_LIB_DIR={{ runner_lib_dir }}
 RUNNER_ETC_DIR={{ runner_etc_dir }}
-RUNNER_DATA_DIR={{ runner_data_dir}} 
+RUNNER_DATA_DIR={{ runner_data_dir }}
 
 # Warn the user if ulimit -n is less than 1024
 ULIMIT_F=`ulimit -n`

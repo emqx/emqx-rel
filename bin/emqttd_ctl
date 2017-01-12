@@ -15,8 +15,10 @@ REL_VSN="{{ rel_vsn }}"
 ERTS_VSN="{{ erts_vsn }}"
 REL_DIR="$RUNNER_ROOT_DIR/releases/$REL_VSN"
 ERL_OPTS="{{ erl_opts }}"
-RUNNER_LOG_DIR={{runner_log_dir}}
+RUNNER_LOG_DIR={{ runner_log_dir }}
+RUNNER_LIB_DIR={{ runner_lib_dir }}
 RUNNER_ETC_DIR={{ runner_etc_dir }}
+RUNNER_DATA_DIR={{ runner_data_dir }}
 
 find_erts_dir() {
     __erts_dir="$RUNNER_ROOT_DIR/erts-$ERTS_VSN"
