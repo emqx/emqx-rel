@@ -9,7 +9,11 @@ if [ -z $SCRIPT ]; then
     SCRIPT=$0
 fi;
 SCRIPT_DIR="$(cd `dirname "$SCRIPT"` && pwd -P)"
-RUNNER_ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd -P){{ runner_root_dir }}"
+if [ -d "/usr/lib64/" ]; then
+    RUNNER_ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd -P){{ runner_root_dir_for_64 }}"
+else
+    RUNNER_ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd -P){{ runner_root_dir }}"
+fi
 REL_NAME="emqttd"
 REL_VSN="{{ rel_vsn }}"
 ERTS_VSN="{{ erts_vsn }}"
@@ -121,7 +125,7 @@ relx_escript() {
 
 # Output a start command for the last argument of run_erl
 relx_start_command() {
-    printf "exec \"%s\" \"%s\"" "{{ runner_bin_dir }}$REL_NAME" \
+    printf "exec \"%s\" \"%s\"" "{{ runner_bin_dir }}/$REL_NAME" \
            "$START_OPTION"
 }
 
@@ -263,7 +267,7 @@ case "$1" in
         [ "$RUN_PARAM" ] && set -- "$@" "$RUN_PARAM"
 
         # Export the HEART_COMMAND
-        HEART_COMMAND="{{ runner_bin_dir }}$REL_NAME $CMD"
+        HEART_COMMAND="{{ runner_bin_dir }}/$REL_NAME $CMD"
         export HEART_COMMAND
 
         mkdir -p "$PIPE_DIR"
