@@ -9,14 +9,16 @@ if [ -z $SCRIPT ]; then
     SCRIPT=$0
 fi;
 SCRIPT_DIR="$(cd `dirname "$SCRIPT"` && pwd -P)"
-RUNNER_ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd -P)"
+RUNNER_ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd -P){{ runner_root_dir }}"
 REL_NAME="emqttd"
 REL_VSN="{{ rel_vsn }}"
 ERTS_VSN="{{ erts_vsn }}"
 REL_DIR="$RUNNER_ROOT_DIR/releases/$REL_VSN"
 ERL_OPTS="{{ erl_opts }}"
-RUNNER_LOG_DIR="${RUNNER_LOG_DIR:-$RUNNER_ROOT_DIR/log}"
-RUNNER_ETC_DIR="${RUNNER_ETC_DIR:-$RUNNER_ROOT_DIR/etc}"
+RUNNER_LOG_DIR={{ runner_log_dir }}
+RUNNER_LIB_DIR={{ runner_lib_dir }}
+RUNNER_ETC_DIR={{ runner_etc_dir }}
+RUNNER_DATA_DIR={{ runner_data_dir }}
 
 find_erts_dir() {
     __erts_dir="$RUNNER_ROOT_DIR/erts-$ERTS_VSN"
