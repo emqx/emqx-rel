@@ -121,7 +121,7 @@ relx_escript() {
 
 # Output a start command for the last argument of run_erl
 relx_start_command() {
-    printf "exec \"%s\" \"%s\"" "{{ runner_bin_dir }}$REL_NAME" \
+    printf "exec \"%s\" \"%s\"" "{{ runner_bin_dir }}/$REL_NAME" \
            "$START_OPTION"
 }
 
@@ -263,7 +263,7 @@ case "$1" in
         [ "$RUN_PARAM" ] && set -- "$@" "$RUN_PARAM"
 
         # Export the HEART_COMMAND
-        HEART_COMMAND="{{ runner_bin_dir }}$REL_NAME $CMD"
+        HEART_COMMAND="{{ runner_bin_dir }}/$REL_NAME $CMD"
         export HEART_COMMAND
 
         mkdir -p "$PIPE_DIR"
