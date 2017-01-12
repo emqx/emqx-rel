@@ -1,6 +1,6 @@
 PROJECT = emq-relx
 PROJECT_DESCRIPTION = Release Project for the EMQ Broker
-PROJECT_VERSION = 2.0.6
+PROJECT_VERSION = 2.0.7
 
 DEPS = emqttd emq_dashboard emq_recon emq_reloader emq_stomp emq_plugin_template \
 	   emq_mod_rewrite emq_mod_presence emq_mod_retainer emq_mod_subscription \
@@ -9,7 +9,7 @@ DEPS = emqttd emq_dashboard emq_recon emq_reloader emq_stomp emq_plugin_template
 	   emq_sn emq_coap
 
 # emq deps
-dep_emqttd        = git https://github.com/emqtt/emqttd emq20
+dep_emqttd        = git https://github.com/emqtt/emqttd master
 dep_emq_dashboard = git https://github.com/emqtt/emq-dashboard master
 dep_emq_recon     = git https://github.com/emqtt/emq-recon master
 dep_emq_reloader  = git https://github.com/emqtt/emq-reloader master
