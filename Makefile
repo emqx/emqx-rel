@@ -19,7 +19,7 @@ dep_emq_stomp     = git https://github.com/emqtt/emq-stomp master
 dep_emq_mod_presence     = git https://github.com/emqtt/emq-mod-presence master
 dep_emq_mod_retainer     = git https://github.com/emqtt/emq-mod-retainer master
 dep_emq_mod_rewrite      = git https://github.com/emqtt/emq-mod-rewrite master
-dep_emq_mod_subscription = git https://github.com/emqtt/emq-mod-subscription master
+dep_emq_mod_subscription = git https://github.com/rahx/emq-mod-subscription master
 
 # emq auth/acl plugins
 dep_emq_auth_clientid   = git https://github.com/emqtt/emq-auth-clientid master
