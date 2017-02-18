@@ -203,6 +203,9 @@
 @call :create_mnesia_dir
 @call :generate_app_config
 @set args=-detached %sys_config% %args_file% %generated_config_args% -mnesia dir '%mnesia_dir%'
+@echo off
+cd /d %rel_root_dir%
+@echo on
 @start "%rel_name%" %werl% -boot "%boot_script%" %args%
 @goto :eof
 
@@ -230,7 +233,10 @@
 @call :create_mnesia_dir
 @call :generate_app_config
 @set args=%sys_config% %args_file% %generated_config_args% -mnesia dir '%mnesia_dir%'
-@start "%rel_name% console" %werl% -boot "%boot_script%" %args%
+@echo off
+cd /d %rel_root_dir%
+@echo on
+@start "bin\%rel_name% console" %werl% -boot "%boot_script%" %args%
 @goto :eof
 
 :: Ping the running node
