@@ -1,6 +1,6 @@
 PROJECT = emq-relx
 PROJECT_DESCRIPTION = Release Project for the EMQ Broker
-PROJECT_VERSION = 2.1
+PROJECT_VERSION = 2.1.0
 
 DEPS = emqttd emq_modules emq_dashboard emq_retainer emq_recon emq_reloader \
 	   emq_auth_clientid emq_auth_username emq_auth_ldap emq_auth_http \
