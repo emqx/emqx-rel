@@ -14,3 +14,4 @@ data/configs/*.config
 data/configs/*.conf
 data/configs/*.args
 rel/
+log/

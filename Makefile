@@ -55,3 +55,13 @@ plugins:
 
 app:: plugins
 
+tests:: test_plugin
+
+test_plugin:
+	@rm -rf log
+	@for dep in $(DEPS) ; do \
+		mkdir -p log/$${dep}/ ; \
+		$(MAKE) tests -C deps/$${dep}; \
+		mv deps/$${dep}/logs/ log/$${dep}/ ; \
+		(echo "Test $$dep Over"); \
+	done
