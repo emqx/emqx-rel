@@ -8,7 +8,7 @@ DEPS = emqttd emq_modules emq_dashboard emq_retainer emq_recon emq_reloader \
        emq_sn emq_coap emq_stomp emq_plugin_template \
 
 # emq deps
-dep_emqttd        = git https://github.com/emqtt/emqttd v2.1.0-beta.1
+dep_emqttd        = git https://github.com/emqtt/emqttd windows
 dep_emq_modules   = git https://github.com/emqtt/emq-modules v2.1.0-beta.1
 dep_emq_dashboard = git https://github.com/emqtt/emq-dashboard v2.1.0-beta.1
 dep_emq_retainer  = git https://github.com/emqtt/emq-retainer v2.1.0-beta.1
