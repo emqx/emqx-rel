@@ -1,11 +1,11 @@
 PROJECT = emq-relx
 PROJECT_DESCRIPTION = Release Project for the EMQ Broker
-PROJECT_VERSION = 2.1
+PROJECT_VERSION = 2.1.0
 
 DEPS = emqttd emq_modules emq_dashboard emq_retainer emq_recon emq_reloader \
-	   emq_auth_clientid emq_auth_username emq_auth_ldap emq_auth_http \
-	   emq_auth_mysql emq_auth_pgsql emq_auth_redis emq_auth_mongo \
-	   emq_sn emq_coap emq_stomp emq_plugin_template \
+       emq_auth_clientid emq_auth_username emq_auth_ldap emq_auth_http \
+       emq_auth_mysql emq_auth_pgsql emq_auth_redis emq_auth_mongo \
+       emq_sn emq_coap emq_stomp emq_plugin_template \
 
 # emq deps
 dep_emqttd        = git https://github.com/emqtt/emqttd emq20
@@ -26,7 +26,7 @@ dep_emq_auth_redis      = git https://github.com/emqtt/emq-auth-redis emq20
 dep_emq_auth_mongo      = git https://github.com/emqtt/emq-auth-mongo emq20
 
 # mqtt-sn, coap and stomp
-dep_emq_sn 	  = git https://github.com/emqtt/emq-sn emq20
+dep_emq_sn    = git https://github.com/emqtt/emq-sn emq20
 dep_emq_coap  = git https://github.com/emqtt/emq-coap emq20
 dep_emq_stomp = git https://github.com/emqtt/emq-stomp emq20
 
