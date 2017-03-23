@@ -1,7 +1,8 @@
 #!/bin/sh
 
-[ "x" = "x$EMQ_NODE_NAME" ] && EMQ_NODE_NAME=emqttd@127.0.0.1
+[ "x" = "x$EMQ_NODE_NAME" ] && EMQ_NODE_NAME=emq@127.0.0.1
 [ "x" = "x$EMQ_NODE_COOKIE" ] && EMQ_NODE_COOKIE=emq_dist_cookie
+[ "x" = "x$EMQ_MAX_PACKET_SIZE" ] && EMQ_MAX_PACKET_SIZE=64KB
 [ "x" = "x$EMQ_MAX_PORTS" ] && EMQ_MAX_PORTS=65536
 [ "x" = "x$EMQ_TCP_PORT" ] && EMQ_TCP_PORT=1883
 [ "x" = "x$EMQ_SSL_PORT" ] && EMQ_SSL_PORT=8883
