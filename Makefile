@@ -54,4 +54,3 @@ plugins:
 	done
 
 app:: plugins
-

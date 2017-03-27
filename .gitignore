@@ -14,3 +14,6 @@ data/configs/*.config
 data/configs/*.conf
 data/configs/*.args
 rel/
+log/
+ct/logs/*
+.DS_Store

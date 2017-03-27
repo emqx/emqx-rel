@@ -22,6 +22,8 @@ RUNNER_LIB_DIR={{ runner_lib_dir }}
 RUNNER_ETC_DIR={{ runner_etc_dir }}
 RUNNER_DATA_DIR={{ runner_data_dir }}
 
+WHOAMI=$(whoami)
+
 # Warn the user if ulimit -n is less than 1024
 ULIMIT_F=`ulimit -n`
 if [ "$ULIMIT_F" -lt 1024 ]; then
@@ -194,7 +196,7 @@ fi
 NAME_TYPE="$(echo "$NAME_ARG" | awk '{print $1}')"
 NAME="$(echo "$NAME_ARG" | awk '{print $2}')"
 
-PIPE_DIR="${PIPE_DIR:-/tmp/erl_pipes/$NAME/}"
+PIPE_DIR="${PIPE_DIR:-/tmp/${WHOAMI}_erl_pipes/$NAME/}"
 
 [ "x" = "x$EMQ_NODE_COOKIE" ] || COOKIE_ARG="-setcookie $EMQ_NODE_COOKIE"
 # Extract the target cookie
