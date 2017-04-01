@@ -182,6 +182,7 @@ create_mnesia_dir(DataDir, NodeName) ->
     io:format("~s", [MnesiaDir]).
 
 mergeconf(EmqCfg, PluginsEtc, DestDir) ->
+    filelib:ensure_dir(DestDir),%% support brew on macosx
     AppConf = filename:join(DestDir, appconf()),
     case file:open(AppConf, [write]) of
         {ok, DestFd} ->
