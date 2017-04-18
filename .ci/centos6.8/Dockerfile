@@ -7,6 +7,7 @@ RUN wget https://packages.erlang-solutions.com/erlang-solutions-1.0-1.noarch.rpm
 RUN rpm -Uvh /tmp/erlang-solutions-1.0-1.noarch.rpm
 RUN yum install -y epel-release
 RUN yum install -y esl-erlang-19.1
+RUN mkdir -p /rebar && git clone https://github.com/rebar/rebar && cd /rebar && ./bootstrap && cp /rebar/rebar /usr/local/bin/ && rm -rf /rebar
 RUN mkdir -p /root/.ssh/
 
 # cleanup
