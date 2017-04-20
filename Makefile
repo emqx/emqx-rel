@@ -2,10 +2,14 @@ PROJECT = emq-relx
 PROJECT_DESCRIPTION = Release Project for the EMQ Broker
 PROJECT_VERSION = 2.1.2
 
-DEPS = emqttd emq_modules emq_dashboard emq_retainer emq_recon emq_reloader \
-       emq_auth_clientid emq_auth_username emq_auth_ldap emq_auth_http \
-       emq_auth_mysql emq_auth_pgsql emq_auth_redis emq_auth_mongo \
-       emq_sn emq_coap emq_stomp emq_plugin_template \
+## Fix 'rebar command not found'
+DEPS = goldrush
+dep_goldrush = git https://github.com/basho/goldrush 0.1.9
+
+DEPS += emqttd emq_modules emq_dashboard emq_retainer emq_recon emq_reloader \
+        emq_auth_clientid emq_auth_username emq_auth_ldap emq_auth_http \
+        emq_auth_mysql emq_auth_pgsql emq_auth_redis emq_auth_mongo \
+        emq_sn emq_coap emq_stomp emq_plugin_template \
 
 # emq deps
 dep_emqttd        = git https://github.com/emqtt/emqttd v2.1.2
@@ -54,4 +58,3 @@ plugins:
 	done
 
 app:: plugins
-
