@@ -6,6 +6,7 @@
 {alias, emq_auth_redis, "../deps/emq_auth_redis/test"}.
 {alias, emq_auth_http, "../deps/emq_auth_http/test"}.
 {alias, emq_auth_clientid, "../deps/emq_auth_clientid/test"}.
+{alias, emq_auth_username, "../deps/emq_auth_username/test"}.
 
 {logdir, "./logs/"}.
 
@@ -24,4 +25,5 @@
 {suites, emq_auth_redis, all}.
 {suites, emq_auth_http, all}.
 {suites, emq_auth_clientid, all}.
+{suites, emq_auth_username, all}.
 {abort_if_missing_suites, true}.
