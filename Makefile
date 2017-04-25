@@ -9,34 +9,39 @@ dep_goldrush = git https://github.com/basho/goldrush 0.1.9
 DEPS += emqttd emq_modules emq_dashboard emq_retainer emq_recon emq_reloader \
         emq_auth_clientid emq_auth_username emq_auth_ldap emq_auth_http \
         emq_auth_mysql emq_auth_pgsql emq_auth_redis emq_auth_mongo \
-        emq_sn emq_coap emq_stomp emq_plugin_template emq_web_hook\
+        emq_sn emq_coap emq_stomp emq_plugin_template emq_web_hook \
+		emq_lua_hook
 
 # emq deps
-dep_emqttd        = git https://github.com/emqtt/emqttd emq22
-dep_emq_modules   = git https://github.com/emqtt/emq-modules emq22
-dep_emq_dashboard = git https://github.com/emqtt/emq-dashboard emq22
-dep_emq_retainer  = git https://github.com/emqtt/emq-retainer emq22
-dep_emq_recon     = git https://github.com/emqtt/emq-recon emq22
-dep_emq_reloader  = git https://github.com/emqtt/emq-reloader emq22
+dep_emqttd        = git https://github.com/emqtt/emqttd develop
+dep_emq_modules   = git https://github.com/emqtt/emq-modules develop
+dep_emq_dashboard = git https://github.com/emqtt/emq-dashboard develop
+dep_emq_retainer  = git https://github.com/emqtt/emq-retainer develop
+dep_emq_recon     = git https://github.com/emqtt/emq-recon develop
+dep_emq_reloader  = git https://github.com/emqtt/emq-reloader develop
 dep_emq_web_hook  = git https://github.com/emqtt/emq-web-hook develop 
 
 # emq auth/acl plugins
-dep_emq_auth_clientid = git https://github.com/emqtt/emq-auth-clientid emq22
-dep_emq_auth_username = git https://github.com/emqtt/emq-auth-username emq22
-dep_emq_auth_ldap     = git https://github.com/emqtt/emq-auth-ldap emq22
-dep_emq_auth_http     = git https://github.com/emqtt/emq-auth-http emq22
-dep_emq_auth_mysql    = git https://github.com/emqtt/emq-auth-mysql emq22
-dep_emq_auth_pgsql    = git https://github.com/emqtt/emq-auth-pgsql emq22
-dep_emq_auth_redis    = git https://github.com/emqtt/emq-auth-redis emq22
-dep_emq_auth_mongo    = git https://github.com/emqtt/emq-auth-mongo emq22
+dep_emq_auth_clientid = git https://github.com/emqtt/emq-auth-clientid develop
+dep_emq_auth_username = git https://github.com/emqtt/emq-auth-username develop
+dep_emq_auth_ldap     = git https://github.com/emqtt/emq-auth-ldap develop
+dep_emq_auth_http     = git https://github.com/emqtt/emq-auth-http develop
+dep_emq_auth_mysql    = git https://github.com/emqtt/emq-auth-mysql develop
+dep_emq_auth_pgsql    = git https://github.com/emqtt/emq-auth-pgsql develop
+dep_emq_auth_redis    = git https://github.com/emqtt/emq-auth-redis develop
+dep_emq_auth_mongo    = git https://github.com/emqtt/emq-auth-mongo develop
 
 # mqtt-sn, coap and stomp
-dep_emq_sn    = git https://github.com/emqtt/emq-sn emq22
-dep_emq_coap  = git https://github.com/emqtt/emq-coap emq22
-dep_emq_stomp = git https://github.com/emqtt/emq-stomp emq22
+dep_emq_sn    = git https://github.com/emqtt/emq-sn develop
+dep_emq_coap  = git https://github.com/emqtt/emq-coap develop
+dep_emq_stomp = git https://github.com/emqtt/emq-stomp develop
 
 # plugin template
-dep_emq_plugin_template = git https://github.com/emqtt/emq-plugin-template emq22
+dep_emq_plugin_template = git https://github.com/emqtt/emq-plugin-template develop
+
+# web_hook lua_hook
+dep_emq_web_hook  = git https://github.com/emqtt/emq-web-hook develop 
+dep_emq_lua_hook  = git https://github.com/emqtt/emq-lua-hook develop
 
 # COVER = true
 
