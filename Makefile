@@ -1,6 +1,6 @@
 PROJECT = emq-relx
 PROJECT_DESCRIPTION = Release Project for the EMQ Broker
-PROJECT_VERSION = 2.1.2
+PROJECT_VERSION = 2.2
 
 ## Fix 'rebar command not found'
 DEPS = goldrush
@@ -9,7 +9,8 @@ dep_goldrush = git https://github.com/basho/goldrush 0.1.9
 DEPS += emqttd emq_modules emq_dashboard emq_retainer emq_recon emq_reloader \
         emq_auth_clientid emq_auth_username emq_auth_ldap emq_auth_http \
         emq_auth_mysql emq_auth_pgsql emq_auth_redis emq_auth_mongo \
-        emq_sn emq_coap emq_stomp emq_plugin_template \
+        emq_sn emq_coap emq_stomp emq_plugin_template emq_web_hook \
+		emq_lua_hook
 
 # emq deps
 dep_emqttd        = git https://github.com/emqtt/emqttd v2.1.2
@@ -36,6 +37,10 @@ dep_emq_stomp = git https://github.com/emqtt/emq-stomp v2.1.2
 
 # plugin template
 dep_emq_plugin_template = git https://github.com/emqtt/emq-plugin-template v2.1.2
+
+# web_hook lua_hook
+dep_emq_web_hook  = git https://github.com/emqtt/emq-web-hook master 
+dep_emq_lua_hook  = git https://github.com/emqtt/emq-lua-hook master
 
 # COVER = true
 

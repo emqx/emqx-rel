@@ -158,13 +158,14 @@ generate_config() {
 }
 
 replace_env_in_conf() {
-    [ "x" = "x$EMQ_NODE_NAME" ]   || $SED_REPLACE "s/^[ \t]*node.name[ \t]*=.*$/node.name= $EMQ_NODE_NAME/" $APPCONF
-    [ "x" = "x$EMQ_NODE_COOKIE" ] || $SED_REPLACE "s/^[ \t]*node.cookie[ \t]*=.*$/node.cookie= $EMQ_NODE_COOKIE/" $APPCONF
-    [ "x" = "x$EMQ_MAX_PORTS" ]   || $SED_REPLACE "s/^[ \t]*node.max_ports[ \t]*=.*$/node.max_ports = $EMQ_MAX_PORTS/" $APPCONF
-    [ "x" = "x$EMQ_TCP_PORT" ]    || $SED_REPLACE "s/^[ \t]*mqtt.listener.tcp[ \t]*=.*$/mqtt.listener.tcp = $EMQ_TCP_PORT/" $APPCONF
-    [ "x" = "x$EMQ_SSL_PORT" ]    || $SED_REPLACE "s/^[ \t]*mqtt.listener.ssl[ \t]*=.*$/mqtt.listener.ssl = $EMQ_SSL_PORT/" $APPCONF
-    [ "x" = "x$EMQ_HTTP_PORT" ]   || $SED_REPLACE "s/^[ \t]*mqtt.listener.http[ \t]*=.*$/mqtt.listener.http = $EMQ_HTTP_PORT/" $APPCONF
-    [ "x" = "x$EMQ_HTTPS_PORT" ]  || $SED_REPLACE "s/^[ \t]*mqtt.listener.https[ \t]*=.*$/mqtt.listener.https = $EMQ_HTTPS_PORT/" $APPCONF
+    [ "x" = "x$EMQ_NODE_NAME" ]       || $SED_REPLACE "s/^[ \t]*node.name[ \t]*=.*$/node.name= $EMQ_NODE_NAME/" $APPCONF
+    [ "x" = "x$EMQ_NODE_COOKIE" ]     || $SED_REPLACE "s/^[ \t]*node.cookie[ \t]*=.*$/node.cookie= $EMQ_NODE_COOKIE/" $APPCONF
+    [ "x" = "x$EMQ_MAX_PORTS" ]       || $SED_REPLACE "s/^[ \t]*node.max_ports[ \t]*=.*$/node.max_ports = $EMQ_MAX_PORTS/" $APPCONF
+    [ "x" = "x$EMQ_MAX_PACKET_SIZE" ] || $SED_REPLACE "s/^[ \t]*mqtt.max_packet_size[ \t]*=.*$/mqtt.max_packet_size = $EMQ_MAX_PACKET_SIZE/" $APPCONF
+    [ "x" = "x$EMQ_TCP_PORT" ]        || $SED_REPLACE "s/^[ \t]*listener.tcp.external[ \t]*=.*$/listener.tcp.external = $EMQ_TCP_PORT/" $APPCONF
+    [ "x" = "x$EMQ_SSL_PORT" ]        || $SED_REPLACE "s/^[ \t]*listener.ssl.external[ \t]*=.*$/listener.ssl.external = $EMQ_SSL_PORT/" $APPCONF
+    [ "x" = "x$EMQ_WS_PORT" ]         || $SED_REPLACE "s/^[ \t]*listener.ws.external[ \t]*=.*$/listener.ws.external = $EMQ_WS_PORT/" $APPCONF
+    [ "x" = "x$EMQ_WSS_PORT" ]        || $SED_REPLACE "s/^[ \t]*listener.wss.external[ \t]*=.*$/listener.wss.external = $EMQ_WSS_PORT/" $APPCONF
 }
 
 # Make sure log directory exists
