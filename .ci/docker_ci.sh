@@ -17,4 +17,4 @@ sudo  docker save ${package} > ${package}
 
 zip -r ${package}.zip ${package}
 
-scp  ${package}.zip emqtt.io:/root/releases/$1
+scp ${package}.zip root@emqtt.io:/root/releases/$1
