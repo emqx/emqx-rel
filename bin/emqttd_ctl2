@@ -1,0 +1,89 @@
+#!/bin/sh
+# -*- tab-width:4;indent-tabs-mode:nil -*-
+# ex: ts=4 sw=4 et
+
+set -e
+
+SCRIPT=$(readlink $0 || true)
+if [ -z $SCRIPT ]; then
+    SCRIPT=$0
+fi;
+SCRIPT_DIR="$(cd `dirname "$SCRIPT"` && pwd -P)"
+RUNNER_ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd -P){{ runner_root_dir }}"
+REL_NAME="emqttd"
+REL_VSN="{{ rel_vsn }}"
+ERTS_VSN="{{ erts_vsn }}"
+REL_DIR="$RUNNER_ROOT_DIR/releases/$REL_VSN"
+ERL_OPTS="{{ erl_opts }}"
+RUNNER_LOG_DIR={{ runner_log_dir }}
+RUNNER_LIB_DIR={{ runner_lib_dir }}
+RUNNER_ETC_DIR={{ runner_etc_dir }}
+RUNNER_DATA_DIR={{ runner_data_dir }}
+
+find_erts_dir() {
+    __erts_dir="$RUNNER_ROOT_DIR/erts-$ERTS_VSN"
+    if [ -d "$__erts_dir" ]; then
+        ERTS_DIR="$__erts_dir";
+        ROOTDIR="$RUNNER_ROOT_DIR"
+    else
+        __erl="$(which erl)"
+        code="io:format(\"~s\", [code:root_dir()]), halt()."
+        __erl_root="$("$__erl" -noshell -eval "$code")"
+        ERTS_DIR="$__erl_root/erts-$ERTS_VSN"
+        ROOTDIR="$__erl_root"
+    fi
+}
+
+relx_get_nodename() {
+    id="longname$(relx_gen_id)-${NAME}"
+    "$BINDIR/erl" -boot start_clean -eval '[Host] = tl(string:tokens(atom_to_list(node()),"@")), io:format("~s~n", [Host]), halt()' -noshell ${NAME_TYPE} $id
+}
+
+# Control a node
+relx_nodetool() {
+    command="$1"; shift
+
+    "$ERTS_DIR/bin/escript" "$ROOTDIR/bin/nodetool" "$NAME_TYPE" "$NAME" \
+                                -setcookie "$COOKIE" "$command" $@
+}
+
+
+[ "x" = "x$EMQ_NODE_NAME" ] || NAME_ARG="-name $EMQ_NODE_NAME"
+# Extract the target node name from node.args
+if [ -z "$NAME_ARG" ]; then
+    NODENAME=`egrep '^[ \t]*node.name[ \t]*=[ \t]*' $RUNNER_ETC_DIR/emq.conf 2> /dev/null | tail -1 | cut -d = -f 2`
+    if [ -z "$NODENAME" ]; then
+        echoerr "vm.args needs to have a -name parameter."
+        echoerr "  -sname is not supported."
+        exit 1
+    else
+        NAME_ARG="-name ${NODENAME# *}"
+    fi
+fi
+
+# Extract the name type and name from the NAME_ARG for REMSH
+NAME_TYPE="$(echo "$NAME_ARG" | awk '{print $1}')"
+NAME="$(echo "$NAME_ARG" | awk '{print $2}')"
+
+[ "x" = "x$EMQ_NODE_COOKIE" ] || COOKIE_ARG="-setcookie $EMQ_NODE_COOKIE"
+# Extract the target cookie
+if [ -z "$COOKIE_ARG" ]; then
+    COOKIE=`egrep '^[ \t]*node.cookie[ \t]*=[ \t]*' $RUNNER_ETC_DIR/emq.conf 2> /dev/null | tail -1 | cut -d = -f 2`
+    if [ -z "$COOKIE" ]; then
+        echoerr "vm.args needs to have a -setcookie parameter."
+        exit 1
+    else
+        COOKIE_ARG="-setcookie $COOKIE"
+    fi
+fi
+
+# Extract cookie name from COOKIE_ARG
+COOKIE="$(echo "$COOKIE_ARG" | awk '{print $2}')"
+
+find_erts_dir
+export ROOTDIR="$RUNNER_ROOT_DIR"
+export BINDIR="$ERTS_DIR/bin"
+cd "$ROOTDIR"
+
+relx_nodetool rpc emqttd_cli2 run $@
+
