@@ -44,9 +44,6 @@ dep_emq_lua_hook  = git https://github.com/emqtt/emq-lua-hook v2.2-beta.2
 
 # COVER = true
 
-NO_AUTOPATCH = emq_elixir_plugin
-
-
 include erlang.mk
 
 plugins:
