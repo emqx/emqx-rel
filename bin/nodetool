@@ -65,10 +65,10 @@ main(Args) ->
                 {error, cmd_not_found} ->
                     halt(1);
                 {error, Reason} ->
-                    io:format("PRC to ~p error: ~p\n", [TargetNode, Reason]),
+                    io:format("RPC to ~s error: ~p\n", [TargetNode, Reason]),
                     halt(1);
                 {badrpc, Reason} ->
-                    io:format("RPC to ~p failed: ~p\n", [TargetNode, Reason]),
+                    io:format("RPC to ~s failed: ~p\n", [TargetNode, Reason]),
                     halt(1);
                 _ ->
                     halt(1)
