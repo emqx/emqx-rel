@@ -3,7 +3,7 @@ emq-relx
 
 The Release Project for the *EMQ* Broker.
 
-NOTICE: Requires Erlang/OTP R18+ to build.
+NOTICE: Requires Erlang/OTP R19.3+ to build since EMQ 2.2-rc.2.
 
 Build on Linux/Unix/Mac
 -----------------------
