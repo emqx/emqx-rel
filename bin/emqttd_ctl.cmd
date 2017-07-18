@@ -31,7 +31,7 @@
 )
 
 :: Extract cookie from vm.args
-@for /f "usebackq tokens=1-2" %%I in (`findstr /b "cluster.cookie=" "%emq_conf%"`) do @(
+@for /f "usebackq tokens=1-2" %%I in (`findstr /b "node.cookie=" "%emq_conf%"`) do @(
   @call :set_trim node_cookie= %%I
 )
 

@@ -159,7 +159,7 @@ generate_config() {
 
 replace_env_in_conf() {
     [ "x" = "x$EMQ_NODE_NAME" ]       || $SED_REPLACE "s/^[ \t]*node.name[ \t]*=.*$/node.name= $EMQ_NODE_NAME/" $APPCONF
-    [ "x" = "x$EMQ_NODE_COOKIE" ]     || $SED_REPLACE "s/^[ \t]*cluster.cookie[ \t]*=.*$/cluster.cookie= $EMQ_NODE_COOKIE/" $APPCONF
+    [ "x" = "x$EMQ_NODE_COOKIE" ]     || $SED_REPLACE "s/^[ \t]*node.cookie[ \t]*=.*$/node.cookie= $EMQ_NODE_COOKIE/" $APPCONF
     [ "x" = "x$EMQ_MAX_PORTS" ]       || $SED_REPLACE "s/^[ \t]*node.max_ports[ \t]*=.*$/node.max_ports = $EMQ_MAX_PORTS/" $APPCONF
     [ "x" = "x$EMQ_MAX_PACKET_SIZE" ] || $SED_REPLACE "s/^[ \t]*mqtt.max_packet_size[ \t]*=.*$/mqtt.max_packet_size = $EMQ_MAX_PACKET_SIZE/" $APPCONF
     [ "x" = "x$EMQ_TCP_PORT" ]        || $SED_REPLACE "s/^[ \t]*listener.tcp.external[ \t]*=.*$/listener.tcp.external = $EMQ_TCP_PORT/" $APPCONF
@@ -202,7 +202,7 @@ PIPE_DIR="${PIPE_DIR:-/tmp/${WHOAMI}_erl_pipes/$NAME/}"
 [ "x" = "x$EMQ_NODE_COOKIE" ] || COOKIE_ARG="-setcookie $EMQ_NODE_COOKIE"
 # Extract the target cookie
 if [ -z "$COOKIE_ARG" ]; then
-    COOKIE=`egrep '^[ \t]*cluster.cookie[ \t]*=[ \t]*' $RUNNER_ETC_DIR/emq.conf 2> /dev/null | tail -1 | cut -d = -f 2`
+    COOKIE=`egrep '^[ \t]*node.cookie[ \t]*=[ \t]*' $RUNNER_ETC_DIR/emq.conf 2> /dev/null | tail -1 | cut -d = -f 2`
     if [ -z "$COOKIE" ]; then
         echoerr "vm.args needs to have a -setcookie parameter."
         exit 1
