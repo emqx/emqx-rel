@@ -10,4 +10,4 @@ version=`cd emq-relx && git describe --abbrev=0 --tags`
 pkg=emqttd-macosx-${version}.zip
 echo "building $pkg..."
 cd emq-relx && make && cd _rel && zip -rq $pkg emqttd
-scp rel/emqttd.zip root@emqtt.io:/root/releases/$1
+scp _rel/$pkg root@emqtt.io:/root/releases/$1
