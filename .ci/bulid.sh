@@ -10,7 +10,7 @@ cp ~/.ssh/id_rsa.pub ./files
 
 mkdir -p /home/ubuntu/package
 
-oslist=(debian7 debian8 centos6.8 centos7 ubuntu12.04 ubuntu14.04 ubuntu16.04)
+oslist=(debian7 debian8 debian9 centos6.8 centos7 ubuntu12.04 ubuntu14.04 ubuntu16.04)
 for var in ${oslist[@]};do
     sudo docker build -t ci-${var} -f ${var}/Dockerfile .
     sudo docker rm -f emq-${var}
