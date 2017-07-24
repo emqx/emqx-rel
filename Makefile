@@ -32,7 +32,6 @@ dep_emq_auth_mongo    = git https://github.com/emqtt/emq-auth-mongo emq24
 dep_emq_auth_jwt      = git https://github.com/emqtt/emq-auth-jwt emq24
 
 # mqtt-sn, coap and stomp
-
 dep_emq_sn    = git https://github.com/emqtt/emq-sn emq24
 dep_emq_coap  = git https://github.com/emqtt/emq-coap emq24
 dep_emq_stomp = git https://github.com/emqtt/emq-stomp emq24
