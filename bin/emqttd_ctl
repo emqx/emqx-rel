@@ -9,7 +9,7 @@ if [ -z $SCRIPT ]; then
     SCRIPT=$0
 fi;
 SCRIPT_DIR="$(cd `dirname "$SCRIPT"` && pwd -P)"
-if [ -d "/usr/lib64/" ]; then
+if [ -d "/usr/lib64/emqttd" ]; then
     RUNNER_ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd -P){{ runner_root_dir_for_64 }}"
 else
     RUNNER_ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd -P){{ runner_root_dir }}"
