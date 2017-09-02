@@ -175,6 +175,7 @@ replace_env_in_conf() {
 
 # Call bootstrapd for daemon commands like start/stop/console
 bootstrapd() {
+    chown $RUNNER_USER $RUNNER_DATA_DIR/.erlang.cookie
     # Fail fast if they have no rights to mess around with pids
     check_user_internal
 
