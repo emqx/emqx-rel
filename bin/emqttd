@@ -175,7 +175,7 @@ replace_env_in_conf() {
 
 # Call bootstrapd for daemon commands like start/stop/console
 bootstrapd() {
-    if [ -e "$RUNNER_USER $RUNNER_DATA_DIR/.erlang.cookie" ]; then
+    if [ -e "$RUNNER_DATA_DIR/.erlang.cookie" ]; then
         chown $RUNNER_USER $RUNNER_DATA_DIR/.erlang.cookie
     fi
     # Fail fast if they have no rights to mess around with pids
