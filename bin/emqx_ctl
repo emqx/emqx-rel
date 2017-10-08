@@ -10,7 +10,7 @@ if [ -z $SCRIPT ]; then
 fi;
 SCRIPT_DIR="$(cd `dirname "$SCRIPT"` && pwd -P)"
 RUNNER_ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd -P){{ runner_root_dir }}"
-REL_NAME="emqttd"
+REL_NAME="emqx"
 REL_VSN="{{ rel_vsn }}"
 ERTS_VSN="{{ erts_vsn }}"
 REL_DIR="$RUNNER_ROOT_DIR/releases/$REL_VSN"
@@ -51,7 +51,7 @@ relx_nodetool() {
 [ "x" = "x$EMQ_NODE_NAME" ] || NAME_ARG="-name $EMQ_NODE_NAME"
 # Extract the target node name from node.args
 if [ -z "$NAME_ARG" ]; then
-    NODENAME=`egrep '^[ \t]*node.name[ \t]*=[ \t]*' $RUNNER_ETC_DIR/emq.conf 2> /dev/null | tail -1 | cut -d = -f 2`
+    NODENAME=`egrep '^[ \t]*node.name[ \t]*=[ \t]*' $RUNNER_ETC_DIR/emqx.conf 2> /dev/null | tail -1 | cut -d = -f 2`
     if [ -z "$NODENAME" ]; then
         echoerr "vm.args needs to have a -name parameter."
         echoerr "  -sname is not supported."
@@ -68,7 +68,7 @@ NAME="$(echo "$NAME_ARG" | awk '{print $2}')"
 [ "x" = "x$EMQ_NODE_COOKIE" ] || COOKIE_ARG="-setcookie $EMQ_NODE_COOKIE"
 # Extract the target cookie
 if [ -z "$COOKIE_ARG" ]; then
-    COOKIE=`egrep '^[ \t]*node.cookie[ \t]*=[ \t]*' $RUNNER_ETC_DIR/emq.conf 2> /dev/null | tail -1 | cut -d = -f 2`
+    COOKIE=`egrep '^[ \t]*node.cookie[ \t]*=[ \t]*' $RUNNER_ETC_DIR/emqx.conf 2> /dev/null | tail -1 | cut -d = -f 2`
     if [ -z "$COOKIE" ]; then
         echoerr "vm.args needs to have a -setcookie parameter."
         exit 1
@@ -85,5 +85,5 @@ export ROOTDIR="$RUNNER_ROOT_DIR"
 export BINDIR="$ERTS_DIR/bin"
 cd "$ROOTDIR"
 
-relx_nodetool rpc emqttd_ctl run $@
+relx_nodetool rpc emqx_ctl run $@
 

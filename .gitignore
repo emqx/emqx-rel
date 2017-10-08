@@ -17,3 +17,6 @@ rel/
 log/
 ct/logs/*
 .DS_Store
+.idea/
+*.d
+*.iml

@@ -10,7 +10,7 @@ if [ -z $SCRIPT ]; then
 fi;
 SCRIPT_DIR="$(cd `dirname "$SCRIPT"` && pwd -P)"
 RUNNER_ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd -P){{ runner_root_dir }}"
-REL_NAME="emqttd"
+REL_NAME="emqx"
 REL_VSN="{{ rel_vsn }}"
 ERTS_VSN="{{ erts_vsn }}"
 ERTS_PATH=$RUNNER_ROOT_DIR/erts-$ERTS_VSN/bin
@@ -137,7 +137,7 @@ generate_config() {
         # the vm, we need to pass it in twice.
         CONFIG_ARGS=" -config $RUNNER_ETC_DIR/app.config -args_file $RUNNER_ETC_DIR/vm.args -vm_args $RUNNER_ETC_DIR/vm.args "
     else
-        APPCONF=`relx_nodetool mergeconf $RUNNER_ETC_DIR/emq.conf $RUNNER_ETC_DIR/plugins $RUNNER_DATA_DIR/configs`
+        APPCONF=`relx_nodetool mergeconf $RUNNER_ETC_DIR/emqx.conf $RUNNER_ETC_DIR/plugins $RUNNER_DATA_DIR/configs`
         if [ "$?" -ne 0 ]; then
             echoerr "Error merging configs!"
             exit 1
@@ -158,14 +158,14 @@ generate_config() {
 }
 
 replace_env_in_conf() {
-    [ "x" = "x$EMQ_NODE_NAME" ]       || $SED_REPLACE "s/^[ \t]*node.name[ \t]*=.*$/node.name= $EMQ_NODE_NAME/" $APPCONF
-    [ "x" = "x$EMQ_NODE_COOKIE" ]     || $SED_REPLACE "s/^[ \t]*node.cookie[ \t]*=.*$/node.cookie= $EMQ_NODE_COOKIE/" $APPCONF
-    [ "x" = "x$EMQ_MAX_PORTS" ]       || $SED_REPLACE "s/^[ \t]*node.max_ports[ \t]*=.*$/node.max_ports = $EMQ_MAX_PORTS/" $APPCONF
-    [ "x" = "x$EMQ_MAX_PACKET_SIZE" ] || $SED_REPLACE "s/^[ \t]*mqtt.max_packet_size[ \t]*=.*$/mqtt.max_packet_size = $EMQ_MAX_PACKET_SIZE/" $APPCONF
-    [ "x" = "x$EMQ_TCP_PORT" ]        || $SED_REPLACE "s/^[ \t]*listener.tcp.external[ \t]*=.*$/listener.tcp.external = $EMQ_TCP_PORT/" $APPCONF
-    [ "x" = "x$EMQ_SSL_PORT" ]        || $SED_REPLACE "s/^[ \t]*listener.ssl.external[ \t]*=.*$/listener.ssl.external = $EMQ_SSL_PORT/" $APPCONF
-    [ "x" = "x$EMQ_WS_PORT" ]         || $SED_REPLACE "s/^[ \t]*listener.ws.external[ \t]*=.*$/listener.ws.external = $EMQ_WS_PORT/" $APPCONF
-    [ "x" = "x$EMQ_WSS_PORT" ]        || $SED_REPLACE "s/^[ \t]*listener.wss.external[ \t]*=.*$/listener.wss.external = $EMQ_WSS_PORT/" $APPCONF
+    [ "x" = "x$EMQX_NODE_NAME" ]       || $SED_REPLACE "s/^[ \t]*node.name[ \t]*=.*$/node.name= $EMQX_NODE_NAME/" $APPCONF
+    [ "x" = "x$EMQX_NODE_COOKIE" ]     || $SED_REPLACE "s/^[ \t]*node.cookie[ \t]*=.*$/node.cookie= $EMQX_NODE_COOKIE/" $APPCONF
+    [ "x" = "x$EMQX_MAX_PORTS" ]       || $SED_REPLACE "s/^[ \t]*node.max_ports[ \t]*=.*$/node.max_ports = $EMQX_MAX_PORTS/" $APPCONF
+    [ "x" = "x$EMQX_MAX_PACKET_SIZE" ] || $SED_REPLACE "s/^[ \t]*mqtt.max_packet_size[ \t]*=.*$/mqtt.max_packet_size = $EMQX_MAX_PACKET_SIZE/" $APPCONF
+    [ "x" = "x$EMQX_TCP_PORT" ]        || $SED_REPLACE "s/^[ \t]*listener.tcp.external[ \t]*=.*$/listener.tcp.external = $EMQX_TCP_PORT/" $APPCONF
+    [ "x" = "x$EMQX_SSL_PORT" ]        || $SED_REPLACE "s/^[ \t]*listener.ssl.external[ \t]*=.*$/listener.ssl.external = $EMQX_SSL_PORT/" $APPCONF
+    [ "x" = "x$EMQX_WS_PORT" ]         || $SED_REPLACE "s/^[ \t]*listener.ws.external[ \t]*=.*$/listener.ws.external = $EMQX_WS_PORT/" $APPCONF
+    [ "x" = "x$EMQX_WSS_PORT" ]        || $SED_REPLACE "s/^[ \t]*listener.wss.external[ \t]*=.*$/listener.wss.external = $EMQX_WSS_PORT/" $APPCONF
 }
 
 # Make sure log directory exists
@@ -183,7 +183,7 @@ fi
 [ "x" = "x$EMQ_NODE_NAME" ] || NAME_ARG="-name $EMQ_NODE_NAME"
 # Extract the target node name from node.args
 if [ -z "$NAME_ARG" ]; then
-    NODENAME=`egrep '^[ \t]*node.name[ \t]*=[ \t]*' $RUNNER_ETC_DIR/emq.conf 2> /dev/null | tail -1 | cut -d = -f 2`
+    NODENAME=`egrep '^[ \t]*node.name[ \t]*=[ \t]*' $RUNNER_ETC_DIR/emqx.conf 2> /dev/null | tail -1 | cut -d = -f 2`
     if [ -z "$NODENAME" ]; then
         echoerr "vm.args needs to have a -name parameter."
         echoerr "  -sname is not supported."
@@ -202,7 +202,7 @@ PIPE_DIR="${PIPE_DIR:-/tmp/${WHOAMI}_erl_pipes/$NAME/}"
 [ "x" = "x$EMQ_NODE_COOKIE" ] || COOKIE_ARG="-setcookie $EMQ_NODE_COOKIE"
 # Extract the target cookie
 if [ -z "$COOKIE_ARG" ]; then
-    COOKIE=`egrep '^[ \t]*node.cookie[ \t]*=[ \t]*' $RUNNER_ETC_DIR/emq.conf 2> /dev/null | tail -1 | cut -d = -f 2`
+    COOKIE=`egrep '^[ \t]*node.cookie[ \t]*=[ \t]*' $RUNNER_ETC_DIR/emqx.conf 2> /dev/null | tail -1 | cut -d = -f 2`
     if [ -z "$COOKIE" ]; then
         echoerr "vm.args needs to have a -setcookie parameter."
         exit 1
@@ -281,11 +281,11 @@ case "$1" in
             if ! relx_nodetool "ping" >/dev/null 2>&1; then
                 continue
             fi
-            echo "emqttd {{ rel_vsn }} is started successfully!"
+            echo "emqx {{ rel_vsn }} is started successfully!"
             exit 0
         done
         echo "The broker failed to start within ${WAIT_FOR_ERLANG:-15} seconds,"
-        echo "see the output of './bin/emqttd console' for more information."
+        echo "see the output of './bin/emqx console' for more information."
         echo "If you want to wait longer, set the environment variable"
         echo "WAIT_FOR_ERLANG to the number of seconds to wait."
         exit 1

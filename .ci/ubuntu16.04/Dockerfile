@@ -15,6 +15,6 @@ RUN apt-get clean\
 ADD ./files/id_rsa /root/.ssh/
 ADD ./files/id_rsa.pub /root/.ssh/
 ADD ./files/config /root/.ssh/
-ADD ./files/emq_ci.sh /
+ADD ./files/emqx_ci.sh /
 
-CMD ["/emq_ci.sh"]
+CMD ["/emqx_ci.sh"]

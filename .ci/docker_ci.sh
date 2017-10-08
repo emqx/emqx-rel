@@ -5,15 +5,15 @@
 # Example:
 #       ./docker_ci.sh 2.2-beta.1
 
-package=emqttd-docker-v$1
+package=emqx-docker-v$1
 
-git clone https://github.com/emqtt/emq-docker
+git clone -b X https://github.com/emqtt/emq-docker emqx-docker
 
-cd emq-docker
+cd emqx-docker
 
 sudo docker build -t ${package} .
 
-sudo  docker save ${package} > ${package}
+sudo docker save ${package} > ${package}
 
 zip -r ${package}.zip ${package}
 

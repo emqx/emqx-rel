@@ -14,7 +14,7 @@
 :: * usage - display available commands
 
 :: Set variables that describe the release
-@set rel_name=emqttd
+@set rel_name=emqx
 @set rel_vsn={{ rel_vsn }}
 @set erts_vsn={{ erts_vsn }}
 @set erl_opts={{ erl_opts }}
@@ -32,7 +32,7 @@
 @set etc_dir=%rel_root_dir%\etc
 @set lib_dir=%rel_root_dir%\lib
 @set data_dir=%rel_root_dir%\data
-@set emq_conf=%etc_dir%\emq.conf
+@set emqx_conf=%etc_dir%\emqx.conf
 
 @call :find_erts_dir
 @call :find_vm_args
@@ -51,13 +51,13 @@
 @set nodetool="%rel_root_dir%\bin\nodetool"
 @set cuttlefish="%rel_root_dir%\bin\cuttlefish"
 
-:: Extract node name from emq.conf
-@for /f "usebackq delims=\= tokens=2" %%I in (`findstr /b node\.name "%emq_conf%"`) do @(
+:: Extract node name from emqx.conf
+@for /f "usebackq delims=\= tokens=2" %%I in (`findstr /b node\.name "%emqx_conf%"`) do @(
   @set node_type="-name"
   @call :set_trim node_name %%I
 )
 
-:: Extract node cookie from emq.conf
+:: Extract node cookie from emqx.conf
 @for /f "usebackq delims=\= tokens=2" %%I in (`findstr /b node\.cookie "%emq_conf%"`) do @(
   @call :set_trim node_cookie= %%I
 )
@@ -138,7 +138,7 @@
 @goto :eof
 
 :generate_app_config
-@set mergeconf_cmd=%escript% %nodetool% mergeconf %etc_dir%\emq.conf %etc_dir%\plugins %data_dir%\configs
+@set mergeconf_cmd=%escript% %nodetool% mergeconf %etc_dir%\emqx.conf %etc_dir%\plugins %data_dir%\configs
 @for /f %%Z in ('%%mergeconf_cmd%%') do @(
   set merged_app_conf=%%Z
 )

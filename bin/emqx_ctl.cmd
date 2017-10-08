@@ -1,9 +1,9 @@
-:: The batch file for emqttd_ctl command
+:: The batch file for emqx_ctl command
 
 @set args=%*
 
 :: Set variables that describe the release
-@set rel_name=emqttd
+@set rel_name=emqx
 @set rel_vsn={{ rel_vsn }}
 @set erts_vsn={{ erts_vsn }}
 @set erl_opts={{ erl_opts }}
@@ -15,7 +15,7 @@
   set rel_root_dir=%%~fA
 )
 @set rel_dir=%rel_root_dir%\releases\%rel_vsn%
-@set emq_conf=%rel_root_dir%\etc\emq.conf
+@set emqx_conf=%rel_root_dir%\etc\emqx.conf
 
 @call :find_erts_dir
 
@@ -24,14 +24,14 @@
 @set escript="%bindir%\escript.exe"
 @set nodetool="%rel_root_dir%\bin\nodetool"
 
-:: Extract node name from emq.conf
-@for /f "usebackq tokens=1-2" %%I in (`findstr /b "node.name=" "%emq_conf%"`) do @(
+:: Extract node name from emqx.conf
+@for /f "usebackq tokens=1-2" %%I in (`findstr /b "node.name=" "%emqx_conf%"`) do @(
   @set node_type="-name"
   @call :set_trim node_name %%I
 )
 
 :: Extract cookie from vm.args
-@for /f "usebackq tokens=1-2" %%I in (`findstr /b "node.cookie=" "%emq_conf%"`) do @(
+@for /f "usebackq tokens=1-2" %%I in (`findstr /b "node.cookie=" "%emqx_conf%"`) do @(
   @call :set_trim node_cookie= %%I
 )
 
@@ -43,7 +43,7 @@
   copy "%rel_dir%\%rel_name%.boot" "%rel_dir%\start.boot" >nul
 )
 
-@%escript% %nodetool% %node_type% "%node_name%" -setcookie "%node_cookie%" rpc emqttd_ctl run %args%
+@%escript% %nodetool% %node_type% "%node_name%" -setcookie "%node_cookie%" rpc emqx_ctl run %args%
 
 :: Find the ERTS dir
 :find_erts_dir
