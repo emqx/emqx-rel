@@ -10,7 +10,7 @@ DEPS += emqttd emq_modules emq_dashboard emq_retainer emq_recon emq_reloader \
         emq_auth_clientid emq_auth_username emq_auth_ldap emq_auth_http \
         emq_auth_mysql emq_auth_pgsql emq_auth_redis emq_auth_mongo \
         emq_sn emq_coap emq_stomp emq_plugin_template emq_web_hook \
-        emq_lua_hook emq_elixir_plugin emq_auth_jwt emq_lwm2m
+        emq_lua_hook emq_elixir_plugin emq_auth_jwt
 
 # emq deps
 dep_emqttd        = git https://github.com/emqtt/emqttd master
@@ -35,7 +35,6 @@ dep_emq_auth_jwt      = git https://github.com/emqtt/emq-auth-jwt master
 dep_emq_sn    = git https://github.com/emqtt/emq-sn master
 dep_emq_coap  = git https://github.com/emqtt/emq-coap master
 dep_emq_stomp = git https://github.com/emqtt/emq-stomp master
-dep_emq_lwm2m = git https://github.com/emqtt/emq-lwm2m master
 
 # plugin template
 dep_emq_plugin_template = git https://github.com/emqtt/emq-plugin-template master
