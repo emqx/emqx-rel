@@ -40,7 +40,7 @@ dep_emqx_auth_jwt      = git https://github.com/emqtt/emq-auth-jwt X
 dep_emqx_sn    = git https://github.com/emqtt/emq-sn X
 dep_emqx_coap  = git https://github.com/emqtt/emq-coap X
 dep_emqx_stomp = git https://github.com/emqtt/emq-stomp X
-dep_emqx_lwm2m = git https://github.com/emqx/emq-lwm2m X
+dep_emqx_lwm2m = git https://github.com/emqx/emqx-lwm2m X
 
 # emqx plugin template
 dep_emqx_plugin_template = git https://github.com/emqtt/emq-plugin-template X
