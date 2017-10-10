@@ -23,8 +23,8 @@ dep_emqx_dashboard  = git https://github.com/emqtt/emq-dashboard X
 dep_emqx_retainer   = git https://github.com/emqtt/emq-retainer X
 dep_emqx_recon      = git https://github.com/emqtt/emq-recon X
 dep_emqx_reloader   = git https://github.com/emqtt/emq-reloader X
-dep_emqx_statsd     = git https://github.com/emqtt/emqx-statsd X
-dep_emqx_delayed_publish = git https://github.com/emqtt/emqx-delayed-publish X
+dep_emqx_statsd     = git https://github.com/emqx/emqx-statsd X
+dep_emqx_delayed_publish = git https://github.com/emqx/emqx-delayed-publish X
 # emqx auth/acl plugins
 dep_emqx_auth_clientid = git https://github.com/emqtt/emq-auth-clientid X
 dep_emqx_auth_username = git https://github.com/emqtt/emq-auth-username X
@@ -40,7 +40,7 @@ dep_emqx_auth_jwt      = git https://github.com/emqtt/emq-auth-jwt X
 dep_emqx_sn    = git https://github.com/emqtt/emq-sn X
 dep_emqx_coap  = git https://github.com/emqtt/emq-coap X
 dep_emqx_stomp = git https://github.com/emqtt/emq-stomp X
-dep_emqx_lwm2m = git https://github.com/emqtt/emq-lwm2m X
+dep_emqx_lwm2m = git https://github.com/emqx/emq-lwm2m X
 
 # emqx plugin template
 dep_emqx_plugin_template = git https://github.com/emqtt/emq-plugin-template X
