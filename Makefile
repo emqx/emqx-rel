@@ -2,7 +2,7 @@ PROJECT = emqx-rel
 PROJECT_DESCRIPTION = Release Project for EMQ X Broker
 PROJECT_VERSION = 2.4
 
-NO_AUTOPATCH = gen_rpc cuttlefish emqx_elixir_plugin
+NO_AUTOPATCH = cuttlefish emqx_elixir_plugin
 ## Fix 'rebar command not found'
 DEPS = goldrush
 dep_goldrush = git https://github.com/basho/goldrush 0.1.9
