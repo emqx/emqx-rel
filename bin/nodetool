@@ -195,7 +195,7 @@ mergeconf(EmqCfg, PluginsEtc, DestDir) ->
             lists:foreach(fun(CfgFile) ->
                             {ok, CfgData} = file:read_file(CfgFile),
                             file:write(DestFd, CfgData),
-                            file:write(<<"\n">>, CfgData)
+                            file:write(DestFd, <<"\n">>)
                           end, CfgFiles),
             file:close(DestFd),
             io:format("~s", [AppConf]),
