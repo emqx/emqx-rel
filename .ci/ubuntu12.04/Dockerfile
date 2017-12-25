@@ -1,7 +1,7 @@
 FROM ubuntu:12.04
 
 RUN apt-get update
-RUN apt-get install -y wget make g++ git zip libncurses5-dev unixodbc unixodbc-dev openjdk-7-jdk libssl-dev  build-essential curl debhelper
+RUN apt-get install -y wget make g++ git zip libncurses5-dev unixodbc unixodbc-dev openjdk-7-jdk libssl-dev build-essential curl debhelper
 RUN echo >> deb http://security.ubuntu.com/ubuntu precise-security main /etc/apt/sources.list
 RUN apt-get update
 RUN wget http://erlang.org/download/otp_src_20.0.tar.gz &&  tar zxvf otp_src_20.0.tar.gz && cd otp_src_20.0 && ./configure && make && make install
