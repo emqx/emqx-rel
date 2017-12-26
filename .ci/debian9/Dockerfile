@@ -1,4 +1,4 @@
-ROM debian:9
+FROM debian:9
 
 RUN apt-get update
 RUN apt-get install -y wget git zip  build-essential debhelper

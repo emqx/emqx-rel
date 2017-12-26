@@ -15,40 +15,40 @@ DEPS += emqx emqx_modules emqx_management emqx_dashboard emqx_retainer \
 		emqx_plugin_template
 
 # emqx modules
-dep_emqx            = git https://github.com/emqtt/emqttd X
+dep_emqx            = git git@github.com:emqx/emqx-enterprise
 
-dep_emqx_modules    = git https://github.com/emqtt/emq-modules X
-dep_emqx_management = git https://github.com/emqtt/emq-management X
-dep_emqx_dashboard  = git https://github.com/emqtt/emq-dashboard X
-dep_emqx_retainer   = git https://github.com/emqtt/emq-retainer X
-dep_emqx_recon      = git https://github.com/emqtt/emq-recon X
-dep_emqx_reloader   = git https://github.com/emqtt/emq-reloader X
-dep_emqx_statsd     = git https://github.com/emqx/emqx-statsd X
-dep_emqx_delayed_publish = git https://github.com/emqx/emqx-delayed-publish X
+dep_emqx_modules    = git https://github.com/emqtt/emq-modules enterprise
+dep_emqx_management = git https://github.com/emqx/emqx-management enterprise
+dep_emqx_dashboard  = git https://github.com/emqtt/emq-dashboard enterprise
+dep_emqx_retainer   = git https://github.com/emqtt/emq-retainer enterprise
+dep_emqx_recon      = git https://github.com/emqtt/emq-recon enterprise
+dep_emqx_reloader   = git https://github.com/emqtt/emq-reloader enterprise
+dep_emqx_statsd     = git https://github.com/emqx/emqx-statsd enterprise
+dep_emqx_delayed_publish = git https://github.com/emqx/emqx-delayed-publish enterprise
 # emqx auth/acl plugins
-dep_emqx_auth_clientid = git https://github.com/emqtt/emq-auth-clientid X
-dep_emqx_auth_username = git https://github.com/emqtt/emq-auth-username X
-dep_emqx_auth_ldap     = git https://github.com/emqtt/emq-auth-ldap X
-dep_emqx_auth_http     = git https://github.com/emqtt/emq-auth-http X
-dep_emqx_auth_mysql    = git https://github.com/emqtt/emq-auth-mysql X
-dep_emqx_auth_pgsql    = git https://github.com/emqtt/emq-auth-pgsql X
-dep_emqx_auth_redis    = git https://github.com/emqtt/emq-auth-redis X
-dep_emqx_auth_mongo    = git https://github.com/emqtt/emq-auth-mongo X
-dep_emqx_auth_jwt      = git https://github.com/emqtt/emq-auth-jwt X
+dep_emqx_auth_clientid = git https://github.com/emqtt/emq-auth-clientid enterprise
+dep_emqx_auth_username = git https://github.com/emqtt/emq-auth-username enterprise
+dep_emqx_auth_ldap     = git https://github.com/emqtt/emq-auth-ldap enterprise
+dep_emqx_auth_http     = git https://github.com/emqtt/emq-auth-http enterprise
+dep_emqx_auth_mysql    = git https://github.com/emqtt/emq-auth-mysql enterprise
+dep_emqx_auth_pgsql    = git https://github.com/emqtt/emq-auth-pgsql enterprise
+dep_emqx_auth_redis    = git https://github.com/emqtt/emq-auth-redis enterprise
+dep_emqx_auth_mongo    = git https://github.com/emqtt/emq-auth-mongo enterprise
+dep_emqx_auth_jwt      = git https://github.com/emqtt/emq-auth-jwt enterprise
 
 # emqx mqtt-sn, coap and stomp
-dep_emqx_sn    = git https://github.com/emqtt/emq-sn X
-dep_emqx_coap  = git https://github.com/emqtt/emq-coap X
-dep_emqx_stomp = git https://github.com/emqtt/emq-stomp X
-dep_emqx_lwm2m = git https://github.com/emqx/emqx-lwm2m X
+dep_emqx_sn    = git https://github.com/emqtt/emq-sn enterprise
+dep_emqx_coap  = git https://github.com/emqtt/emq-coap enterprise
+dep_emqx_stomp = git https://github.com/emqtt/emq-stomp enterprise
+dep_emqx_lwm2m = git https://github.com/emqx/emqx-lwm2m enterprise
 
 # emqx plugin template
-dep_emqx_plugin_template = git https://github.com/emqtt/emq-plugin-template X
+dep_emqx_plugin_template = git https://github.com/emqtt/emq-plugin-template enterprise
 
 # web_hook lua_hook
-dep_emqx_web_hook  = git https://github.com/emqtt/emq-web-hook X
-dep_emqx_lua_hook  = git https://github.com/emqtt/emq-lua-hook X
-#dep_emqx_elixir_plugin = git  https://github.com/emqtt/emq-elixir-plugin X
+dep_emqx_web_hook  = git https://github.com/emqtt/emq-web-hook enterprise
+dep_emqx_lua_hook  = git https://github.com/emqtt/emq-lua-hook enterprise
+#dep_emqx_elixir_plugin = git  https://github.com/emqtt/emq-elixir-plugin enterprise
 
 BUILD_DEPS = cuttlefish
 dep_cuttlefish = git https://github.com/emqtt/cuttlefish
