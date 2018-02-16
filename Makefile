@@ -58,6 +58,8 @@ plugins:
 			cp $${conf} rel/conf/ ; \
 		elif [ "acl.conf" = "$${conf##*/}" ] ; then \
 			cp $${conf} rel/conf/ ; \
+		elif [ "ssl_dist.conf" = "$${conf##*/}" ] ; then \
+			cp $${conf} rel/conf/ ; \
 		else \
 			cp $${conf} rel/conf/plugins ; \
 		fi ; \
