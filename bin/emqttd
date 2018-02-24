@@ -278,6 +278,15 @@ case "$1" in
         HEART_COMMAND="{{ runner_bin_dir }}/$REL_NAME $CMD"
         export HEART_COMMAND
 
+        ## See: http://erlang.org/doc/man/run_erl.html
+        # Export the RUN_ERL_LOG_GENERATIONS
+        # RUN_ERL_LOG_GENERATIONS=5
+        # export RUN_ERL_LOG_GENERATIONS
+
+        # Export the RUN_ERL_LOG_MAXSIZE
+        RUN_ERL_LOG_MAXSIZE=1048576
+        export RUN_ERL_LOG_MAXSIZE
+
         mkdir -p "$PIPE_DIR"
 
         "$BINDIR/run_erl" -daemon "$PIPE_DIR" "$RUNNER_LOG_DIR" \
