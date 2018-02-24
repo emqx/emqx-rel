@@ -285,7 +285,7 @@ case "$1" in
 
         # Export the RUN_ERL_LOG_MAXSIZE
         RUN_ERL_LOG_MAXSIZE=1048576
-        export HEART_COMMAND
+        export RUN_ERL_LOG_MAXSIZE
 
         mkdir -p "$PIPE_DIR"
 
