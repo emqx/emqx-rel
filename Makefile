@@ -1,6 +1,6 @@
 PROJECT = emqx-rel
 PROJECT_DESCRIPTION = Release Project for EMQ X Broker
-PROJECT_VERSION = 2.4
+PROJECT_VERSION = 3.0
 
 NO_AUTOPATCH = cuttlefish emqx_elixir_plugin
 ## Fix 'rebar command not found'
@@ -17,37 +17,37 @@ DEPS += emqx emqx_modules emqx_management emqx_dashboard emqx_retainer \
 # emqx modules
 dep_emqx            = git git@github.com:emqx/emqx-enterprise
 
-dep_emqx_modules    = git https://github.com/emqtt/emq-modules enterprise
-dep_emqx_management = git https://github.com/emqx/emqx-management enterprise
-dep_emqx_dashboard  = git https://github.com/emqtt/emq-dashboard enterprise
-dep_emqx_retainer   = git https://github.com/emqtt/emq-retainer enterprise
-dep_emqx_recon      = git https://github.com/emqtt/emq-recon enterprise
-dep_emqx_reloader   = git https://github.com/emqtt/emq-reloader enterprise
-dep_emqx_statsd     = git https://github.com/emqx/emqx-statsd enterprise
-dep_emqx_delayed_publish = git https://github.com/emqx/emqx-delayed-publish enterprise
+dep_emqx_modules    = git https://github.com/emqtt/emq-modules emqx30
+dep_emqx_management = git https://github.com/emqx/emqx-management emqx30
+dep_emqx_dashboard  = git https://github.com/emqtt/emq-dashboard emqx30
+dep_emqx_retainer   = git https://github.com/emqtt/emq-retainer emqx30
+dep_emqx_recon      = git https://github.com/emqtt/emq-recon emqx30
+dep_emqx_reloader   = git https://github.com/emqtt/emq-reloader emqx30
+dep_emqx_statsd     = git https://github.com/emqx/emqx-statsd emqx30
+dep_emqx_delayed_publish = git https://github.com/emqx/emqx-delayed-publish emqx30
 # emqx auth/acl plugins
-dep_emqx_auth_clientid = git https://github.com/emqtt/emq-auth-clientid enterprise
-dep_emqx_auth_username = git https://github.com/emqtt/emq-auth-username enterprise
-dep_emqx_auth_ldap     = git https://github.com/emqtt/emq-auth-ldap enterprise
-dep_emqx_auth_http     = git https://github.com/emqtt/emq-auth-http enterprise
-dep_emqx_auth_mysql    = git https://github.com/emqtt/emq-auth-mysql enterprise
-dep_emqx_auth_pgsql    = git https://github.com/emqtt/emq-auth-pgsql enterprise
-dep_emqx_auth_redis    = git https://github.com/emqtt/emq-auth-redis enterprise
-dep_emqx_auth_mongo    = git https://github.com/emqtt/emq-auth-mongo enterprise
-dep_emqx_auth_jwt      = git https://github.com/emqtt/emq-auth-jwt enterprise
+dep_emqx_auth_clientid = git https://github.com/emqtt/emq-auth-clientid emqx30
+dep_emqx_auth_username = git https://github.com/emqtt/emq-auth-username emqx30
+dep_emqx_auth_ldap     = git https://github.com/emqtt/emq-auth-ldap emqx30
+dep_emqx_auth_http     = git https://github.com/emqtt/emq-auth-http emqx30
+dep_emqx_auth_mysql    = git https://github.com/emqtt/emq-auth-mysql emqx30
+dep_emqx_auth_pgsql    = git https://github.com/emqtt/emq-auth-pgsql emqx30
+dep_emqx_auth_redis    = git https://github.com/emqtt/emq-auth-redis emqx30
+dep_emqx_auth_mongo    = git https://github.com/emqtt/emq-auth-mongo emqx30
+dep_emqx_auth_jwt      = git https://github.com/emqtt/emq-auth-jwt emqx30
 
 # emqx mqtt-sn, coap and stomp
-dep_emqx_sn    = git https://github.com/emqtt/emq-sn enterprise
-dep_emqx_coap  = git https://github.com/emqtt/emq-coap enterprise
-dep_emqx_stomp = git https://github.com/emqtt/emq-stomp enterprise
-dep_emqx_lwm2m = git https://github.com/emqx/emqx-lwm2m enterprise
+dep_emqx_sn    = git https://github.com/emqtt/emq-sn emqx30
+dep_emqx_coap  = git https://github.com/emqtt/emq-coap emqx30
+dep_emqx_stomp = git https://github.com/emqtt/emq-stomp emqx30
+dep_emqx_lwm2m = git https://github.com/emqx/emqx-lwm2m emqx30
 
 # emqx plugin template
-dep_emqx_plugin_template = git https://github.com/emqtt/emq-plugin-template enterprise
+dep_emqx_plugin_template = git https://github.com/emqtt/emq-plugin-template emqx30
 
 # web_hook lua_hook
-dep_emqx_web_hook  = git https://github.com/emqtt/emq-web-hook enterprise
-dep_emqx_lua_hook  = git https://github.com/emqtt/emq-lua-hook enterprise
+dep_emqx_web_hook  = git https://github.com/emqtt/emq-web-hook emqx30
+dep_emqx_lua_hook  = git https://github.com/emqtt/emq-lua-hook emqx30
 #dep_emqx_elixir_plugin = git  https://github.com/emqtt/emq-elixir-plugin enterprise
 
 BUILD_DEPS = cuttlefish
@@ -67,6 +67,8 @@ plugins:
 		if [ "emqx.conf" = "$${conf##*/}" ] ; then \
 			cp $${conf} rel/conf/ ; \
 		elif [ "acl.conf" = "$${conf##*/}" ] ; then \
+			cp $${conf} rel/conf/ ; \
+		elif [ "ssl_dist.conf" = "$${conf##*/}" ] ; then \
 			cp $${conf} rel/conf/ ; \
 		else \
 			cp $${conf} rel/conf/plugins ; \
