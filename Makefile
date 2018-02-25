@@ -15,7 +15,7 @@ DEPS += emqx emqx_modules emqx_management emqx_dashboard emqx_retainer \
 		emqx_plugin_template
 
 # emqx modules
-dep_emqx            = git git@github.com:emqx/emqx-enterprise
+dep_emqx            = git https://github.com/emqtt/emqttd emqx30
 
 dep_emqx_modules    = git https://github.com/emqtt/emq-modules emqx30
 dep_emqx_management = git https://github.com/emqx/emqx-management emqx30
