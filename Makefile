@@ -1,6 +1,6 @@
 PROJECT = emq-relx
 PROJECT_DESCRIPTION = Release Project for the EMQ Broker
-PROJECT_VERSION = 2.3.4
+PROJECT_VERSION = 2.3.5
 
 ## Fix 'rebar command not found'
 DEPS = goldrush
@@ -60,6 +60,8 @@ plugins:
 		if [ "emq.conf" = "$${conf##*/}" ] ; then \
 			cp $${conf} rel/conf/ ; \
 		elif [ "acl.conf" = "$${conf##*/}" ] ; then \
+			cp $${conf} rel/conf/ ; \
+		elif [ "ssl_dist.conf" = "$${conf##*/}" ] ; then \
 			cp $${conf} rel/conf/ ; \
 		else \
 			cp $${conf} rel/conf/plugins ; \
