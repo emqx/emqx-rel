@@ -7,7 +7,7 @@ NO_AUTOPATCH = cuttlefish emqx_elixir_plugin
 DEPS = goldrush
 dep_goldrush = git https://github.com/basho/goldrush 0.1.9
 
-DEPS += emqx emqx_modules emqx_management emqx_dashboard emqx_retainer \
+DEPS += emqx emqx_management emqx_dashboard emqx_retainer \
         emqx_auth_clientid emqx_auth_username emqx_auth_ldap emqx_auth_http \
         emqx_auth_mysql emqx_auth_pgsql emqx_auth_redis emqx_auth_mongo \
 		emqx_auth_jwt emqx_statsd emqx_delayed_publish emqx_recon emqx_reloader \
@@ -17,7 +17,6 @@ DEPS += emqx emqx_modules emqx_management emqx_dashboard emqx_retainer \
 # emqx modules
 dep_emqx            = git https://github.com/emqtt/emqttd emqx30
 
-dep_emqx_modules    = git https://github.com/emqtt/emq-modules emqx30
 dep_emqx_management = git https://github.com/emqx/emqx-management emqx30
 dep_emqx_dashboard  = git https://github.com/emqtt/emq-dashboard emqx30
 dep_emqx_retainer   = git https://github.com/emqtt/emq-retainer emqx30
