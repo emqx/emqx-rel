@@ -1,5 +1,4 @@
 emqx_recon.
-emqx_modules.
 emqx_retainer.
 emqx_management.
 emqx_dashboard.
