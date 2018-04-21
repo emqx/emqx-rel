@@ -1,6 +1,6 @@
 PROJECT = emq-relx
 PROJECT_DESCRIPTION = Release Project for the EMQ Broker
-PROJECT_VERSION = 2.3.6
+PROJECT_VERSION = 2.3.7
 
 ## Fix 'rebar command not found'
 DEPS = goldrush
