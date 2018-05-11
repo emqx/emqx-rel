@@ -147,7 +147,7 @@ generate_config() {
         CONFIG_ARGS=`$CUTTLEFISH_COMMAND_PREFIX -c $APPCONF generate`
         if [ "$?" -ne 0 ]; then
             echoerr "Error generating config with cuttlefish"
-            echoerr "  run \`$RUNNER_SCRIPT config generate -l debug\` for more information."
+            echoerr "run \`$CUTTLEFISH_COMMAND_PREFIX -c $APPCONF generate -l debug\` for more information."
             exit 1
         fi
     fi
