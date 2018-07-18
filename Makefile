@@ -50,7 +50,7 @@ dep_emqx_lua_hook  = git https://github.com/emqtt/emq-lua-hook emqx30
 #dep_emqx_elixir_plugin = git  https://github.com/emqtt/emq-elixir-plugin enterprise
 
 BUILD_DEPS = cuttlefish
-dep_cuttlefish = git https://github.com/emqtt/cuttlefish
+dep_cuttlefish = git https://github.com/emqx/cuttlefish
 
 # COVER = true
 
