@@ -2,9 +2,8 @@ PROJECT = emqx-rel
 PROJECT_DESCRIPTION = Release Project for EMQ X Broker
 PROJECT_VERSION = 3.0
 
-DEPS = goldrush gen_rpc
+DEPS = goldrush
 dep_goldrush = git https://github.com/basho/goldrush 0.1.9
-dep_gen_rpc  = git https://github.com/emqx/gen_rpc 2.1.1
 
 DEPS += emqx emqx_retainer emqx_recon emqx_reloader emqx_dashboard emqx_management \
 		emqx_auth_clientid emqx_auth_username emqx_auth_ldap emqx_auth_http \
@@ -44,11 +43,6 @@ dep_emqx_plugin_template = git https://github.com/emqx/emq-plugin-template emqx3
 # web_hook lua_hook
 dep_emqx_web_hook  = git https://github.com/emqx/emq-web-hook emqx30
 dep_emqx_lua_hook  = git https://github.com/emqx/emq-lua-hook emqx30
-
-BUILD_DEPS = cuttlefish
-dep_cuttlefish = git https://github.com/emqx/cuttlefish
-
-NO_AUTOPATCH = cuttlefish gen_rpc
 
 # COVER = true
 include erlang.mk
