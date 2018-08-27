@@ -94,5 +94,5 @@ export ROOTDIR="$RUNNER_ROOT_DIR"
 export BINDIR="$ERTS_DIR/bin"
 cd "$ROOTDIR"
 
-relx_nodetool rpc emqx_ctl run $@
+relx_nodetool rpc emqx_ctl run_command $@
 
