@@ -10,7 +10,7 @@ DEPS += emqx emqx_retainer emqx_recon emqx_reloader emqx_dashboard emqx_manageme
 		emqx_auth_clientid emqx_auth_username emqx_auth_ldap emqx_auth_http \
         emqx_auth_mysql emqx_auth_pgsql emqx_auth_redis emqx_auth_mongo \
         emqx_sn emqx_coap emqx_lwm2m emqx_stomp emqx_plugin_template emqx_web_hook \
-        emqx_lua_hook emqx_auth_jwt
+        emqx_lua_hook emqx_auth_jwt emqx_statsd emqx_delayed_publish
 # emqx and plugins
 dep_emqx            = git https://github.com/emqtt/emqttd emqx30
 dep_emqx_retainer   = git https://github.com/emqx/emqx-retainer emqx30
@@ -18,6 +18,8 @@ dep_emqx_recon      = git https://github.com/emqx/emqx-recon emqx30
 dep_emqx_reloader   = git https://github.com/emqx/emqx-reloader emqx30
 dep_emqx_dashboard  = git https://github.com/emqx/emqx-dashboard emqx30
 dep_emqx_management = git https://github.com/emqx/emqx-management emqx30
+dep_emqx_statsd     = git https://github.com/emqx/emqx-statsd emqx30
+dep_emqx_delayed_publish = git https://github.com/emqx/emqx-delayed-publish emqx30
 
 # emq auth/acl plugins
 dep_emqx_auth_clientid = git https://github.com/emqx/emqx-auth-clientid emqx30
