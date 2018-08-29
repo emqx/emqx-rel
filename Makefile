@@ -6,7 +6,8 @@ DEPS = goldrush gen_rpc
 dep_goldrush = git https://github.com/basho/goldrush 0.1.9
 dep_gen_rpc  = git https://github.com/emqx/gen_rpc 2.1.1
 
-DEPS += emqx emqx_retainer emqx_recon emqx_reloader emqx_dashboard emqx_management
+DEPS += emqx emqx_retainer emqx_recon emqx_reloader emqx_dashboard emqx_management \
+		emqx_plugin_template
 # emqx and plugins
 dep_emqx            = git https://github.com/emqtt/emqttd emqx30
 dep_emqx_retainer   = git https://github.com/emqx/emqx-retainer emqx30
@@ -14,6 +15,7 @@ dep_emqx_recon      = git https://github.com/emqx/emqx-recon emqx30
 dep_emqx_reloader   = git https://github.com/emqx/emqx-reloader emqx30
 dep_emqx_dashboard  = git https://github.com/emqx/emqx-dashboard emqx30
 dep_emqx_management = git https://github.com/emqx/emqx-management emqx30
+dep_emqx_plugin_template = git https://github.com/emqx/emqx-plugin-template emqx30
 
 BUILD_DEPS = cuttlefish
 dep_cuttlefish = git https://github.com/emqx/cuttlefish
