@@ -2,12 +2,15 @@ PROJECT = emqx-rel
 PROJECT_DESCRIPTION = Release Project for EMQ X Broker
 PROJECT_VERSION = 3.0
 
-DEPS = goldrush gen_rpc
+DEPS = goldrush
 dep_goldrush = git https://github.com/basho/goldrush 0.1.9
-dep_gen_rpc  = git https://github.com/emqx/gen_rpc 2.1.1
 
 DEPS += emqx emqx_retainer emqx_recon emqx_reloader emqx_dashboard emqx_management \
-		emqx_plugin_template
+		emqx_auth_clientid emqx_auth_username emqx_auth_ldap emqx_auth_http \
+        emqx_auth_mysql emqx_auth_pgsql emqx_auth_redis emqx_auth_mongo \
+        emqx_sn emqx_coap emqx_lwm2m emqx_stomp emqx_plugin_template emqx_web_hook \
+        emqx_auth_jwt emqx_statsd emqx_delayed_publish
+
 # emqx and plugins
 dep_emqx            = git https://github.com/emqtt/emqttd emqx30
 dep_emqx_retainer   = git https://github.com/emqx/emqx-retainer emqx30
@@ -15,12 +18,31 @@ dep_emqx_recon      = git https://github.com/emqx/emqx-recon emqx30
 dep_emqx_reloader   = git https://github.com/emqx/emqx-reloader emqx30
 dep_emqx_dashboard  = git https://github.com/emqx/emqx-dashboard emqx30
 dep_emqx_management = git https://github.com/emqx/emqx-management emqx30
-dep_emqx_plugin_template = git https://github.com/emqx/emqx-plugin-template emqx30
+dep_emqx_statsd     = git https://github.com/emqx/emqx-statsd emqx30
+dep_emqx_delayed_publish = git https://github.com/emqx/emqx-delayed-publish emqx30
 
-BUILD_DEPS = cuttlefish
-dep_cuttlefish = git https://github.com/emqx/cuttlefish
+# emq auth/acl plugins
+dep_emqx_auth_clientid = git https://github.com/emqx/emqx-auth-clientid emqx30
+dep_emqx_auth_username = git https://github.com/emqx/emqx-auth-username emqx30
+dep_emqx_auth_ldap     = git https://github.com/emqx/emqx-auth-ldap emqx30
+dep_emqx_auth_http     = git https://github.com/emqx/emqx-auth-http emqx30
+dep_emqx_auth_mysql    = git https://github.com/emqx/emqx-auth-mysql emqx30
+dep_emqx_auth_pgsql    = git https://github.com/emqx/emqx-auth-pgsql emqx30
+dep_emqx_auth_redis    = git https://github.com/emqx/emqx-auth-redis emqx30
+dep_emqx_auth_mongo    = git https://github.com/emqx/emqx-auth-mongo emqx30
+dep_emqx_auth_jwt      = git https://github.com/emqx/emqx-auth-jwt emqx30
 
-NO_AUTOPATCH = cuttlefish gen_rpc
+# mqtt-sn, coap and stomp
+dep_emqx_sn    = git https://github.com/emqx/emqx-sn emqx30
+dep_emqx_coap  = git https://github.com/emqx/emqx-coap emqx30
+dep_emqx_lwm2m = git https://github.com/emqx/emqx-lwm2m emqx30
+dep_emqx_stomp = git https://github.com/emqx/emqx-stomp emqx30
+
+# plugin template
+dep_emqx_plugin_template = git https://github.com/emqx/emq-plugin-template emqx30
+
+# web_hook lua_hook
+dep_emqx_web_hook  = git https://github.com/emqx/emq-web-hook emqx30
 
 # COVER = true
 include erlang.mk
