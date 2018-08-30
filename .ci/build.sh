@@ -12,7 +12,7 @@ mkdir -p /home/ubuntu/package
 
 oslist=(debian7 debian8 debian9 centos6.8 centos7 ubuntu12.04 ubuntu14.04 ubuntu16.04 ubuntu18.04)
 for var in ${oslist[@]};do
-    sudo docker build -t emqx_ci-${var} -f ${var}/Dockerfile .
+    sudo docker build -t emq_ci-${var} -f ${var}/Dockerfile .
     sudo docker rm -f emq-${var}
-    sudo docker run -itd --net='host' --name emq-${var} -e "ostype=${var}" -e "host=emqtt.io" -e "tag=release" -e "versionid=$1" -e "type=$2" emqx_ci-${var}
+    sudo docker run -itd --net='host' --name emq-${var} -e "ostype=${var}" -e "host=emqtt.io" -e "tag=release" -e "versionid=$1" -e "type=$2" emq_ci-${var}
 done
