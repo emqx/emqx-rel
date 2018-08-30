@@ -2,10 +2,9 @@ FROM debian:8
 
 RUN apt-get update
 RUN apt-get install -y wget git zip  build-essential debhelper
-RUN wget http://packages.erlang-solutions.com/site/esl/esl-erlang/FLAVOUR_1_general/esl-erlang_20.0-1~debian~jessie_amd64.deb -O /tmp/erlang.deb
+RUN wget http://packages.erlang-solutions.com/site/esl/esl-erlang/FLAVOUR_1_general/esl-erlang_21.0.5-1~debian~jessie_amd64.deb -O /tmp/erlang.deb
 RUN dpkg -i /tmp/erlang.deb || true
 RUN apt-get -f install -y
-RUN mkdir -p /rebar && git clone https://github.com/rebar/rebar && cd /rebar && ./bootstrap && cp /rebar/rebar /usr/local/bin/ && rm -rf /rebar
 RUN mkdir -p /root/.ssh/
 # cleanup
 RUN apt-get clean\
