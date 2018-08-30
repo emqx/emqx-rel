@@ -6,7 +6,7 @@ git clone -b ${tag} https://github.com/emqtt/emq-relx.git emqx-rel
 version=`cd emqx-rel && git describe --abbrev=0 --tags`
 pkg=emqx-${ostype}-${version}.zip
 echo "building $pkg..."
-cd emqx-rel && make && cd _rel && zip -rq $pkg emqx && scp $pkg root@${host}:/root/releases/${versionid}-${type} && cd /emq_temp
+cd emqx-rel && make && cd _rel && zip -rq $pkg emqx && scp $pkg root@${host}:/root/releases/${versionid}-${type} && cd /emqx_temp
 
 git clone -b X https://github.com/emqtt/emq-package.git emqx-package
 cd emqx-package
