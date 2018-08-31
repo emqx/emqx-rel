@@ -2,13 +2,13 @@
 
 chmod 600 /root/.ssh/config
 rm -rf /emqx_temp && mkdir /emqx_temp && cd /emqx_temp
-git clone -b emqx30_release https://github.com/emqtt/emq-relx.git emqx-rel
+git clone -b emqx30_release https://github.com/emqx/emqx-rel
 version=`cd emqx-rel && git describe --abbrev=0 --tags`
 pkg=emqx-${ostype}-${version}.zip
 echo "building $pkg..."
 cd emqx-rel && make && cd _rel && zip -rq $pkg emqx && scp $pkg root@${host}:/root/releases/${versionid}-${type} && cd /emqx_temp
 
-git clone -b emqx30 https://github.com/emqtt/emq-package.git emqx-package
+git clone -b emqx30 https://github.com/emqx/emqx-packages
 cd emqx-package
 make
 name=`basename package/*`
