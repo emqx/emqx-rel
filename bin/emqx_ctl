@@ -9,7 +9,11 @@ if [ -z $SCRIPT ]; then
     SCRIPT=$0
 fi;
 SCRIPT_DIR="$(cd `dirname "$SCRIPT"` && pwd -P)"
-RUNNER_ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd -P){{ runner_root_dir }}"
+if [ -d "/usr/lib64/" ]; then
+    RUNNER_ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd -P){{ runner_root_dir_for_64 }}"
+else
+    RUNNER_ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd -P){{ runner_root_dir }}"
+fi
 REL_NAME="emqx"
 REL_VSN="{{ rel_vsn }}"
 ERTS_VSN="{{ erts_vsn }}"
@@ -49,7 +53,7 @@ relx_nodetool() {
 }
 
 
-[ "x" = "x$EMQ_NODE_NAME" ] || NAME_ARG="-name $EMQ_NODE_NAME"
+[ "x" = "x$EMQX_NODE_NAME" ] || NAME_ARG="-name $EMQX_NODE_NAME"
 # Extract the target node name from node.args
 if [ -z "$NAME_ARG" ]; then
     NODENAME=`egrep '^[ \t]*node.name[ \t]*=[ \t]*' $RUNNER_ETC_DIR/emqx.conf 2> /dev/null | tail -1 | cut -d = -f 2-`
@@ -66,7 +70,7 @@ fi
 NAME_TYPE="$(echo "$NAME_ARG" | awk '{print $1}')"
 NAME="$(echo "$NAME_ARG" | awk '{print $2}')"
 
-[ "x" = "x$EMQ_NODE_COOKIE" ] || COOKIE_ARG="-setcookie $EMQ_NODE_COOKIE"
+[ "x" = "x$EMQX_NODE_COOKIE" ] || COOKIE_ARG="-setcookie $EMQX_NODE_COOKIE"
 # Extract the target cookie
 if [ -z "$COOKIE_ARG" ]; then
     COOKIE=`egrep '^[ \t]*node.cookie[ \t]*=[ \t]*' $RUNNER_ETC_DIR/emqx.conf 2> /dev/null | tail -1 | cut -d = -f 2-`
