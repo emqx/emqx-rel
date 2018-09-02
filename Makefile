@@ -44,8 +44,16 @@ dep_emqx_plugin_template = git https://github.com/emqx/emq-plugin-template emqx3
 # web_hook lua_hook
 dep_emqx_web_hook  = git https://github.com/emqx/emq-web-hook emqx30
 
+# Add this dependency before including erlang.mk
+all:: OTP_21_OR_NEWER
+
 # COVER = true
 include erlang.mk
+
+# Fail fast in case older than OTP 21
+.PHONY: OTP_21_OR_NEWER
+OTP_21_OR_NEWER:
+	@erl -noshell -eval "R = list_to_integer(erlang:system_info(otp_release)), halt(if R >= 21 -> 0; true -> 1 end)"
 
 # Compile options
 ERLC_OPTS += +warn_export_all +warn_missing_spec +warn_untyped_record
