@@ -2,3 +2,4 @@ emqx_management.
 emqx_recon.
 emqx_retainer.
 emqx_dashboard.
+emqx_delayed_publish.
