@@ -41,7 +41,7 @@ dep_emqx_stomp = git https://github.com/emqx/emqx-stomp emqx30
 # plugin template
 dep_emqx_plugin_template = git https://github.com/emqx/emq-plugin-template emqx30
 
-# web_hook lua_hook
+# web_hook
 dep_emqx_web_hook  = git https://github.com/emqx/emq-web-hook emqx30
 
 # COVER = true
