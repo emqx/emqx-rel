@@ -12,40 +12,48 @@ DEPS += emqx emqx_retainer emqx_recon emqx_reloader emqx_dashboard emqx_manageme
         emqx_auth_jwt emqx_statsd emqx_delayed_publish
 
 # emqx and plugins
-dep_emqx            = git https://github.com/emqtt/emqttd v3.0-beta.1
-dep_emqx_retainer   = git https://github.com/emqx/emqx-retainer v3.0-beta.1
-dep_emqx_recon      = git https://github.com/emqx/emqx-recon v3.0-beta.1
-dep_emqx_reloader   = git https://github.com/emqx/emqx-reloader v3.0-beta.1
-dep_emqx_dashboard  = git https://github.com/emqx/emqx-dashboard v3.0-beta.1
-dep_emqx_management = git https://github.com/emqx/emqx-management v3.0-beta.1
-dep_emqx_statsd     = git https://github.com/emqx/emqx-statsd v3.0-beta.1
-dep_emqx_delayed_publish = git https://github.com/emqx/emqx-delayed-publish v3.0-beta.1
+dep_emqx            = git https://github.com/emqtt/emqttd v3.0-beta.2
+dep_emqx_retainer   = git https://github.com/emqx/emqx-retainer v3.0-beta.2
+dep_emqx_recon      = git https://github.com/emqx/emqx-recon v3.0-beta.2
+dep_emqx_reloader   = git https://github.com/emqx/emqx-reloader v3.0-beta.2
+dep_emqx_dashboard  = git https://github.com/emqx/emqx-dashboard v3.0-beta.2
+dep_emqx_management = git https://github.com/emqx/emqx-management v3.0-beta.2
+dep_emqx_statsd     = git https://github.com/emqx/emqx-statsd v3.0-beta.2
+dep_emqx_delayed_publish = git https://github.com/emqx/emqx-delayed-publish v3.0-beta.2
 
 # emq auth/acl plugins
-dep_emqx_auth_clientid = git https://github.com/emqx/emqx-auth-clientid v3.0-beta.1
-dep_emqx_auth_username = git https://github.com/emqx/emqx-auth-username v3.0-beta.1
-dep_emqx_auth_ldap     = git https://github.com/emqx/emqx-auth-ldap v3.0-beta.1
-dep_emqx_auth_http     = git https://github.com/emqx/emqx-auth-http v3.0-beta.1
-dep_emqx_auth_mysql    = git https://github.com/emqx/emqx-auth-mysql v3.0-beta.1
-dep_emqx_auth_pgsql    = git https://github.com/emqx/emqx-auth-pgsql v3.0-beta.1
-dep_emqx_auth_redis    = git https://github.com/emqx/emqx-auth-redis v3.0-beta.1
-dep_emqx_auth_mongo    = git https://github.com/emqx/emqx-auth-mongo v3.0-beta.1
-dep_emqx_auth_jwt      = git https://github.com/emqx/emqx-auth-jwt v3.0-beta.1
+dep_emqx_auth_clientid = git https://github.com/emqx/emqx-auth-clientid v3.0-beta.2
+dep_emqx_auth_username = git https://github.com/emqx/emqx-auth-username v3.0-beta.2
+dep_emqx_auth_ldap     = git https://github.com/emqx/emqx-auth-ldap v3.0-beta.2
+dep_emqx_auth_http     = git https://github.com/emqx/emqx-auth-http v3.0-beta.2
+dep_emqx_auth_mysql    = git https://github.com/emqx/emqx-auth-mysql v3.0-beta.2
+dep_emqx_auth_pgsql    = git https://github.com/emqx/emqx-auth-pgsql v3.0-beta.2
+dep_emqx_auth_redis    = git https://github.com/emqx/emqx-auth-redis v3.0-beta.2
+dep_emqx_auth_mongo    = git https://github.com/emqx/emqx-auth-mongo v3.0-beta.2
+dep_emqx_auth_jwt      = git https://github.com/emqx/emqx-auth-jwt v3.0-beta.2
 
 # mqtt-sn, coap and stomp
-dep_emqx_sn    = git https://github.com/emqx/emqx-sn v3.0-beta.1
-dep_emqx_coap  = git https://github.com/emqx/emqx-coap v3.0-beta.1
-dep_emqx_lwm2m = git https://github.com/emqx/emqx-lwm2m v3.0-beta.1
-dep_emqx_stomp = git https://github.com/emqx/emqx-stomp v3.0-beta.1
+dep_emqx_sn    = git https://github.com/emqx/emqx-sn v3.0-beta.2
+dep_emqx_coap  = git https://github.com/emqx/emqx-coap v3.0-beta.2
+dep_emqx_lwm2m = git https://github.com/emqx/emqx-lwm2m v3.0-beta.2
+dep_emqx_stomp = git https://github.com/emqx/emqx-stomp v3.0-beta.2
 
 # plugin template
-dep_emqx_plugin_template = git https://github.com/emqx/emq-plugin-template v3.0-beta.1
+dep_emqx_plugin_template = git https://github.com/emqx/emq-plugin-template v3.0-beta.2
 
-# web_hook lua_hook
-dep_emqx_web_hook  = git https://github.com/emqx/emq-web-hook v3.0-beta.1
+# web_hook
+dep_emqx_web_hook  = git https://github.com/emqx/emq-web-hook emqx30
+
+# Add this dependency before including erlang.mk
+all:: OTP_21_OR_NEWER
 
 # COVER = true
 include erlang.mk
+
+# Fail fast in case older than OTP 21
+.PHONY: OTP_21_OR_NEWER
+OTP_21_OR_NEWER:
+	@erl -noshell -eval "R = list_to_integer(erlang:system_info(otp_release)), halt(if R >= 21 -> 0; true -> 1 end)"
 
 # Compile options
 ERLC_OPTS += +warn_export_all +warn_missing_spec +warn_untyped_record
