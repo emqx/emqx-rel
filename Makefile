@@ -12,7 +12,7 @@ DEPS += emqx emqx_retainer emqx_recon emqx_reloader emqx_dashboard emqx_manageme
         emqx_auth_jwt emqx_statsd emqx_delayed_publish
 
 # emqx and plugins
-dep_emqx            = git https://github.com/emqtt/emqttd emqx30
+dep_emqx            = git https://github.com/emqx/emqx emqx30
 dep_emqx_retainer   = git https://github.com/emqx/emqx-retainer emqx30
 dep_emqx_recon      = git https://github.com/emqx/emqx-recon emqx30
 dep_emqx_reloader   = git https://github.com/emqx/emqx-reloader emqx30
@@ -42,7 +42,7 @@ dep_emqx_stomp = git https://github.com/emqx/emqx-stomp emqx30
 dep_emqx_plugin_template = git https://github.com/emqx/emq-plugin-template emqx30
 
 # web_hook
-dep_emqx_web_hook  = git https://github.com/emqx/emq-web-hook emqx30
+dep_emqx_web_hook  = git https://github.com/emqx/emqx-web-hook emqx30
 
 # Add this dependency before including erlang.mk
 all:: OTP_21_OR_NEWER
