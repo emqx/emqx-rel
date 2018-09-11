@@ -9,7 +9,7 @@ DEPS += emqx emqx_retainer emqx_recon emqx_reloader emqx_dashboard emqx_manageme
 		emqx_auth_clientid emqx_auth_username emqx_auth_ldap emqx_auth_http \
         emqx_auth_mysql emqx_auth_pgsql emqx_auth_redis emqx_auth_mongo \
         emqx_sn emqx_coap emqx_lwm2m emqx_stomp emqx_plugin_template emqx_web_hook \
-        emqx_auth_jwt emqx_statsd emqx_delayed_publish
+        emqx_auth_jwt emqx_statsd emqx_delayed_publish emqx_lua_hook
 
 # emqx and plugins
 dep_emqx            = git https://github.com/emqx/emqx emqx30
@@ -43,6 +43,7 @@ dep_emqx_plugin_template = git https://github.com/emqx/emq-plugin-template emqx3
 
 # web_hook
 dep_emqx_web_hook  = git https://github.com/emqx/emqx-web-hook emqx30
+dep_emqx_lua_hook  = git https://github.com/emqx/emqx-lua-hook emqx30
 
 # Add this dependency before including erlang.mk
 all:: OTP_21_OR_NEWER
