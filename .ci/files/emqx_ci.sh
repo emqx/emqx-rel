@@ -6,15 +6,15 @@ if [[ ${tag} =~ "-ci" ]]
 then
 
   today=$(date +%Y%m%d)
-  ssh ubuntu@${host}  "mkdir /home/ubuntu/releases/${versionid}-${type}"
-  ssh ubuntu@${host}  "mkdir /home/ubuntu/releases/${versionid}-${type}/${today}"
+  #ssh ubuntu@${host}  "mkdir /home/ubuntu/releases/${versionid}-${type}"
+  #ssh ubuntu@${host}  "mkdir /home/ubuntu/releases/${versionid}-${type}/${today}"
 
   rm -rf /emqx_temp && mkdir /emqx_temp
   cp -rf /emqx_code/* /emqx_temp/
   cd /emqx_temp
   pkg=emqx-${ostype}-${versionid}-${type}-${today}.zip
   echo "building $pkg..."
-  cd emqx-rel && make && cd _rel && zip -rq $pkg emqx && scp $pkg ubuntu@${host}:/home/ubuntu/releases/${versionid}-${type}/${today} && cd /emqx_temp
+  cd emqx-rel && make && cd _rel && zip -rq $pkg emqx && scp $pkg ubuntu@${host}:${buildlocation} && cd /emqx_temp
 
   cd emqx-packages
   make
@@ -22,7 +22,7 @@ then
   name2=${name/emqx-${versionid}/emqx-${ostype}-${versionid}-${type}-${today}}
   name3=${name2/emqx_${versionid}/emqx-${ostype}-${versionid}-${type}-${today}}
   mv package/${name} package/${name3}
-  scp package/* ubuntu@${host}:/home/ubuntu/releases/${versionid}-${type}/${today}
+  scp package/* ubuntu@${host}:${buildlocation}
 
 else
   rm -rf /emqx_temp && mkdir /emqx_temp && cd /emqx_temp
