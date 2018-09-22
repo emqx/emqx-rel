@@ -36,6 +36,7 @@ else
   cd emqx-packages
   make
   name=`basename package/*`
+  echo ${name}
   name2=${name/emqx-${versionid}/emqx-${ostype}-${version}}
   name3=${name2/emqx_${versionid}/emqx-${ostype}-${version}}
   mv package/${name} package/${name3}
