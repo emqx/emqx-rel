@@ -7,7 +7,7 @@
 
 package=emqx-docker-v$1
 
-git clone -b X https://github.com/emqtt/emq-docker emqx-docker
+git clone -b emqx30 https://github.com/emqx/emqx-docker emqx-docker
 
 cd emqx-docker
 

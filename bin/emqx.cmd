@@ -58,7 +58,7 @@
 )
 
 :: Extract node cookie from emqx.conf
-@for /f "usebackq delims=\= tokens=2" %%I in (`findstr /b node\.cookie "%emq_conf%"`) do @(
+@for /f "usebackq delims=\= tokens=2" %%I in (`findstr /b node\.cookie "%emqx_conf%"`) do @(
   @call :set_trim node_cookie= %%I
 )
 

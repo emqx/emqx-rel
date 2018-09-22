@@ -5,7 +5,7 @@
 # Example:
 #       ./mac_ci.sh 2.2-beta.1
 
-git clone -b release https://github.com/emqtt/emq-relx.git emqx-rel
+git clone -b emqx30_release https://github.com/emqx/emqx-rel
 version=`cd emqx-rel && git describe --abbrev=0 --tags`
 pkg=emqx-macosx-${version}.zip
 echo "building $pkg..."

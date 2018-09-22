@@ -43,7 +43,7 @@
   copy "%rel_dir%\%rel_name%.boot" "%rel_dir%\start.boot" >nul
 )
 
-@%escript% %nodetool% %node_type% "%node_name%" -setcookie "%node_cookie%" rpc emqx_ctl run %args%
+@%escript% %nodetool% %node_type% "%node_name%" -setcookie "%node_cookie%" rpc emqx_ctl run_command %args%
 
 :: Find the ERTS dir
 :find_erts_dir
