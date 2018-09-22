@@ -13,37 +13,37 @@ DEPS += emqx emqx_retainer emqx_recon emqx_reloader emqx_dashboard emqx_manageme
 
 # emqx and plugins
 dep_emqx            = git https://github.com/emqx/emqx win30
-dep_emqx_retainer   = git https://github.com/emqx/emqx-retainer emqx30
-dep_emqx_recon      = git https://github.com/emqx/emqx-recon emqx30
-dep_emqx_reloader   = git https://github.com/emqx/emqx-reloader emqx30
-dep_emqx_dashboard  = git https://github.com/emqx/emqx-dashboard emqx30
-dep_emqx_management = git https://github.com/emqx/emqx-management emqx30
-dep_emqx_statsd     = git https://github.com/emqx/emqx-statsd emqx30
-dep_emqx_delayed_publish = git https://github.com/emqx/emqx-delayed-publish emqx30
+dep_emqx_retainer   = git https://github.com/emqx/emqx-retainer v3.0-beta.3
+dep_emqx_recon      = git https://github.com/emqx/emqx-recon v3.0-beta.3
+dep_emqx_reloader   = git https://github.com/emqx/emqx-reloader v3.0-beta.3
+dep_emqx_dashboard  = git https://github.com/emqx/emqx-dashboard v3.0-beta.3
+dep_emqx_management = git https://github.com/emqx/emqx-management v3.0-beta.3
+dep_emqx_statsd     = git https://github.com/emqx/emqx-statsd v3.0-beta.3
+dep_emqx_delayed_publish = git https://github.com/emqx/emqx-delayed-publish v3.0-beta.3
 
 # emq auth/acl plugins
-dep_emqx_auth_clientid = git https://github.com/emqx/emqx-auth-clientid emqx30
-dep_emqx_auth_username = git https://github.com/emqx/emqx-auth-username emqx30
-dep_emqx_auth_ldap     = git https://github.com/emqx/emqx-auth-ldap emqx30
-dep_emqx_auth_http     = git https://github.com/emqx/emqx-auth-http emqx30
-dep_emqx_auth_mysql    = git https://github.com/emqx/emqx-auth-mysql emqx30
-dep_emqx_auth_pgsql    = git https://github.com/emqx/emqx-auth-pgsql emqx30
-dep_emqx_auth_redis    = git https://github.com/emqx/emqx-auth-redis emqx30
-dep_emqx_auth_mongo    = git https://github.com/emqx/emqx-auth-mongo emqx30
-dep_emqx_auth_jwt      = git https://github.com/emqx/emqx-auth-jwt emqx30
+dep_emqx_auth_clientid = git https://github.com/emqx/emqx-auth-clientid v3.0-beta.3
+dep_emqx_auth_username = git https://github.com/emqx/emqx-auth-username v3.0-beta.3
+dep_emqx_auth_ldap     = git https://github.com/emqx/emqx-auth-ldap v3.0-beta.3
+dep_emqx_auth_http     = git https://github.com/emqx/emqx-auth-http v3.0-beta.3
+dep_emqx_auth_mysql    = git https://github.com/emqx/emqx-auth-mysql v3.0-beta.3
+dep_emqx_auth_pgsql    = git https://github.com/emqx/emqx-auth-pgsql v3.0-beta.3
+dep_emqx_auth_redis    = git https://github.com/emqx/emqx-auth-redis v3.0-beta.3
+dep_emqx_auth_mongo    = git https://github.com/emqx/emqx-auth-mongo v3.0-beta.3
+dep_emqx_auth_jwt      = git https://github.com/emqx/emqx-auth-jwt v3.0-beta.3
 
 # mqtt-sn, coap and stomp
-dep_emqx_sn    = git https://github.com/emqx/emqx-sn emqx30
-dep_emqx_coap  = git https://github.com/emqx/emqx-coap emqx30
-dep_emqx_lwm2m = git https://github.com/emqx/emqx-lwm2m emqx30
-dep_emqx_stomp = git https://github.com/emqx/emqx-stomp emqx30
+dep_emqx_sn    = git https://github.com/emqx/emqx-sn v3.0-beta.3
+dep_emqx_coap  = git https://github.com/emqx/emqx-coap v3.0-beta.3
+dep_emqx_lwm2m = git https://github.com/emqx/emqx-lwm2m v3.0-beta.3
+dep_emqx_stomp = git https://github.com/emqx/emqx-stomp v3.0-beta.3
 
 # plugin template
-dep_emqx_plugin_template = git https://github.com/emqx/emq-plugin-template emqx30
+dep_emqx_plugin_template = git https://github.com/emqx/emq-plugin-template v3.0-beta.3
 
 # web_hook
-dep_emqx_web_hook  = git https://github.com/emqx/emqx-web-hook emqx30
-dep_emqx_lua_hook  = git https://github.com/emqx/emqx-lua-hook emqx30
+dep_emqx_web_hook  = git https://github.com/emqx/emqx-web-hook v3.0-beta.3
+dep_emqx_lua_hook  = git https://github.com/emqx/emqx-lua-hook v3.0-beta.3
 
 # Add this dependency before including erlang.mk
 all:: OTP_21_OR_NEWER
