@@ -78,3 +78,21 @@ plugins:
 	done
 
 app:: plugins
+
+DKR = $(shell docker info > /dev/null 2>&1 && echo "docker" || echo "sudo docker")
+DKR_REPO = emqx
+DKR_IMAGE = $(DKR_REPO)/emqx
+DKR_IMAGE_VSN ?= $(shell git describe --tag)
+
+docker-image: distclean
+	@$(DKR) build -t $(DKR_IMAGE):$(DKR_IMAGE_VSN) -f ./docker/Dockerfile .
+
+docker-image-latest:
+	@$(DKR) tag $(DKR_IMAGE):$(DKR_IMAGE_VSN) $(DKR_IMAGE):latest
+
+docker-push:
+	@$(DKR) push $(DKR_IMAGE):$(DKR_IMAGE_VSN)
+
+docker-push-latest:
+	@$(DKR) push $(DKR_IMAGE):latest
+
