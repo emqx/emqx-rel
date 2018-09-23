@@ -21,6 +21,7 @@ ssh ubuntu@${buildserver} "mkdir ${buildbase}/${versionid}-${type}/${today}"
 buildlocation=${buildbase}/${versionid}-${type}/${today}
   
 cd "${WORKSPACE}/emqx-docker"
+sed -i "/ENV EMQX_VERSION/c\ENV EMQX_VERSION=${versionid}-${type}" ./Dockerfile
 sudo docker build -t emqx-docker-${versionid}-${type}-${today}:latest .
 sudo docker save -o emqx-docker-${versionid}-${type}-${today}.zip emqx-docker-${versionid}-${type}-${today}:latest
 sudo chmod -R 444 emqx-docker-${versionid}-${type}-${today}.zip
