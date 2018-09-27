@@ -40,7 +40,7 @@ then
   pkg=emqx-${ostype}-${version}.zip
   echo "building $pkg..."
   make && cd _rel && zip -rq $pkg emqx 
-  ssh -o StrictHostKeyChecking=no root@${host} "mkdir -p /root/release/${version}"
+  ssh -o StrictHostKeyChecking=no root@${host} "mkdir -p /root/releases/${version}"
   scp -o StrictHostKeyChecking=no $pkg root@${host}:/root/releases/${version}/. 
 
   cd /emqx_temp/emqx-packages
