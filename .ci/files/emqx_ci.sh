@@ -20,7 +20,7 @@ then
   mv package/${name} package/${name3}
   scp package/* ubuntu@${host}:${buildlocation}
 
-else if [[ ${tag} == "releasebuild-ci" ]] 
+elif [[ ${tag} == "releasebuild-ci" ]] 
 then
 
   rm -rf /emqx_temp && mkdir /emqx_temp
