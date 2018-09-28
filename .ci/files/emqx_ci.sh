@@ -2,27 +2,57 @@
 
 chmod 600 /root/.ssh/config
 
-if [[ ${tag} =~ "-ci" ]]
+if [[ ${tag} == "nightlybuild-ci" ]]
 then
-
-  today=$(date +%Y%m%d)
-  #ssh ubuntu@${host}  "mkdir /home/ubuntu/releases/${versionid}-${type}"
-  #ssh ubuntu@${host}  "mkdir /home/ubuntu/releases/${versionid}-${type}/${today}"
 
   rm -rf /emqx_temp && mkdir /emqx_temp
   cp -rf /emqx_code/* /emqx_temp/
   cd /emqx_temp
   pkg=emqx-${ostype}-${versionid}-${type}-${today}.zip
   echo "building $pkg..."
-  cd emqx-rel && make && cd _rel && zip -rq $pkg emqx && scp $pkg ubuntu@${host}:${buildlocation} && cd /emqx_temp
+  cd emqx-rel && make && cd _rel && zip -rq $pkg emqx \
+      && scp -o StrictHostKeyChecking=no $pkg ubuntu@${host}:${buildlocation} \
+      && cd /emqx_temp
 
   cd emqx-packages
+  sed -i "/EMQ_VERSION/c\EMQ_VERSION=${versionid}" ./Makefile
+  sed -i "/Version: /c\Version: ${versionid}" ./rpm/emqx.spec
+  sed -i "1c\emqx (${versionid}) unstable; urgency=medium" ./deb/debian/changelog
   make
   name=`basename package/*`
   name2=${name/emqx-${versionid}/emqx-${ostype}-${versionid}-${type}-${today}}
   name3=${name2/emqx_${versionid}/emqx-${ostype}-${versionid}-${type}-${today}}
   mv package/${name} package/${name3}
-  scp package/* ubuntu@${host}:${buildlocation}
+  scp -o StrictHostKeyChecking=no package/* ubuntu@${host}:${buildlocation}
+
+elif [[ ${tag} == "releasebuild-ci" ]] 
+then
+
+  rm -rf /emqx_temp && mkdir /emqx_temp
+  cp -rf /emqx_code/* /emqx_temp/
+
+  cd /emqx_temp/emqx-rel
+  version=`git describe --abbrev=0 --tags`
+  versionid=${version##*v}
+  export versionid=${versionid%-*}
+  export type=${version#*-}
+
+  pkg=emqx-${ostype}-${version}.zip
+  echo "building $pkg..."
+  make && cd _rel && zip -rq $pkg emqx 
+  ssh -o StrictHostKeyChecking=no root@${host} "mkdir -p /root/releases/${version}"
+  scp -o StrictHostKeyChecking=no $pkg root@${host}:/root/releases/${version}/. 
+
+  cd /emqx_temp/emqx-packages
+  sed -i "/EMQ_VERSION/c\EMQ_VERSION=${versionid}" ./Makefile
+  sed -i "/Version: /c\Version: ${versionid}" ./rpm/emqx.spec
+  sed -i "1c\emqx (${versionid}) unstable; urgency=medium" ./deb/debian/changelog
+  make
+  name=`basename package/*`
+  name2=${name/emqx-${versionid}/emqx-${ostype}-${version}}
+  name3=${name2/emqx_${versionid}/emqx-${ostype}-${version}}
+  mv package/${name} package/${name3}  
+  scp -o StrictHostKeyChecking=no package/* root@${host}:/root/releases/${version}/.
 
 else
   rm -rf /emqx_temp && mkdir /emqx_temp && cd /emqx_temp
