@@ -13,7 +13,6 @@ DEPS += emqx emqx_retainer emqx_recon emqx_reloader emqx_dashboard emqx_manageme
 
 # emqx and plugins
 dep_emqx            = git https://github.com/emqx/emqx win30
-dep_emqx            = git https://github.com/emqtt/emqttd v3.0-rc.1
 dep_emqx_retainer   = git https://github.com/emqx/emqx-retainer v3.0-rc.1
 dep_emqx_recon      = git https://github.com/emqx/emqx-recon v3.0-rc.1
 dep_emqx_reloader   = git https://github.com/emqx/emqx-reloader v3.0-rc.1
