@@ -35,13 +35,9 @@ fi
 # Echo to stderr on errors
 echoerr() { echo "$@" 1>&2; }
 
-# Cuttlefish to generate app.config and vm.args
-CUTTLEFISH="on"
-if [ -z "$CUTTLEFISH" ]; then
-    CUTTLEFISH_COMMAND_PREFIX=""
-else
-    CUTTLEFISH_COMMAND_PREFIX="$ERTS_PATH/escript $RUNNER_ROOT_DIR/bin/cuttlefish -s $REL_DIR/schema -d $RUNNER_DATA_DIR/configs"
-fi
+# By default, use cuttlefish to generate app.config and vm.args
+CUTTLEFISH="${USE_CUTTLEFISH:-yes}"
+CUTTLEFISH_COMMAND_PREFIX="$ERTS_PATH/escript $RUNNER_ROOT_DIR/bin/cuttlefish -s $REL_DIR/schema -d $RUNNER_DATA_DIR/configs"
 
 SED_REPLACE="sed -i"
 case `uname -s` in
@@ -130,7 +126,7 @@ relx_start_command() {
 
 # Function to generate app.config and vm.args
 generate_config() {
-    if [ -z "$CUTTLEFISH" ]; then
+    if [ "$CUTTLEFISH" != "yes" ]; then
         # Note: we have added a parameter '-vm_args' to this. It
         # appears redundant but it is not! the erlang vm allows us to
         # access all arguments to the erl command EXCEPT '-args_file',
@@ -139,17 +135,8 @@ generate_config() {
         CONFIG_ARGS=" -config $RUNNER_ETC_DIR/app.config -args_file $RUNNER_ETC_DIR/vm.args -vm_args $RUNNER_ETC_DIR/vm.args "
     else
         APPCONF=`relx_nodetool mergeconf $RUNNER_ETC_DIR/emqx.conf $RUNNER_ETC_DIR/plugins $RUNNER_DATA_DIR/configs`
-        if [ "$?" -ne 0 ]; then
-            echoerr "Error merging configs!"
-            exit 1
-        fi
         replace_env_in_conf
         CONFIG_ARGS=`$CUTTLEFISH_COMMAND_PREFIX -c $APPCONF generate`
-        if [ "$?" -ne 0 ]; then
-            echoerr "Error generating config with cuttlefish"
-            echoerr "  run \`$RUNNER_SCRIPT config generate -l debug\` for more information."
-            exit 1
-        fi
     fi
 
     if ! relx_nodetool chkconfig $CONFIG_ARGS; then
