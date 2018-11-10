@@ -2,9 +2,6 @@ PROJECT = emqx-rel
 PROJECT_DESCRIPTION = Release Project for EMQ X Broker
 PROJECT_VERSION = 3.0
 
-#DEPS = goldrush
-#dep_goldrush = git https://github.com/basho/goldrush 0.1.9
-
 DEPS += emqx emqx_retainer emqx_recon emqx_reloader emqx_dashboard emqx_management \
 		emqx_auth_clientid emqx_auth_username emqx_auth_ldap emqx_auth_http \
         emqx_auth_mysql emqx_auth_pgsql emqx_auth_redis emqx_auth_mongo \
