@@ -10,26 +10,29 @@
 
 main(Args) ->
     ok = start_epmd(),
-    %% Extract the args
-    {RestArgs, TargetNode} = process_args(Args, [], undefined),
+    ok = do_with_halt(Args, "mnesia_dir", fun create_mnesia_dir/2),
+    ok = do_with_halt(Args, "mergeconf", fun mergeconf/3),
+    ok = do_with_halt(Args, "chkconfig", fun("-config", X) -> chkconfig(X) end),
+    ok = do_with_halt(Args, "chkconfig", fun chkconfig/1),
+    Args1 = do_with_ret(Args, "-name",
+                        fun(TargetName) ->
+                                ThisNode = append_node_suffix(TargetName, "_maint_"),
+                                {ok, _} = net_kernel:start([ThisNode, longnames]),
+                                put(target_node, nodename(TargetName))
+                        end),
+    Args2 = do_with_ret(Args1, "-sname",
+                        fun(TargetName) ->
+                                ThisNode = append_node_suffix(TargetName, "_maint_"),
+                                {ok, _} = net_kernel:start([ThisNode, shortnames]),
+                                put(target_node, nodename(TargetName))
+                        end),
+    RestArgs = do_with_ret(Args2, "-setcookie",
+                           fun(Cookie) ->
+                                   erlang:set_cookie(node(), list_to_atom(Cookie))
+                           end),
 
-    %% process_args() has side-effects (e.g. when processing "-name"),
-    %% so take care of app-starting business first.
     [application:start(App) || App <- [crypto, public_key, ssl]],
-
-    %% any commands that don't need a running node
-    case RestArgs of
-        ["mnesia_dir", DataDir, NodeName] ->
-            create_mnesia_dir(DataDir, NodeName), halt(0);
-        ["mergeconf", EmqCfg, PluginsEtc, DestDir] ->
-            mergeconf(EmqCfg, PluginsEtc, DestDir);
-        ["chkconfig", File] ->
-            chkconfig(File);
-        ["chkconfig", "-config", File|_] ->
-            chkconfig(File);
-        _ ->
-            ok
-    end,
+    TargetNode = get(target_node),
 
     %% See if the node is currently running  -- if it's not, we'll bail
     case {net_kernel:hidden_connect_node(TargetNode), net_adm:ping(TargetNode)} of
@@ -127,21 +130,40 @@ main(Args) ->
     end,
     net_kernel:stop().
 
-process_args([], Acc, TargetNode) ->
-    {lists:reverse(Acc), TargetNode};
-process_args(["-setcookie", Cookie | Rest], Acc, TargetNode) ->
-    erlang:set_cookie(node(), list_to_atom(Cookie)),
-    process_args(Rest, Acc, TargetNode);
-process_args(["-name", TargetName | Rest], Acc, _) ->
-    ThisNode = append_node_suffix(TargetName, "_maint_"),
-    {ok, _} = net_kernel:start([ThisNode, longnames]),
-    process_args(Rest, Acc, nodename(TargetName));
-process_args(["-sname", TargetName | Rest], Acc, _) ->
-    ThisNode = append_node_suffix(TargetName, "_maint_"),
-    {ok, _} = net_kernel:start([ThisNode, shortnames]),
-    process_args(Rest, Acc, nodename(TargetName));
-process_args([Arg | Rest], Acc, Opts) ->
-    process_args(Rest, [Arg | Acc], Opts).
+do_with_ret(Args, Name, Handler) ->
+    {arity, Arity} = erlang:fun_info(Handler, arity),
+    case take_args(Args, Name, Arity) of
+        false ->
+            Args;
+        {Args1, Rest} ->
+            _ = erlang:apply(Handler, Args1),
+            Rest
+    end.
+
+do_with_halt(Args, Name, Handler) ->
+    {arity, Arity} = erlang:fun_info(Handler, arity),
+    case take_args(Args, Name, Arity) of
+        false ->
+            ok;
+        {Args1, _Rest} ->
+            erlang:apply(Handler, Args1), %% should halt
+            io:format(standard_error, "~s handler did not halt", [Name]),
+            halt(?LINE)
+    end.
+
+%% Return option args list if found, otherwise 'false'.
+take_args(Args, OptName, 0) ->
+    lists:member(OptName, Args) andalso [];
+take_args(Args, OptName, OptArity) ->
+    take_args(Args, OptName, OptArity, _Scanned = []).
+
+take_args([], _, _, _) -> false; %% no such option
+take_args([Name | Rest], Name, Arity, Scanned) ->
+    length(Rest) >= Arity orelse error({not_enough_args_for, Name}),
+    {Result, Tail} = lists:split(Arity, Rest),
+    {Result, lists:reverse(Scanned) ++ Tail};
+take_args([Other | Rest], Name, Arity, Scanned) ->
+    take_args(Rest, Name, Arity, [Other | Scanned]).
 
 start_epmd() ->
     [] = os:cmd("\"" ++ epmd_path() ++ "\" -daemon"),
@@ -184,7 +206,8 @@ append_node_suffix(Name, Suffix) ->
 create_mnesia_dir(DataDir, NodeName) ->
     MnesiaDir = filename:join(DataDir, NodeName),
     file:make_dir(MnesiaDir),
-    io:format("~s", [MnesiaDir]).
+    io:format("~s", [MnesiaDir]),
+    halt(0).
 
 mergeconf(EmqCfg, PluginsEtc, DestDir) ->
     filelib:ensure_dir(DestDir),%% support brew on macosx
@@ -201,7 +224,7 @@ mergeconf(EmqCfg, PluginsEtc, DestDir) ->
             io:format("~s", [AppConf]),
             halt(0);
         {error, Error} ->
-            io:format(standard_error, ["Error opening file: ", file:format_error(Error), "\n"], []),
+            io:format(standard_error, ["Error opening file: ", AppConf, " ", file:format_error(Error), "\n"], []),
             halt(1)
     end.
 
@@ -232,7 +255,7 @@ chkconfig(File) ->
             io:format(standard_error, ["Error on line ", file:format_error({Line, Mod, Term}), "\n"], []),
             halt(1);
         {error, Error} ->
-            io:format(standard_error, ["Error reading config file: ", file:format_error(Error), "\n"], []),
+            io:format(standard_error, ["Error reading config file: ", File, " ", file:format_error(Error), "\n"], []),
             halt(1)
     end.
 
