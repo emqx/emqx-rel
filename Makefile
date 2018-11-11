@@ -8,6 +8,10 @@ DEPS += emqx emqx_retainer emqx_recon emqx_reloader emqx_dashboard emqx_manageme
         emqx_sn emqx_coap emqx_lwm2m emqx_stomp emqx_plugin_template emqx_web_hook \
         emqx_auth_jwt emqx_statsd emqx_delayed_publish emqx_lua_hook
 
+# Default release profiles
+RELX_OUTPUT_DIR ?= _rel
+REL_PROFILE ?= dev
+
 ## This is either a tag or branch name for ALL dependencies
 VSN ?= v3.0-rc.3
 
@@ -77,4 +81,8 @@ plugins:
 		cp $${schema} rel/schema/ ; \
 	done
 
-app:: plugins
+app:: plugins vars-ln
+
+vars-ln:
+	ln -s -f vars-$(REL_PROFILE).config vars.config
+
