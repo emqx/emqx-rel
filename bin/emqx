@@ -23,7 +23,7 @@ RUNNER_ETC_DIR="{{ runner_etc_dir }}"
 RUNNER_DATA_DIR="{{ runner_data_dir }}"
 RUNNER_USER="{{ runner_user }}"
 
-SCRIPT_DIR="$(cd `dirname "$SCRIPT"` && pwd -P)"
+RUNNER_SCRIPT="$RUNNER_BIN_DIR/$REL_NAME"
 ERTS_PATH=$RUNNER_ROOT_DIR/erts-$ERTS_VSN/bin
 CODE_LOADING_MODE="${CODE_LOADING_MODE:-embedded}"
 REL_DIR="$RUNNER_ROOT_DIR/releases/$REL_VSN"
@@ -112,7 +112,7 @@ relx_escript() {
 
 # Output a start command for the last argument of run_erl
 relx_start_command() {
-    printf "exec \"%s\" \"%s\"" "$RUNNER_BIN_DIR/$REL_NAME" \
+    printf "exec \"%s\" \"%s\"" "$RUNNER_SCRIPT" \
            "$START_OPTION"
 }
 
@@ -184,7 +184,7 @@ check_user() {
         ESCAPED_ARGS=`echo "$@" | sed -e 's/\([{}"]\)/\\\\\1/g'`
         # This will drop priviledges into the runner user
         # It exec's in a new shell and the current shell will exit
-        exec su - $RUNNER_USER -c "$SCRIPT_DIR/emqx $ESCAPED_ARGS"
+        exec su - $RUNNER_USER -c "$RUNNER_SCRIPT $ESCAPED_ARGS"
     fi
 }
 
@@ -293,11 +293,11 @@ case "$1" in
         RUN_PARAM="$@"
 
         # Set arguments for the heart command
-        set -- "$SCRIPT_DIR/$REL_NAME" "$HEART_OPTION"
+        set -- "$RUNNER_SCRIPT" "$HEART_OPTION"
         [ "$RUN_PARAM" ] && set -- "$@" "$RUN_PARAM"
 
         # Export the HEART_COMMAND
-        HEART_COMMAND="$RUNNER_BIN_DIR/$REL_NAME $CMD"
+        HEART_COMMAND="$RUNNER_SCRIPT $CMD"
         export HEART_COMMAND
 
         ## See: http://erlang.org/doc/man/run_erl.html
