@@ -4,39 +4,12 @@
 
 set -e
 
-SCRIPT=$(readlink $0 || true)
-if [ -z $SCRIPT ]; then
-    SCRIPT=$0
-fi;
-SCRIPT_DIR="$(cd `dirname "$SCRIPT"` && pwd -P)"
-if [ -d "/usr/lib64/" ]; then
-    RUNNER_ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd -P){{ runner_root_dir_for_64 }}"
-else
-    RUNNER_ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd -P){{ runner_root_dir }}"
-fi
 REL_NAME="emqx"
-REL_VSN="{{ rel_vsn }}"
-ERTS_VSN="{{ erts_vsn }}"
-REL_DIR="$RUNNER_ROOT_DIR/releases/$REL_VSN"
-ERL_OPTS="{{ erl_opts }}"
-RUNNER_LOG_DIR={{ runner_log_dir }}
-RUNNER_LIB_DIR={{ runner_lib_dir }}
-RUNNER_ETC_DIR={{ runner_etc_dir }}
-RUNNER_DATA_DIR={{ runner_data_dir }}
 
-find_erts_dir() {
-    __erts_dir="$RUNNER_ROOT_DIR/erts-$ERTS_VSN"
-    if [ -d "$__erts_dir" ]; then
-        ERTS_DIR="$__erts_dir";
-        ROOTDIR="$RUNNER_ROOT_DIR"
-    else
-        __erl="$(which erl)"
-        code="io:format(\"~s\", [code:root_dir()]), halt()."
-        __erl_root="$("$__erl" -noshell -eval "$code")"
-        ERTS_DIR="$__erl_root/erts-$ERTS_VSN"
-        ROOTDIR="$__erl_root"
-    fi
-}
+## constants from relx template
+RUNNER_ROOT_DIR="{{ runner_root_dir }}"
+ERTS_VSN="{{ erts_vsn }}"
+RUNNER_ETC_DIR="{{ runner_etc_dir }}"
 
 relx_get_nodename() {
     id="longname$(relx_gen_id)-${NAME}"
@@ -93,8 +66,8 @@ else
     PROTO_DIST_ARG="-proto_dist $PROTO_DIST"
 fi
 
-find_erts_dir
 export ROOTDIR="$RUNNER_ROOT_DIR"
+export ERTS_DIR="$ROOTDIR/erts-$ERTS_VSN"
 export BINDIR="$ERTS_DIR/bin"
 cd "$ROOTDIR"
 
