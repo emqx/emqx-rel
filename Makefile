@@ -35,7 +35,7 @@ $(foreach dep,$(OUR_APPS),$(eval dep_$(call app_name,$(dep)) = git-emqx https://
 
 # Override default git full-clone with depth=1 shallow-clone
 define dep_fetch_git-emqx
-	git clone --depth 1 -b $(call dep_commit,$(1)) -- $(call dep_repo,$(1)) $(DEPS_DIR)/$(call app_name,$(1))
+	git clone -c advice.detachedHead=false --depth 1 -b $(call dep_commit,$(1)) -- $(call dep_repo,$(1)) $(DEPS_DIR)/$(call app_name,$(1))
 endef
 
 # Add this dependency before including erlang.mk
