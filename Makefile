@@ -19,7 +19,7 @@ REL_PROFILE ?= dev
 
 # Default version for all OUR_APPS
 ## This is either a tag or branch name for ALL dependencies
-VSN ?= v3.0-rc.3
+VSN ?= v3.0-rc.4
 
 dash = -
 uscore = _
