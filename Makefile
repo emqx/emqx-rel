@@ -2,7 +2,6 @@ PROJECT = emqx-rel
 PROJECT_DESCRIPTION = Release Project for EMQ X Broker
 PROJECT_VERSION = 3.0
 
-
 # All emqx app names. Repo name, not Erlang app name
 # By default, app name is the same as repo name with dash replaced by underscore.
 # Otherwise define the dependency in regular erlang.mk style:
@@ -14,8 +13,13 @@ OUR_APPS = emqx emqx-retainer emqx-recon emqx-reloader emqx-dashboard emqx-manag
            emqx-sn emqx-coap emqx-lwm2m emqx-stomp emqx-plugin-template emqx-web-hook \
            emqx-auth-jwt emqx-statsd emqx-delayed-publish emqx-lua-hook
 
+# Default release profiles
+RELX_OUTPUT_DIR ?= _rel
+REL_PROFILE ?= dev
+
 # Default version for all OUR_APPS
-VSN ?= emqx30
+## This is either a tag or branch name for ALL dependencies
+VSN ?= v3.0-rc.4
 
 dash = -
 uscore = _
@@ -36,7 +40,7 @@ $(foreach dep,$(OUR_APPS),$(eval dep_$(call app_name,$(dep)) = git-emqx https://
 
 # Override default git full-clone with depth=1 shallow-clone
 define dep_fetch_git-emqx
-	git clone --depth 1 -b $(call dep_commit,$(1)) -- $(call dep_repo,$(1)) $(DEPS_DIR)/$(call app_name,$(1))
+	git clone -c advice.detachedHead=false --depth 1 -b $(call dep_commit,$(1)) -- $(call dep_repo,$(1)) $(DEPS_DIR)/$(call app_name,$(1))
 endef
 
 # Add this dependency before including erlang.mk
@@ -71,4 +75,8 @@ plugins:
 		cp $${schema} rel/schema/ ; \
 	done
 
-app:: plugins
+app:: plugins vars-ln
+
+vars-ln:
+	ln -s -f vars-$(REL_PROFILE).config vars.config
+
