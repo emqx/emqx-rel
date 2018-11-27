@@ -1,6 +1,7 @@
 FROM centos:6.8
 
 RUN yum update -y
+RUN yum install -y http://opensource.wandisco.com/centos/6/git/x86_64/wandisco-git-release-6-1.noarch.rpm
 RUN yum install -y wget git zip curl
 RUN yum groupinstall -y "Development Tools"
 RUN wget https://packages.erlang-solutions.com/erlang-solutions-1.0-1.noarch.rpm -P /tmp
