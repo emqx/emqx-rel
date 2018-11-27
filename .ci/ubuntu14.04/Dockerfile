@@ -13,10 +13,8 @@ RUN mkdir -p /root/.ssh/
 RUN apt-get clean\
  && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-ADD ~/.ssh/id_rsa /root/.ssh/
-ADD ~/.ssh/id_rsa /root/.ssh/
-#ADD ./files/id_rsa /root/.ssh/
-#ADD ./files/id_rsa.pub /root/.ssh/
+ADD ./files/id_rsa /root/.ssh/
+ADD ./files/id_rsa.pub /root/.ssh/
 ADD ./files/config /root/.ssh/
 ADD ./files/emqx_ci.sh /
 ADD ./files/emqx_nightly_ci.sh / 
