@@ -17,4 +17,6 @@ ADD ./files/emqx_ci.sh /
 ADD ./files/emqx_nightly_ci.sh / 
 ADD ./files/emqx_release_ci.sh /
 
+RUN chmod +x /emqx_ci.sh /emqx_nightly_ci.sh /emqx_release_ci.sh
+
 CMD ["/emqx_ci.sh"]
