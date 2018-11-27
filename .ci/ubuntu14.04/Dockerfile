@@ -1,10 +1,10 @@
 FROM ubuntu:14.04
 
-RUN apt-get update
-RUN apt-get install -y wget git zip curl
+RUN apt-get update \
+    && apt-get install -y wget git zip curl
 RUN echo >> deb http://security.ubuntu.com/ubuntu precise-security main /etc/apt/sources.list
-RUN apt-get update
-RUN apt-get install -y build-essential debhelper
+RUN apt-get update \
+    && apt-get install -y build-essential debhelper
 RUN wget http://packages.erlang-solutions.com/site/esl/esl-erlang/FLAVOUR_1_general/esl-erlang_21.0.5-1~ubuntu~trusty_amd64.deb -O /tmp/erlang.deb
 RUN dpkg -i /tmp/erlang.deb || true
 RUN apt-get -f install -y
