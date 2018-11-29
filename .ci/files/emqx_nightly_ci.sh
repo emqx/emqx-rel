@@ -30,6 +30,6 @@ name2=${name/emqx-${versionid}/emqx-${ostype}-${version}-${today}}
 name3=${name2/emqx_${versionid}/emqx-${ostype}-${version}-${today}}
 mv package/${name} ${buildlocation}/${name3}
 
-./emqx_install_test.sh
+/emqx_install_test.sh
 ssh -o StrictHostKeyChecking=no ${host} "mkdir -p ${buildlocation}"
 scp -o StrictHostKeyChecking=no ${buildlocation}/* ${host}:${buildlocation}
