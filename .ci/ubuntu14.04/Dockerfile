@@ -1,7 +1,7 @@
 FROM ubuntu:14.04
 
 RUN apt-get update \
-    && apt-get install -y wget git zip curl
+    && apt-get install -y wget git zip curl unzip
 RUN echo >> deb http://security.ubuntu.com/ubuntu precise-security main /etc/apt/sources.list
 RUN apt-get update \
     && apt-get install -y build-essential debhelper
@@ -19,7 +19,8 @@ ADD ./files/config /root/.ssh/
 ADD ./files/emqx_ci.sh /
 ADD ./files/emqx_nightly_ci.sh / 
 ADD ./files/emqx_release_ci.sh /
+ADD ./files/emqx_install_test.sh /
 
-RUN chmod +x /emqx_ci.sh /emqx_nightly_ci.sh /emqx_release_ci.sh
+RUN chmod +x /emqx_ci.sh /emqx_nightly_ci.sh /emqx_release_ci.sh /emqx_install_test
 
 CMD ["/emqx_ci.sh"]
