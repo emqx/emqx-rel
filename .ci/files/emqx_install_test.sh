@@ -1,5 +1,5 @@
 #!/bin/bash
-packagespath=/opt/packages
+packagespath=${buildlocation}
 
 if [[ $ostype == centos* ]]
 then

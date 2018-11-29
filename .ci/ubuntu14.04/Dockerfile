@@ -21,6 +21,6 @@ ADD ./files/emqx_nightly_ci.sh /
 ADD ./files/emqx_release_ci.sh /
 ADD ./files/emqx_install_test.sh /
 
-RUN chmod +x /emqx_ci.sh /emqx_nightly_ci.sh /emqx_release_ci.sh /emqx_install_test
+RUN chmod +x /emqx_ci.sh /emqx_nightly_ci.sh /emqx_release_ci.sh /emqx_install_test.sh
 
 CMD ["/emqx_ci.sh"]

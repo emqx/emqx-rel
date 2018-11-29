@@ -3,6 +3,7 @@
 chmod 600 /root/.ssh/config
 
 today=$(date +%Y%m%d)
+mkdir -p ${buildlocation}
 
 rm -rf /emqx_temp && mkdir /emqx_temp
 cp -rf /emqx_code/* /emqx_temp/
@@ -15,7 +16,7 @@ export type=${version#*-}
 pkg=emqx-${ostype}-${version}-${type}-${today}.zip
 echo "building $pkg..."
 make && cd _rel && zip -rq $pkg emqx 
-scp -o StrictHostKeyChecking=no $pkg ${host}:${buildlocation} 
+mv $pkg ${buildlocation}
 
 cd /emqx_temp/emqx-packages
 sed -i "/REL_TAG/c\REL_TAG=emqx30" ./Makefile
@@ -26,5 +27,8 @@ make
 name=`basename package/*`
 name2=${name/emqx-${versionid}/emqx-${ostype}-${version}-${today}}
 name3=${name2/emqx_${versionid}/emqx-${ostype}-${version}-${today}}
-mv package/${name} package/${name3}
-scp -o StrictHostKeyChecking=no package/* ${host}:${buildlocation}
+mv package/${name} ${buildlocation}/${name3}
+
+./emqx_install_test.sh
+ssh -o StrictHostKeyChecking=no ${host} "mkdir -p ${buildlocation}"
+scp -o StrictHostKeyChecking=no ${buildlocation}/* ${host}:${buildlocation}
