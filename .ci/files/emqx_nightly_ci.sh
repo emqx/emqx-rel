@@ -12,7 +12,6 @@ cp -rf /emqx_code/* /emqx_temp/
 cd /emqx_temp/emqx-rel 
 versionid=${version##*v}
 export versionid=${versionid%-*}
-export type=${version#*-}
 
 pkg=emqx-${ostype}-${version}-${today}.zip
 echo "building $pkg..."
