@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 chmod 600 /root/.ssh/config
 
@@ -13,13 +14,13 @@ versionid=${version##*v}
 export versionid=${versionid%-*}
 export type=${version#*-}
 
-pkg=emqx-${ostype}-${version}-${type}-${today}.zip
+pkg=emqx-${ostype}-${version}-${today}.zip
 echo "building $pkg..."
 make && cd _rel && zip -rq $pkg emqx 
 mv $pkg ${buildlocation}
 
 cd /emqx_temp/emqx-packages
-sed -i "/REL_TAG/c\REL_TAG=emqx30" ./Makefile
+#sed -i "/REL_TAG/c\REL_TAG=emqx30" ./Makefile
 sed -i "/EMQ_VERSION/c\EMQ_VERSION=${versionid}" ./Makefile
 sed -i "/Version: /c\Version: ${versionid}" ./rpm/emqx.spec
 sed -i "1c\emqx (${versionid}) unstable; urgency=medium" ./deb/debian/changelog

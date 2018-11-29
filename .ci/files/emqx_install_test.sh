@@ -77,7 +77,7 @@ else
 fi
 
 zipname=`basename emqx-$ostype-$version*.zip`
-unzip $packagespath/$zipname
+unzip $packagespath/$zipname -d $packagespath
 cd $packagespath/emqx
 $packagespath/emqx/bin/emqx start
 if [[ -z "$($packagespath/emqx/bin/emqx_ctl status |grep 'is running'|awk '{print $1}')" ]]
