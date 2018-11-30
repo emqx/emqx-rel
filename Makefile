@@ -38,9 +38,17 @@ DEPS += $(foreach dep,$(OUR_APPS),$(call app_name,$(dep)))
 # for erlang.mk
 $(foreach dep,$(OUR_APPS),$(eval dep_$(call app_name,$(dep)) = git-emqx https://github.com/emqx/$(dep) $(call app_vsn,$(dep))))
 
+GIT_VSN = $(shell git --version | grep -oE "[0-9]{1,2}\.[0-9]{1,2}")
+GIT_VSN_17_COMP = $(shell echo -e "$(GIT_VSN)\n1.7" | sort -V | tail -1)
+ifeq ($(GIT_VSN_17_COMP),1.7)
+	MAYBE_SHALLOW =
+else
+	MAYBE_SHALLOW = -c advice.detachedHead=false --depth 1
+endif
+
 # Override default git full-clone with depth=1 shallow-clone
 define dep_fetch_git-emqx
-	git clone -c advice.detachedHead=false --depth 1 -b $(call dep_commit,$(1)) -- $(call dep_repo,$(1)) $(DEPS_DIR)/$(call app_name,$(1))
+	git clone $(MAYBE_SHALLOW) -b $(call dep_commit,$(1)) -- $(call dep_repo,$(1)) $(DEPS_DIR)/$(call app_name,$(1))
 endef
 
 # Add this dependency before including erlang.mk
