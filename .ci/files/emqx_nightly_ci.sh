@@ -2,9 +2,6 @@
 set -e
 
 chmod 600 /root/.ssh/config
-export EMQX_DEPS_DEFAULT_VSN="emqx30" # git tag for ALL emqx components
-export PKG_VSN="3.0" # version number for packages
-export REL_TAG="emqx30" #  git tag to clone emqx-rel
 today=$(date +%Y%m%d)
 
 mkdir -p ${buildlocation}
