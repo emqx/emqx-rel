@@ -2,6 +2,7 @@ FROM centos:7
 
 RUN yum update -y
 RUN yum install -y wget git zip which curl unzip
+RUN yum install -y wget git zip which curl
 RUN yum groupinstall -y "Development Tools"
 RUN wget https://packages.erlang-solutions.com/erlang-solutions-1.0-1.noarch.rpm -P /tmp
 RUN yum install -y epel-release

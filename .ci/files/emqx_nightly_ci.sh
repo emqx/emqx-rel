@@ -10,7 +10,6 @@ rm -rf /emqx_temp && mkdir /emqx_temp
 cp -rf /emqx_code/* /emqx_temp/
 
 cd /emqx_temp/emqx-rel 
-#获取release的tag的信息，方便下面做包的时候使用
 relversion=$(git describe --tags `git rev-list --tags --max-count=1`)
 versionid=${version##*v}
 export versionid=${versionid%-*}
