@@ -2,12 +2,14 @@
 set -e
 
 chmod 600 /root/.ssh/config
+mkdir -p ${buildlocation}
 
 rm -rf /emqx_temp && mkdir /emqx_temp
 cp -rf /emqx_code/* /emqx_temp/
 
 cd /emqx_temp/emqx-rel
-version=`git describe --abbrev=0 --tags`
+version=$(git describe --tags `git rev-list --tags --max-count=1`)
+#version=`git describe --abbrev=0 --tags`
 versionid=${version##*v}
 export versionid=${versionid%-*}
 
@@ -18,6 +20,7 @@ mv $pkg ${buildlocation}
 
 cd /emqx_temp/emqx-packages
 sed -i "/EMQ_VERSION/c\EMQ_VERSION=${versionid}" ./Makefile
+sed -i "/REL_VSN/c\REL_VSN=${version}" ./Makefile
 sed -i "/Version: /c\Version: ${versionid}" ./rpm/emqx.spec
 sed -i "1c\emqx (${versionid}) unstable; urgency=medium" ./deb/debian/changelog
 make

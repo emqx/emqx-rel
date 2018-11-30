@@ -10,6 +10,8 @@ rm -rf /emqx_temp && mkdir /emqx_temp
 cp -rf /emqx_code/* /emqx_temp/
 
 cd /emqx_temp/emqx-rel 
+#获取release的tag的信息，方便下面做包的时候使用
+relversion=$(git describe --tags `git rev-list --tags --max-count=1`)
 versionid=${version##*v}
 export versionid=${versionid%-*}
 
@@ -19,7 +21,8 @@ make && cd _rel && zip -rq $pkg emqx
 mv $pkg ${buildlocation}
 
 cd /emqx_temp/emqx-packages
-#sed -i "/REL_TAG/c\REL_TAG=emqx30" ./Makefile
+sed -i "/REL_TAG/c\REL_TAG=emqx30" ./Makefile
+sed -i "/REL_VSN/c\REL_VSN=${relversion}" ./Makefile
 sed -i "/EMQ_VERSION/c\EMQ_VERSION=${versionid}" ./Makefile
 sed -i "/Version: /c\Version: ${versionid}" ./rpm/emqx.spec
 sed -i "1c\emqx (${versionid}) unstable; urgency=medium" ./deb/debian/changelog
