@@ -7,7 +7,7 @@ PROJECT_DESCRIPTION = Release Project for EMQ X Broker
 # DEPS += special_app
 # dep_special_app = git https//github.com/emqx/some-name.git branch-or-tag
 DEPS += emqx
-dep_emqx = git https//github.com/emqx/emqx win30
+dep_emqx = git https://github.com/emqx/emqx win30
 OUR_APPS = emqx-retainer emqx-recon emqx-reloader emqx-dashboard emqx-management \
            emqx-auth-clientid emqx-auth-username emqx-auth-ldap emqx-auth-http \
            emqx-auth-mysql emqx-auth-pgsql emqx-auth-redis emqx-auth-mongo \
