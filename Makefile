@@ -21,7 +21,7 @@ REL_PROFILE ?= dev
 
 # Default version for all OUR_APPS
 ## This is either a tag or branch name for ALL dependencies
-EMQX_DEPS_DEFAULT_VSN ?= emqx30
+EMQX_DEPS_DEFAULT_VSN ?= v3.0-rc.5
 
 dash = -
 uscore = _
