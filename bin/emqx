@@ -4,23 +4,24 @@
 
 set -e
 
-SCRIPT=$(readlink $0 || true)
-if [ -z $SCRIPT ]; then
-    SCRIPT=$0
-fi;
-SCRIPT_DIR="$(cd `dirname "$SCRIPT"` && pwd -P)"
-RUNNER_ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd -P){{ runner_root_dir }}"
 REL_NAME="emqx"
+
+## constants from relx template
+RUNNER_ROOT_DIR="{{ runner_root_dir }}"
+RUNNER_BIN_DIR="{{ runner_bin_dir }}"
 REL_VSN="{{ rel_vsn }}"
 ERTS_VSN="{{ erts_vsn }}"
+ERL_OPTS="{{ erl_opts }}"
+RUNNER_LOG_DIR="{{ runner_log_dir }}"
+RUNNER_LIB_DIR="{{ runner_lib_dir }}"
+RUNNER_ETC_DIR="{{ runner_etc_dir }}"
+RUNNER_DATA_DIR="{{ runner_data_dir }}"
+RUNNER_USER="{{ runner_user }}"
+
+RUNNER_SCRIPT="$RUNNER_BIN_DIR/$REL_NAME"
 ERTS_PATH=$RUNNER_ROOT_DIR/erts-$ERTS_VSN/bin
 CODE_LOADING_MODE="${CODE_LOADING_MODE:-embedded}"
 REL_DIR="$RUNNER_ROOT_DIR/releases/$REL_VSN"
-ERL_OPTS="{{ erl_opts }}"
-RUNNER_LOG_DIR={{ runner_log_dir }}
-RUNNER_LIB_DIR={{ runner_lib_dir }}
-RUNNER_ETC_DIR={{ runner_etc_dir }}
-RUNNER_DATA_DIR={{ runner_data_dir }}
 
 WHOAMI=$(whoami)
 
@@ -106,7 +107,7 @@ relx_escript() {
 
 # Output a start command for the last argument of run_erl
 relx_start_command() {
-    printf "exec \"%s\" \"%s\"" "{{ runner_bin_dir }}/$REL_NAME" \
+    printf "exec \"%s\" \"%s\"" "$RUNNER_SCRIPT" \
            "$START_OPTION"
 }
 
@@ -142,6 +143,46 @@ replace_env_in_conf() {
     [ "x" = "x$EMQX_WSS_PORT" ]        || $SED_REPLACE "s/^[ \t]*listener.wss.external[ \t]*=.*$/listener.wss.external = $EMQX_WSS_PORT/" $APPCONF
 }
 
+# Call bootstrapd for daemon commands like start/stop/console
+bootstrapd() {
+    if [ -e "$RUNNER_DATA_DIR/.erlang.cookie" ]; then
+        chown $RUNNER_USER $RUNNER_DATA_DIR/.erlang.cookie
+    fi
+    # Fail fast if they have no rights to mess around with pids
+    check_user_internal
+
+    # Make sure the user running this script is the owner and/or su to that user
+    check_user $@
+    ES=$?
+    if [ "$ES" -ne 0 ]; then
+        exit $ES
+    fi
+}
+
+# Simple way to check the correct user and fail early
+check_user_internal() {
+    # Validate that the user running the script is the owner of the
+    # RUN_DIR.
+    if ([ "$RUNNER_USER" ] && [ "x$WHOAMI" != "x$RUNNER_USER" ]); then
+        if [ "x$WHOAMI" != "xroot" ]; then
+            echo "You need to be root or use sudo to run this command"
+            exit 1
+        fi
+    fi
+}
+
+# Function to su into correct user that is poorly named for historical
+check_user() {
+    check_user_internal
+    # do not su again if we are already the runner user
+    if ([ "$RUNNER_USER" ] && [ "x$WHOAMI" != "x$RUNNER_USER" ]); then
+        ESCAPED_ARGS=`echo "$@" | sed -e 's/\([{}"]\)/\\\\\1/g'`
+        # This will drop priviledges into the runner user
+        # It exec's in a new shell and the current shell will exit
+        exec su - $RUNNER_USER -c "$RUNNER_SCRIPT $ESCAPED_ARGS"
+    fi
+}
+
 # Make sure log directory exists
 mkdir -p "$RUNNER_LOG_DIR"
 
@@ -171,7 +212,7 @@ fi
 NAME_TYPE="$(echo "$NAME_ARG" | awk '{print $1}')"
 NAME="$(echo "$NAME_ARG" | awk '{print $2}')"
 
-PIPE_DIR="${PIPE_DIR:-/tmp/${WHOAMI}_erl_pipes/$NAME/}"
+PIPE_DIR="${PIPE_DIR:-/$RUNNER_DATA_DIR/${WHOAMI}_erl_pipes/$NAME/}"
 
 [ "x" = "x$EMQX_NODE_COOKIE" ] || COOKIE_ARG="-setcookie $EMQX_NODE_COOKIE"
 # Extract the target cookie
@@ -203,7 +244,7 @@ export EMU="beam"
 export PROGNAME="erl"
 export LD_LIBRARY_PATH="$ERTS_DIR/lib:$LD_LIBRARY_PATH"
 ERTS_LIB_DIR="$ERTS_DIR/../lib"
-MNESIA_DATA_DIR="{{ runner_data_dir }}/mnesia/$NAME"
+MNESIA_DATA_DIR="$RUNNER_DATA_DIR/mnesia/$NAME"
 
 cd "$ROOTDIR"
 
@@ -227,6 +268,9 @@ case "$1" in
             echo "Node is already running!"
             exit 1
         fi
+        # Bootstrap daemon command (check perms & drop to $RUNNER_USER)
+        bootstrapd $@
+
         # Save this for later.
         CMD=$1
         case "$1" in
@@ -244,11 +288,11 @@ case "$1" in
         RUN_PARAM="$@"
 
         # Set arguments for the heart command
-        set -- "$SCRIPT_DIR/$REL_NAME" "$HEART_OPTION"
+        set -- "$RUNNER_SCRIPT" "$HEART_OPTION"
         [ "$RUN_PARAM" ] && set -- "$@" "$RUN_PARAM"
 
         # Export the HEART_COMMAND
-        HEART_COMMAND="{{ runner_bin_dir }}/$REL_NAME $CMD"
+        HEART_COMMAND="$RUNNER_SCRIPT $CMD"
         export HEART_COMMAND
 
         ## See: http://erlang.org/doc/man/run_erl.html
@@ -272,7 +316,7 @@ case "$1" in
             if ! relx_nodetool "ping" >/dev/null 2>&1; then
                 continue
             fi
-            echo "emqx {{ rel_vsn }} is started successfully!"
+            echo "emqx $REL_VSN is started successfully!"
             exit 0
         done
         echo "The broker failed to start within ${WAIT_FOR_ERLANG:-15} seconds,"
@@ -336,6 +380,9 @@ case "$1" in
             exit 1
         fi
 
+        # Bootstrap daemon command (check perms & drop to $RUNNER_USER)
+        bootstrapd $@
+
         shift
         exec "$BINDIR/to_erl" "$PIPE_DIR"
         ;;
@@ -346,6 +393,9 @@ case "$1" in
             echo "Node is not running!"
             exit 1
         fi
+
+        # Bootstrap daemon command (check perms & drop to $RUNNER_USER)
+        bootstrapd $@
 
         shift
         relx_rem_sh
@@ -388,6 +438,9 @@ case "$1" in
         ;;
 
     console|console_clean|console_boot)
+        # Bootstrap daemon command (check perms & drop to $RUNNER_USER)
+        bootstrapd $@
+
         # .boot file typically just $REL_NAME (ie, the app name)
         # however, for debugging, sometimes start_clean.boot is useful.
         # For e.g. 'setup', one may even want to name another boot script.
@@ -442,6 +495,8 @@ case "$1" in
         ;;
 
     foreground)
+        # Bootstrap daemon command (check perms & drop to $RUNNER_USER)
+        bootstrapd $@
         # start up the release in the foreground for use by runit
         # or other supervision services
 
@@ -476,6 +531,9 @@ case "$1" in
         # Start the VM
         exec "$@" -- ${1+$ARGS}
         ;;
+    ertspath)
+        echo $ERTS_PATH
+        ;;
     rpc)
         # Make sure a node IS running
         if ! relx_nodetool "ping" > /dev/null; then
@@ -509,7 +567,7 @@ case "$1" in
         relx_nodetool "eval" $@
         ;;
     *)
-        echo "Usage: $REL_NAME {start|start_boot <file>|foreground|stop|restart|reboot|pid|ping|console|console_clean|console_boot <file>|attach|remote_console|upgrade|escript|rpc|rpcterms|eval}"
+        echo "Usage: $REL_NAME {start|start_boot <file>|ertspath|foreground|stop|restart|reboot|pid|ping|console|console_clean|console_boot <file>|attach|remote_console|upgrade|escript|rpc|rpcterms|eval}"
         exit 1
         ;;
 esac
