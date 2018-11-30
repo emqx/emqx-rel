@@ -2,28 +2,24 @@
 set -e
 
 chmod 600 /root/.ssh/config
-mkdir -p ${buildlocation}
+export EMQX_DEPS_DEFAULT_VSN=${version} # git tag for ALL emqx components
+export PKG_VSN=${version}   # version number for packages
+export REL_TAG=${version} #  git tag to clone emqx-rel
 
+mkdir -p ${buildlocation}
 rm -rf /emqx_temp && mkdir /emqx_temp
 cp -rf /emqx_code/* /emqx_temp/
 
 cd /emqx_temp/emqx-rel
-version=$(git describe --tags `git rev-list --tags --max-count=1`)
-#version=`git describe --abbrev=0 --tags`
-versionid=${version##*v}
-export versionid=${versionid%-*}
-
 pkg=emqx-${ostype}-${version}.zip
 echo "building $pkg..."
 make && cd _rel && zip -rq $pkg emqx 
 mv $pkg ${buildlocation}
 
 cd /emqx_temp/emqx-packages
-sed -i "/EMQ_VERSION/c\EMQ_VERSION=${versionid}" ./Makefile
-sed -i "/REL_VSN/c\REL_VSN=${version}" ./Makefile
-sed -i "/Version: /c\Version: ${versionid}" ./rpm/emqx.spec
-sed -i "1c\emqx (${versionid}) unstable; urgency=medium" ./deb/debian/changelog
 make
+versionid=${version##*v}
+versionid=${versionid%-*}
 name=`basename package/*`
 name2=${name/emqx-${versionid}/emqx-${ostype}-${version}}
 name3=${name2/emqx_${versionid}/emqx-${ostype}-${version}}
