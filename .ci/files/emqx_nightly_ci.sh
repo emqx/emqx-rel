@@ -19,8 +19,8 @@ make
 versionid=${version##*v}
 versionid=${versionid%-*}
 name=`basename package/*`
-name2=${name/emqx-${version}/emqx-${ostype}-${version}-${today}}
-name3=${name2/emqx_${version}/emqx-${ostype}-${version}-${today}}
+name2=${name/emqx-${versionid}/emqx-${ostype}-${version}-${today}}
+name3=${name2/emqx_${versionid}/emqx-${ostype}-${version}-${today}}
 mv package/${name} ${buildlocation}/${name3}
 
 /emqx_install_test.sh
