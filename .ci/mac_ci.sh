@@ -10,4 +10,5 @@ version=`cd emqx-rel && git describe --abbrev=0 --tags`
 pkg=emqx-macosx-${version}.zip
 echo "building $pkg..."
 cd emqx-rel && make && cd _rel && zip -rq $pkg emqx
-scp _rel/$pkg root@emqtt.io:/root/releases/$1
+ssh -o StrictHostKeyChecking=no ubuntu@emqx-ci "mkdir -p /opt/emq_packages/free/${version}" 
+scp -o StrictHostKeyChecking=no _rel/$pkg ubuntu@emqx-ci:/opt/emq_packages/free/${version}

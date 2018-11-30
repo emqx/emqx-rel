@@ -1,9 +1,9 @@
 FROM ubuntu:16.04
 
-RUN apt-get update
-RUN apt-get install -y wget git zip
-RUN apt-get update
-RUN apt-get install -y build-essential debhelper
+RUN apt-get update \
+    && apt-get install -y wget git zip curl unzip
+RUN apt-get update \
+    && apt-get install -y build-essential debhelper
 RUN wget http://packages.erlang-solutions.com/site/esl/esl-erlang/FLAVOUR_1_general/esl-erlang_21.0.5-1~ubuntu~trusty_amd64.deb -O /tmp/erlang.deb
 RUN dpkg -i /tmp/erlang.deb || true
 RUN apt-get -f install -y
@@ -16,5 +16,10 @@ ADD ./files/id_rsa /root/.ssh/
 ADD ./files/id_rsa.pub /root/.ssh/
 ADD ./files/config /root/.ssh/
 ADD ./files/emqx_ci.sh /
+ADD ./files/emqx_nightly_ci.sh / 
+ADD ./files/emqx_release_ci.sh /
+ADD ./files/emqx_install_test.sh /
+
+RUN chmod +x /emqx_ci.sh /emqx_nightly_ci.sh /emqx_release_ci.sh /emqx_install_test.sh
 
 CMD ["/emqx_ci.sh"]

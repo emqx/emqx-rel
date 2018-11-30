@@ -1,9 +1,9 @@
 FROM ubuntu:12.04
 
-RUN apt-get update
-RUN apt-get install -y wget make g++ git zip libncurses5-dev unixodbc unixodbc-dev openjdk-7-jdk libssl-dev build-essential curl debhelper
+RUN apt-get update \
+    &&apt-get install -y wget make g++ zip libncurses5-dev unixodbc unixodbc-dev openjdk-7-jdk libssl-dev build-essential curl debhelper python-software-properties unzip
+RUN add-apt-repository -y ppa:git-core/ppa && apt-get update && apt-get install -y git
 RUN echo >> deb http://security.ubuntu.com/ubuntu precise-security main /etc/apt/sources.list
-RUN apt-get update
 RUN wget http://erlang.org/download/otp_src_21.0.tar.gz &&  tar zxvf otp_src_21.0.tar.gz && cd otp_src_21.0 && ./configure && make && make install
 RUN mkdir -p /root/.ssh/
 # cleanup
@@ -14,5 +14,10 @@ ADD ./files/id_rsa /root/.ssh/
 ADD ./files/id_rsa.pub /root/.ssh/
 ADD ./files/config /root/.ssh/
 ADD ./files/emqx_ci.sh /
+ADD ./files/emqx_nightly_ci.sh / 
+ADD ./files/emqx_release_ci.sh /
+ADD ./files/emqx_install_test.sh /
+
+RUN chmod +x /emqx_ci.sh /emqx_nightly_ci.sh /emqx_release_ci.sh /emqx_install_test.sh
 
 CMD ["/emqx_ci.sh"]
