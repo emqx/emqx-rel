@@ -13,8 +13,13 @@ OUR_APPS = emqx emqx-retainer emqx-recon emqx-reloader emqx-dashboard emqx-manag
            emqx-sn emqx-coap emqx-lwm2m emqx-stomp emqx-plugin-template emqx-web-hook \
            emqx-auth-jwt emqx-statsd emqx-delayed-publish emqx-lua-hook
 
+# Default release profiles
+RELX_OUTPUT_DIR ?= _rel
+REL_PROFILE ?= dev
+
 # Default version for all OUR_APPS
-VSN ?= emqx30
+## This is either a tag or branch name for ALL dependencies
+VSN ?= v3.0-rc.4
 
 dash = -
 uscore = _
@@ -78,4 +83,8 @@ plugins:
 		cp $${schema} rel/schema/ ; \
 	done
 
-app:: plugins
+app:: plugins vars-ln
+
+vars-ln:
+	ln -s -f vars-$(REL_PROFILE).config vars.config
+
