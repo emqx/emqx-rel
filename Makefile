@@ -14,9 +14,6 @@ OUR_APPS = emqx-retainer emqx-recon emqx-reloader emqx-dashboard emqx-management
            emqx-sn emqx-coap emqx-lwm2m emqx-stomp emqx-plugin-template emqx-web-hook \
            emqx-auth-jwt emqx-statsd emqx-delayed-publish emqx-lua-hook
 
-# Auto patch would make the git status dirty which will in turn affect app version
-NO_AUTOPATCH = emqx
-
 # Default release profiles
 RELX_OUTPUT_DIR ?= _rel
 REL_PROFILE ?= dev
