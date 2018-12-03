@@ -1,14 +1,12 @@
 #!/bin/bash
-packagespath=${buildlocation}
-
-if [[ $ostype == centos* ]]
-then
-    packagename=`basename $packagespath/emqx-$ostype-$version*.rpm`
-    rpm -ivh $packagespath/$packagename
-    if [[ $(rpm -q emqx) != emqx* ]]
+function running_emqx(){
+    if [[ ! -z $(echo $version | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?-(alpha|beta|rc)\.[0-9]") ]]
     then
-        echo "package install error"
-    exit 1
+        if [[ -z $(ls /usr/lib/emqx/lib| grep emqx-$version) ]]
+        then
+            echo "emqx package version error"
+            exit 1
+        fi
     fi
 
     emqx start
@@ -29,6 +27,21 @@ then
         fi
         service emqx stop
     fi
+}
+
+packagespath=${buildlocation}
+
+if [[ $ostype == centos* ]]
+then
+    packagename=`basename $packagespath/emqx-$ostype-$version*.rpm`
+    rpm -ivh $packagespath/$packagename
+    if [[ $(rpm -q emqx) != emqx* ]]
+    then
+        echo "package install error"
+    exit 1
+    fi
+
+    running_emqx
 
     rpm -e emqx
     if [[ $(rpm -q emqx) == emqx* ]]
@@ -45,21 +58,7 @@ else
         exit 1
     fi
 
-    emqx start
-    if [[ -z "$(emqx_ctl status |grep 'is running'|awk '{print $1}')" ]]
-    then
-        echo "emqx running error"
-        exit 1
-    fi
-    emqx stop
-
-    service emqx start
-    if [[ -z "$(emqx_ctl status |grep 'is running'|awk '{print $1}')" ]]
-    then
-        echo "emqx service error"
-        exit 1
-    fi
-    service emqx stop
+    running_emqx
 
     dpkg -r emqx
     if [ $(dpkg -l |grep emqx |awk '{print $1}') != "rc" ]
