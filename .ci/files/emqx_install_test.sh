@@ -1,8 +1,8 @@
 #!/bin/bash
 function running_emqx(){
-    if [[ ! -z $(echo $version | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?-(alpha|beta|rc)\.[0-9]") ]]
+    if [[ ! -z $(echo $EMQX_DEPS_DEFAULT_VSN | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?-(alpha|beta|rc)\.[0-9]") ]]
     then
-        if [[ -z $(ls /usr/lib/emqx/lib| grep emqx-$version) ]]
+        if [[ -z $(ls /usr/lib/emqx/lib| grep emqx-$EMQX_DEPS_DEFAULT_VSN) ]]
         then
             echo "emqx package version error"
             exit 1
