@@ -21,3 +21,4 @@ ct/logs/*
 *.d
 *.iml
 vars.config
+erlang.mk
