@@ -33,7 +33,7 @@ packagespath=${buildlocation}
 
 if [[ $ostype == centos* ]]
 then
-    packagename=`basename $packagespath/emqx-$ostype-$version*.rpm`
+    packagename=`basename $packagespath/emqx-*.rpm`
     rpm -ivh $packagespath/$packagename
     if [[ $(rpm -q emqx) != emqx* ]]
     then
@@ -50,7 +50,7 @@ then
         exit 1
     fi 
 else
-    packagename=`basename $packagespath/emqx-$ostype-$version*.deb`
+    packagename=`basename $packagespath/emqx-*.deb`
     dpkg -i $packagespath/$packagename
     if [ $(dpkg -l |grep emqx |awk '{print $1}') != "ii" ]
     then
