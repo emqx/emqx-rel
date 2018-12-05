@@ -23,4 +23,4 @@ ADD ./files/emqx_install_test.sh /
 
 RUN chmod +x /emqx_ci.sh /emqx_nightly_ci.sh /emqx_release_ci.sh /emqx_install_test.sh
 
-CMD [/bin/bash, -c, 'source /emqx_ci.sh']
+CMD ["/bin/bash", "-c", "source /emqx_ci.sh"]
