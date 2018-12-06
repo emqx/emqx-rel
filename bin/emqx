@@ -129,15 +129,14 @@ generate_config() {
         CUTTLE_GEN_ARG_FILE=`echo "$CONFIG_ARGS" | sed -n 's/^.*\(vm_args[[:space:]]\)//p' | awk '{print $1}'`
         TMP_ARG_FILE="$RUNNER_DATA_DIR/configs/vm.args.tmp"
         cp "$RUNNER_ETC_DIR/vm.args" "$TMP_ARG_FILE"
-        while IFS='' read -r ARG_LINE || [[ -n "$ARG_LINE" ]]; do
-            [[ "$ARG_LINE" =~ ((^#.*$)|(^$)) ]] && continue
+        sed '/^#/d' $CUTTLE_GEN_ARG_FILE | sed '/^$/d' | while IFS='' read -r ARG_LINE || [ -n "$ARG_LINE" ]; do
             ARG_KEY=`echo "$ARG_LINE" | awk '{print $1}'`
             ARG_VAL=`echo "$ARG_LINE" | awk '{print $2}'`
             ## if found, replace it, otherwise append a new line
             grep -q "^$ARG_KEY" "$TMP_ARG_FILE" && \
                 sed "s/^$ARG_KEY.*/$ARG_LINE/" -i "$TMP_ARG_FILE" || \
                 sed "$ a $ARG_LINE" -i "$TMP_ARG_FILE"
-        done < $CUTTLE_GEN_ARG_FILE
+        done
         mv -f "$TMP_ARG_FILE" "$CUTTLE_GEN_ARG_FILE"
     fi
 
