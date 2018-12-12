@@ -40,15 +40,10 @@ echoerr() { echo "$@" 1>&2; }
 CUTTLEFISH="${USE_CUTTLEFISH:-yes}"
 CUTTLEFISH_COMMAND_PREFIX="$ERTS_PATH/escript $RUNNER_ROOT_DIR/bin/cuttlefish -s $REL_DIR/schema -d $RUNNER_DATA_DIR/configs"
 
-SED_REPLACE="sed -i"
-case `uname -s` in
-    'FreeBSD')
-        SED_REPLACE="sed -i ''"
-        ;;
-    'Darwin')
-        SED_REPLACE="sed -i ''"
-        ;;
-    *);;
+SED_REPLACE="sed -i "
+case $(sed --help 2>&1) in
+    *GNU*) SED_REPLACE="sed -i ";;
+    *) SED_REPLACE="sed -i ''";;
 esac
 
 # Get node pid
@@ -134,7 +129,7 @@ generate_config() {
             ARG_KEY=`echo "$ARG_LINE" | awk '{print $1}'`
             ## if found, replace it, otherwise append a new line
             if grep -q "^$ARG_KEY" "$TMP_ARG_FILE"; then
-                sed "s/^$ARG_KEY.*/$ARG_LINE/" -i "$TMP_ARG_FILE"
+                $SED_REPLACE "s|^${ARG_KEY}.*|${ARG_LINE}|" "$TMP_ARG_FILE"
             else
                 echo "$ARG_LINE" >> "$TMP_ARG_FILE"
             fi
