@@ -4,9 +4,10 @@ RUN yum update -y
 RUN yum install -y http://opensource.wandisco.com/centos/6/git/x86_64/wandisco-git-release-6-1.noarch.rpm
 RUN yum install -y wget git zip curl unzip
 RUN yum groupinstall -y "Development Tools"
-RUN wget https://packages.erlang-solutions.com/erlang-solutions-1.0-1.noarch.rpm -P /tmp
+RUN wget http://packages.erlang-solutions.com/site/esl/esl-erlang/FLAVOUR_1_general/esl-erlang_21.2-1~centos~6_amd64.rpm -P /tmp
 RUN yum install -y epel-release
-RUN rpm -Uvh /tmp/erlang-solutions-1.0-1.noarch.rpm
+RUN yum install unixODBC unixODBC-devel wxBase wxGTK SDL wxGTK-gl -y
+RUN rpm -Uvh /tmp/esl-erlang_21.2-1~centos~6_amd64.rpm
 RUN yum install -y esl-erlang
 RUN mkdir -p /root/.ssh/
 
