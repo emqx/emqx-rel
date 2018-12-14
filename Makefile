@@ -15,6 +15,7 @@ OUR_APPS = emqx-retainer emqx-recon emqx-reloader emqx-dashboard emqx-management
 # Default release profiles
 RELX_OUTPUT_DIR ?= _rel
 REL_PROFILE ?= dev
+DEPLOY ?= cloud
 
 # Default version for all OUR_APPS
 ## This is either a tag or branch name for ALL dependencies
@@ -72,7 +73,14 @@ plugins:
 		cp $${schema} rel/schema/ ; \
 	done
 
-app:: plugins vars-ln
+vm_args:
+	@if [ $(DEPLOY) = "cloud" ] ; then \
+		cp deps/emqx/etc/vm.args rel/conf/vm.args ; \
+	else \
+		cp deps/emqx/etc/vm.args.$(DEPLOY) rel/conf/vm.args ; \
+	fi ;
+
+app:: plugins vm_args vars-ln
 
 vars-ln:
 	ln -s -f vars-$(REL_PROFILE).config vars.config
