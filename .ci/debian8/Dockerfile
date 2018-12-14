@@ -2,7 +2,7 @@ FROM debian:8
 
 RUN apt-get update \
     && apt-get install -y wget git zip  build-essential debhelper curl unzip
-RUN wget http://packages.erlang-solutions.com/site/esl/esl-erlang/FLAVOUR_1_general/esl-erlang_21.0.5-1~debian~jessie_amd64.deb -O /tmp/erlang.deb
+RUN wget http://packages.erlang-solutions.com/site/esl/esl-erlang/FLAVOUR_1_general/esl-erlang_21.2-1~debian~jessie_amd64.deb -O /tmp/erlang.deb
 RUN dpkg -i /tmp/erlang.deb || true
 RUN apt-get -f install -y
 RUN mkdir -p /root/.ssh/
