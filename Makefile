@@ -74,7 +74,11 @@ plugins:
 	done
 
 vm_args:
-	cp deps/emqx/etc/vm.args.$(DEPLOY) rel/conf/vm.args
+	@if [ $(DEPLOY) = "cloud" ] ; then \
+		cp deps/emqx/etc/vm.args rel/conf/vm.args ; \
+	else \
+		cp deps/emqx/etc/vm.args.$(DEPLOY) rel/conf/vm.args ; \
+	fi ;
 
 app:: plugins vm_args vars-ln
 
