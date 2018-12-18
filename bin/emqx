@@ -126,11 +126,9 @@ generate_config() {
         cp "$RUNNER_ETC_DIR/vm.args" "$TMP_ARG_FILE"
         echo "" >> "$TMP_ARG_FILE"
         sed '/^#/d' $CUTTLE_GEN_ARG_FILE | sed '/^$/d' | while IFS='' read -r ARG_LINE || [ -n "$ARG_LINE" ]; do
-            ARG_KEY=`echo "$ARG_LINE" | awk '{print $1}'`
-            ## if found, replace it, otherwise append a new line
-            if grep -q "^$ARG_KEY" "$TMP_ARG_FILE"; then
-                $SED_REPLACE "s|^${ARG_KEY}.*|${ARG_LINE}|" "$TMP_ARG_FILE"
-            else
+            ARG_KEY=`echo "$ARG_LINE" | awk '{NF--; print}'`
+            ## if not found in vm.args, append a new line
+            if ! grep -q "^$ARG_KEY" "$TMP_ARG_FILE"; then
                 echo "$ARG_LINE" >> "$TMP_ARG_FILE"
             fi
         done
