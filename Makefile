@@ -4,9 +4,9 @@ PROJECT_DESCRIPTION = Release Project for EMQ X Broker
 # All emqx app names. Repo name, not Erlang app name
 # By default, app name is the same as repo name with dash replaced by underscore.
 # Otherwise define the dependency in regular erlang.mk style:
-# DEPS += special_app
-# dep_special_app = git https//github.com/emqx/some-name.git branch-or-tag
-OUR_APPS = emqx emqx-retainer emqx-recon emqx-reloader emqx-dashboard emqx-management \
+DEPS += emqx
+dep_emqx = git https://github.com/emqx/emqx.git emqx32
+OUR_APPS = emqx-retainer emqx-recon emqx-reloader emqx-dashboard emqx-management \
            emqx-auth-clientid emqx-auth-username emqx-auth-ldap emqx-auth-http \
            emqx-auth-mysql emqx-auth-pgsql emqx-auth-redis emqx-auth-mongo \
            emqx-sn emqx-coap emqx-lwm2m emqx-stomp emqx-plugin-template emqx-web-hook \
@@ -15,6 +15,7 @@ OUR_APPS = emqx emqx-retainer emqx-recon emqx-reloader emqx-dashboard emqx-manag
 # Default release profiles
 RELX_OUTPUT_DIR ?= _rel
 REL_PROFILE ?= dev
+DEPLOY ?= cloud
 
 # Default version for all OUR_APPS
 ## This is either a tag or branch name for ALL dependencies
@@ -72,7 +73,14 @@ plugins:
 		cp $${schema} rel/schema/ ; \
 	done
 
-app:: plugins vars-ln
+vm_args:
+	@if [ $(DEPLOY) = "cloud" ] ; then \
+		cp deps/emqx/etc/vm.args rel/conf/vm.args ; \
+	else \
+		cp deps/emqx/etc/vm.args.$(DEPLOY) rel/conf/vm.args ; \
+	fi ;
+
+app:: plugins vm_args vars-ln
 
 vars-ln:
 	ln -s -f vars-$(REL_PROFILE).config vars.config
