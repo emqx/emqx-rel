@@ -4,7 +4,7 @@ PROJECT_DESCRIPTION = Release Project for EMQ X Broker
 # All emqx app names. Repo name, not Erlang app name
 # By default, app name is the same as repo name with dash replaced by underscore.
 # Otherwise define the dependency in regular erlang.mk style:
-OUR_APPS = emqx-retainer emqx-recon emqx-reloader emqx-dashboard emqx-management \
+OUR_APPS = emqx emqx-retainer emqx-recon emqx-reloader emqx-dashboard emqx-management \
            emqx-auth-clientid emqx-auth-username emqx-auth-ldap emqx-auth-http \
            emqx-auth-mysql emqx-auth-pgsql emqx-auth-redis emqx-auth-mongo \
            emqx-sn emqx-coap emqx-lwm2m emqx-stomp emqx-plugin-template emqx-web-hook \
