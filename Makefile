@@ -6,6 +6,8 @@ PROJECT_DESCRIPTION = Release Project for EMQ X Broker
 # Otherwise define the dependency in regular erlang.mk style:
 # DEPS += special_app
 # dep_special_app = git https//github.com/emqx/some-name.git branch-or-tag
+NO_AUTOPATCH = cuttlefish
+
 DEPS += emqx
 dep_emqx = git https://github.com/emqx/emqx win30
 OUR_APPS = emqx-retainer emqx-recon emqx-reloader emqx-dashboard emqx-management \
