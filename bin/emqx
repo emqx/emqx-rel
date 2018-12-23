@@ -40,15 +40,10 @@ echoerr() { echo "$@" 1>&2; }
 CUTTLEFISH="${USE_CUTTLEFISH:-yes}"
 CUTTLEFISH_COMMAND_PREFIX="$ERTS_PATH/escript $RUNNER_ROOT_DIR/bin/cuttlefish -s $REL_DIR/schema -d $RUNNER_DATA_DIR/configs"
 
-SED_REPLACE="sed -i"
-case `uname -s` in
-    'FreeBSD')
-        SED_REPLACE="sed -i ''"
-        ;;
-    'Darwin')
-        SED_REPLACE="sed -i ''"
-        ;;
-    *);;
+SED_REPLACE="sed -i "
+case $(sed --help 2>&1) in
+    *GNU*) SED_REPLACE="sed -i ";;
+    *) SED_REPLACE="sed -i ''";;
 esac
 
 # Get node pid
@@ -124,6 +119,20 @@ generate_config() {
         APPCONF=`relx_nodetool mergeconf $RUNNER_ETC_DIR/emqx.conf $RUNNER_ETC_DIR/plugins $RUNNER_DATA_DIR/configs`
         replace_env_in_conf
         CONFIG_ARGS=`$CUTTLEFISH_COMMAND_PREFIX -c $APPCONF generate`
+
+        ## Merge cuttlefish generated *.args into the vm.args
+        CUTTLE_GEN_ARG_FILE=`echo "$CONFIG_ARGS" | sed -n 's/^.*\(vm_args[[:space:]]\)//p' | awk '{print $1}'`
+        TMP_ARG_FILE="$RUNNER_DATA_DIR/configs/vm.args.tmp"
+        cp "$RUNNER_ETC_DIR/vm.args" "$TMP_ARG_FILE"
+        echo "" >> "$TMP_ARG_FILE"
+        sed '/^#/d' $CUTTLE_GEN_ARG_FILE | sed '/^$/d' | while IFS='' read -r ARG_LINE || [ -n "$ARG_LINE" ]; do
+            ARG_KEY=`echo "$ARG_LINE" | awk '{NF--; print}'`
+            ## if not found in vm.args, append a new line
+            if ! grep -q "^$ARG_KEY" "$TMP_ARG_FILE"; then
+                echo "$ARG_LINE" >> "$TMP_ARG_FILE"
+            fi
+        done
+        mv -f "$TMP_ARG_FILE" "$CUTTLE_GEN_ARG_FILE"
     fi
 
     if ! relx_nodetool chkconfig $CONFIG_ARGS; then
