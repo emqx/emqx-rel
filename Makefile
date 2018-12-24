@@ -4,8 +4,7 @@ PROJECT_VERSION = 3.0
 
 RELX_TAR = 0
 
-DEPS = goldrush
-dep_goldrush = git https://github.com/basho/goldrush 0.1.9
+NO_AUTOPATCH = cuttlefish
 
 DEPS += emqx emqx_retainer emqx_recon emqx_reloader emqx_dashboard emqx_management \
 		emqx_auth_clientid emqx_auth_username emqx_auth_ldap emqx_auth_http \
