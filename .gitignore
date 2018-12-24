@@ -20,4 +20,3 @@ ct/logs/*
 .idea/
 *.d
 *.iml
-vars.config
