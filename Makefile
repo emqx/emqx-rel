@@ -2,6 +2,8 @@ PROJECT = emqx-rel
 PROJECT_DESCRIPTION = Release Project for EMQ X Broker
 PROJECT_VERSION = 3.0
 
+RELX_TAR = 0
+
 DEPS = goldrush
 dep_goldrush = git https://github.com/basho/goldrush 0.1.9
 
