@@ -4488,7 +4488,7 @@ endef
 
 define dep_autopatch_fetch_rebar2
 	if [ ! -d $(ERLANG_MK_TMP)/rebar ]; then \
-		git clone -q -n -- $(REBAR_GIT) $(ERLANG_MK_TMP)/rebar; \
+		git clone -- $(REBAR_GIT) $(ERLANG_MK_TMP)/rebar; \
 		cd $(ERLANG_MK_TMP)/rebar; \
 		git checkout -q $(REBAR_COMMIT); \
 		./bootstrap; \
@@ -4843,13 +4843,13 @@ define dep_autopatch_appsrc.erl
 endef
 
 define dep_fetch_git
-	git clone -q -n -- $(call dep_repo,$(1)) $(DEPS_DIR)/$(call dep_name,$(1)); \
+	git clone -- $(call dep_repo,$(1)) $(DEPS_DIR)/$(call dep_name,$(1)); \
 	cd $(DEPS_DIR)/$(call dep_name,$(1)) && git checkout -q $(call dep_commit,$(1));
 endef
 
 define dep_fetch_git-subfolder
 	mkdir -p $(ERLANG_MK_TMP)/git-subfolder; \
-	git clone -q -n -- $(call dep_repo,$1) \
+	git clone -- $(call dep_repo,$1) \
 		$(ERLANG_MK_TMP)/git-subfolder/$(call dep_name,$1); \
 	cd $(ERLANG_MK_TMP)/git-subfolder/$(call dep_name,$1) \
 		&& git checkout -q $(call dep_commit,$1); \
@@ -4894,7 +4894,7 @@ endef
 # Kept for compatibility purposes with older Erlang.mk configuration.
 define dep_fetch_legacy
 	$(warning WARNING: '$(1)' dependency configuration uses deprecated format.) \
-	git clone -q -n -- $(word 1,$(dep_$(1))) $(DEPS_DIR)/$(1); \
+	git clone -- $(word 1,$(dep_$(1))) $(DEPS_DIR)/$(1); \
 	cd $(DEPS_DIR)/$(1) && git checkout -q $(if $(word 2,$(dep_$(1))),$(word 2,$(dep_$(1))),master);
 endef
 
