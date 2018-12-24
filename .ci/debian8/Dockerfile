@@ -1,10 +1,24 @@
 FROM debian:8
 
-RUN apt-get update \
-    && apt-get install -y wget git zip  build-essential debhelper curl unzip
+RUN apt-get update && apt-get install -y \
+    wget \
+    git \
+    zip \
+    build-essential \
+    debhelper \
+    curl \
+    unzip 
 RUN wget http://packages.erlang-solutions.com/site/esl/esl-erlang/FLAVOUR_1_general/esl-erlang_21.2-1~debian~jessie_amd64.deb -O /tmp/erlang.deb
 RUN dpkg -i /tmp/erlang.deb || true
 RUN apt-get -f install -y
+RUN apt-get install -y gcc make zlib1g-dev libffi-dev libssl-dev \
+    && wget https://www.python.org/ftp/python/3.6.7/Python-3.6.7.tgz \
+    && tar xvf Python-3.6.7.tgz \
+    && cd Python-3.6.7 \
+    && ./configure --prefix=/usr/local/python3.6.7 \
+    && make \
+    && make install \
+    && rm -rf /usr/bin/python3 && ln -s /usr/local/python3.6.7/bin/python3.6 /usr/bin/python3
 RUN mkdir -p /root/.ssh/
 # cleanup
 RUN apt-get clean\
