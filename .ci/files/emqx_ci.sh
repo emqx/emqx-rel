@@ -12,7 +12,7 @@ main() {
 }
 
 emqx_prepare(){
-    if [ -z ${version}];then
+    if [ -z ${version} ];then
         export version=emqx30
     fi
 
@@ -23,7 +23,7 @@ emqx_prepare(){
         export REL_TAG=$version #  git tag to clone emqx-rel
     fi
 
-    if [ -z ${buildlocation}];then
+    if [ -z ${buildlocation} ];then
         export buildlocation=/opt/emq_packages/free
     fi
 
@@ -34,7 +34,7 @@ emqx_prepare(){
         git clone -b $version https://github.com/emqx/emqx-packages.git /emqx_code/emqx-packages
     fi
     if [ ! -d "/emqx_code/paho-mqtt-testing" ]; then
-        git clone -b master https://github.com/emqx/paho-mqtt-testing.git /emqx_code/paho-mqtt-testing
+        git clone -b master https://github.com/emqx/paho.mqtt.testing.git /emqx_code/paho-mqtt-testing
     fi
 
     rm -rf /tmp/emqx
