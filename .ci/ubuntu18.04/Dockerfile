@@ -20,7 +20,7 @@ RUN add-apt-repository ppa:jonathonf/python-3.6 -y \
     && rm -rf /usr/bin/python3 \
     && ln -s /usr/bin/python3.6 /usr/bin/python3
 RUN mkdir -p /root/.ssh/
-# cleanup
+# cleanup 
 RUN apt-get clean\
  && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
@@ -28,8 +28,7 @@ ADD ./files/id_rsa /root/.ssh/
 ADD ./files/id_rsa.pub /root/.ssh/
 ADD ./files/config /root/.ssh/
 ADD ./files/emqx_ci.sh /
-ADD ./files/emqx_install_test.sh /
 
-RUN chmod +x /emqx_ci.sh /emqx_install_test.sh
+RUN chmod +x /emqx_ci.sh 
 
 CMD ["/bin/bash", "-c", "source /emqx_ci.sh"]
