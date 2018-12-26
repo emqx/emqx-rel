@@ -75,8 +75,10 @@ emqx_test(){
                     echo "emqx running error"
                     exit 1
                 fi
+                echo "running ${packagename} start"
                 python3 /emqx_temp/paho-mqtt-testing/interoperability/client_test5.py || { echo "Paho test error."; exit 1; } 
                 $packagespath/emqx/bin/emqx stop
+                echo "running ${packagename} start"
                 rm -rf $packagespath/emqx
             ;;
             "deb")
@@ -88,7 +90,9 @@ emqx_test(){
                     exit 1
                 fi
                 
+                echo "running ${packagename} start"
                 running_test 
+                echo "running ${packagename} stop"
 
                 dpkg -r emqx
                 if [ $(dpkg -l |grep emqx |awk '{print $1}') != "rc" ]
@@ -111,7 +115,10 @@ emqx_test(){
                     echo "package install error"
                     exit 1
                 fi
+                
+                echo "running ${packagename} start"
                 running_test 
+                echo "running ${packagename} stop"
                 
                 rpm -e emqx
                 if [[ $(rpm -q emqx) == emqx* ]];then
