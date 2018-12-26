@@ -4,23 +4,24 @@
 
 set -e
 
-SCRIPT=$(readlink $0 || true)
-if [ -z $SCRIPT ]; then
-    SCRIPT=$0
-fi;
-SCRIPT_DIR="$(cd `dirname "$SCRIPT"` && pwd -P)"
-RUNNER_ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd -P){{ runner_root_dir }}"
-REL_NAME="emqttd"
+REL_NAME="emqx"
+
+## constants from relx template
+RUNNER_ROOT_DIR="{{ runner_root_dir }}"
+RUNNER_BIN_DIR="{{ runner_bin_dir }}"
 REL_VSN="{{ rel_vsn }}"
 ERTS_VSN="{{ erts_vsn }}"
+ERL_OPTS="{{ erl_opts }}"
+RUNNER_LOG_DIR="{{ runner_log_dir }}"
+RUNNER_LIB_DIR="{{ runner_lib_dir }}"
+RUNNER_ETC_DIR="{{ runner_etc_dir }}"
+RUNNER_DATA_DIR="{{ runner_data_dir }}"
+RUNNER_USER="{{ runner_user }}"
+
+RUNNER_SCRIPT="$RUNNER_BIN_DIR/$REL_NAME"
 ERTS_PATH=$RUNNER_ROOT_DIR/erts-$ERTS_VSN/bin
 CODE_LOADING_MODE="${CODE_LOADING_MODE:-embedded}"
 REL_DIR="$RUNNER_ROOT_DIR/releases/$REL_VSN"
-ERL_OPTS="{{ erl_opts }}"
-RUNNER_LOG_DIR={{ runner_log_dir }}
-RUNNER_LIB_DIR={{ runner_lib_dir }}
-RUNNER_ETC_DIR={{ runner_etc_dir }}
-RUNNER_DATA_DIR={{ runner_data_dir }}
 
 WHOAMI=$(whoami)
 
@@ -35,38 +36,15 @@ fi
 # Echo to stderr on errors
 echoerr() { echo "$@" 1>&2; }
 
-# Cuttlefish to generate app.config and vm.args
-CUTTLEFISH="on"
-if [ -z "$CUTTLEFISH" ]; then
-    CUTTLEFISH_COMMAND_PREFIX=""
-else
-    CUTTLEFISH_COMMAND_PREFIX="$ERTS_PATH/escript $RUNNER_ROOT_DIR/bin/cuttlefish -s $REL_DIR/schema -d $RUNNER_DATA_DIR/configs"
-fi
+# By default, use cuttlefish to generate app.config and vm.args
+CUTTLEFISH="${USE_CUTTLEFISH:-yes}"
+CUTTLEFISH_COMMAND_PREFIX="$ERTS_PATH/escript $RUNNER_ROOT_DIR/bin/cuttlefish -s $REL_DIR/schema -d $RUNNER_DATA_DIR/configs"
 
-SED_REPLACE="sed -i"
-case `uname -s` in
-    'FreeBSD')
-        SED_REPLACE="sed -i ''"
-        ;;
-    'Darwin')
-        SED_REPLACE="sed -i ''"
-        ;;
-    *);;
+SED_REPLACE="sed -i "
+case $(sed --help 2>&1) in
+    *GNU*) SED_REPLACE="sed -i ";;
+    *) SED_REPLACE="sed -i ''";;
 esac
-
-find_erts_dir() {
-    __erts_dir="$RUNNER_ROOT_DIR/erts-$ERTS_VSN"
-    if [ -d "$__erts_dir" ]; then
-        ERTS_DIR="$__erts_dir";
-        ROOTDIR="$RUNNER_ROOT_DIR"
-    else
-        __erl="$(which erl)"
-        code="io:format(\"~s\", [code:root_dir()]), halt()."
-        __erl_root="$("$__erl" -noshell -eval "$code")"
-        ERTS_DIR="$__erl_root/erts-$ERTS_VSN"
-        ROOTDIR="$__erl_root"
-    fi
-}
 
 # Get node pid
 relx_get_pid() {
@@ -124,13 +102,13 @@ relx_escript() {
 
 # Output a start command for the last argument of run_erl
 relx_start_command() {
-    printf "exec \"%s\" \"%s\"" "{{ runner_bin_dir }}/$REL_NAME" \
+    printf "exec \"%s\" \"%s\"" "$RUNNER_SCRIPT" \
            "$START_OPTION"
 }
 
 # Function to generate app.config and vm.args
 generate_config() {
-    if [ -z "$CUTTLEFISH" ]; then
+    if [ "$CUTTLEFISH" != "yes" ]; then
         # Note: we have added a parameter '-vm_args' to this. It
         # appears redundant but it is not! the erlang vm allows us to
         # access all arguments to the erl command EXCEPT '-args_file',
@@ -138,18 +116,23 @@ generate_config() {
         # the vm, we need to pass it in twice.
         CONFIG_ARGS=" -config $RUNNER_ETC_DIR/app.config -args_file $RUNNER_ETC_DIR/vm.args -vm_args $RUNNER_ETC_DIR/vm.args "
     else
-        APPCONF=`relx_nodetool mergeconf $RUNNER_ETC_DIR/emq.conf $RUNNER_ETC_DIR/plugins $RUNNER_DATA_DIR/configs`
-        if [ "$?" -ne 0 ]; then
-            echoerr "Error merging configs!"
-            exit 1
-        fi
+        APPCONF=`relx_nodetool mergeconf $RUNNER_ETC_DIR/emqx.conf $RUNNER_ETC_DIR/plugins $RUNNER_DATA_DIR/configs`
         replace_env_in_conf
         CONFIG_ARGS=`$CUTTLEFISH_COMMAND_PREFIX -c $APPCONF generate`
-        if [ "$?" -ne 0 ]; then
-            echoerr "Error generating config with cuttlefish"
-            echoerr "run \`$CUTTLEFISH_COMMAND_PREFIX -c $APPCONF generate -l debug\` for more information."
-            exit 1
-        fi
+
+        ## Merge cuttlefish generated *.args into the vm.args
+        CUTTLE_GEN_ARG_FILE=`echo "$CONFIG_ARGS" | sed -n 's/^.*\(vm_args[[:space:]]\)//p' | awk '{print $1}'`
+        TMP_ARG_FILE="$RUNNER_DATA_DIR/configs/vm.args.tmp"
+        cp "$RUNNER_ETC_DIR/vm.args" "$TMP_ARG_FILE"
+        echo "" >> "$TMP_ARG_FILE"
+        sed '/^#/d' $CUTTLE_GEN_ARG_FILE | sed '/^$/d' | while IFS='' read -r ARG_LINE || [ -n "$ARG_LINE" ]; do
+            ARG_KEY=`echo "$ARG_LINE" | awk '{NF--; print}'`
+            ## if not found in vm.args, append a new line
+            if ! grep -q "^$ARG_KEY" "$TMP_ARG_FILE"; then
+                echo "$ARG_LINE" >> "$TMP_ARG_FILE"
+            fi
+        done
+        mv -f "$TMP_ARG_FILE" "$CUTTLE_GEN_ARG_FILE"
     fi
 
     if ! relx_nodetool chkconfig $CONFIG_ARGS; then
@@ -159,14 +142,54 @@ generate_config() {
 }
 
 replace_env_in_conf() {
-    [ "x" = "x$EMQ_NODE_NAME" ]       || $SED_REPLACE "s/^[ \t]*node.name[ \t]*=.*$/node.name= $EMQ_NODE_NAME/" $APPCONF
-    [ "x" = "x$EMQ_NODE_COOKIE" ]     || $SED_REPLACE "s/^[ \t]*node.cookie[ \t]*=.*$/node.cookie= $EMQ_NODE_COOKIE/" $APPCONF
-    [ "x" = "x$EMQ_MAX_PORTS" ]       || $SED_REPLACE "s/^[ \t]*node.max_ports[ \t]*=.*$/node.max_ports = $EMQ_MAX_PORTS/" $APPCONF
-    [ "x" = "x$EMQ_MAX_PACKET_SIZE" ] || $SED_REPLACE "s/^[ \t]*mqtt.max_packet_size[ \t]*=.*$/mqtt.max_packet_size = $EMQ_MAX_PACKET_SIZE/" $APPCONF
-    [ "x" = "x$EMQ_TCP_PORT" ]        || $SED_REPLACE "s/^[ \t]*listener.tcp.external[ \t]*=.*$/listener.tcp.external = $EMQ_TCP_PORT/" $APPCONF
-    [ "x" = "x$EMQ_SSL_PORT" ]        || $SED_REPLACE "s/^[ \t]*listener.ssl.external[ \t]*=.*$/listener.ssl.external = $EMQ_SSL_PORT/" $APPCONF
-    [ "x" = "x$EMQ_WS_PORT" ]         || $SED_REPLACE "s/^[ \t]*listener.ws.external[ \t]*=.*$/listener.ws.external = $EMQ_WS_PORT/" $APPCONF
-    [ "x" = "x$EMQ_WSS_PORT" ]        || $SED_REPLACE "s/^[ \t]*listener.wss.external[ \t]*=.*$/listener.wss.external = $EMQ_WSS_PORT/" $APPCONF
+    [ "x" = "x$EMQX_NODE_NAME" ]       || $SED_REPLACE "s/^[ \t]*node.name[ \t]*=.*$/node.name= $EMQX_NODE_NAME/" $APPCONF
+    [ "x" = "x$EMQX_NODE_COOKIE" ]     || $SED_REPLACE "s/^[ \t]*node.cookie[ \t]*=.*$/node.cookie= $EMQX_NODE_COOKIE/" $APPCONF
+    [ "x" = "x$EMQX_MAX_PORTS" ]       || $SED_REPLACE "s/^[ \t]*node.max_ports[ \t]*=.*$/node.max_ports = $EMQX_MAX_PORTS/" $APPCONF
+    [ "x" = "x$EMQX_MAX_PACKET_SIZE" ] || $SED_REPLACE "s/^[ \t]*mqtt.max_packet_size[ \t]*=.*$/mqtt.max_packet_size = $EMQX_MAX_PACKET_SIZE/" $APPCONF
+    [ "x" = "x$EMQX_TCP_PORT" ]        || $SED_REPLACE "s/^[ \t]*listener.tcp.external[ \t]*=.*$/listener.tcp.external = $EMQX_TCP_PORT/" $APPCONF
+    [ "x" = "x$EMQX_SSL_PORT" ]        || $SED_REPLACE "s/^[ \t]*listener.ssl.external[ \t]*=.*$/listener.ssl.external = $EMQX_SSL_PORT/" $APPCONF
+    [ "x" = "x$EMQX_WS_PORT" ]         || $SED_REPLACE "s/^[ \t]*listener.ws.external[ \t]*=.*$/listener.ws.external = $EMQX_WS_PORT/" $APPCONF
+    [ "x" = "x$EMQX_WSS_PORT" ]        || $SED_REPLACE "s/^[ \t]*listener.wss.external[ \t]*=.*$/listener.wss.external = $EMQX_WSS_PORT/" $APPCONF
+}
+
+# Call bootstrapd for daemon commands like start/stop/console
+bootstrapd() {
+    if [ -e "$RUNNER_DATA_DIR/.erlang.cookie" ]; then
+        chown $RUNNER_USER $RUNNER_DATA_DIR/.erlang.cookie
+    fi
+    # Fail fast if they have no rights to mess around with pids
+    check_user_internal
+
+    # Make sure the user running this script is the owner and/or su to that user
+    check_user $@
+    ES=$?
+    if [ "$ES" -ne 0 ]; then
+        exit $ES
+    fi
+}
+
+# Simple way to check the correct user and fail early
+check_user_internal() {
+    # Validate that the user running the script is the owner of the
+    # RUN_DIR.
+    if ([ "$RUNNER_USER" ] && [ "x$WHOAMI" != "x$RUNNER_USER" ]); then
+        if [ "x$WHOAMI" != "xroot" ]; then
+            echo "You need to be root or use sudo to run this command"
+            exit 1
+        fi
+    fi
+}
+
+# Function to su into correct user that is poorly named for historical
+check_user() {
+    check_user_internal
+    # do not su again if we are already the runner user
+    if ([ "$RUNNER_USER" ] && [ "x$WHOAMI" != "x$RUNNER_USER" ]); then
+        ESCAPED_ARGS=`echo "$@" | sed -e 's/\([{}"]\)/\\\\\1/g'`
+        # This will drop priviledges into the runner user
+        # It exec's in a new shell and the current shell will exit
+        exec su - $RUNNER_USER -c "$RUNNER_SCRIPT $ESCAPED_ARGS"
+    fi
 }
 
 # Make sure log directory exists
@@ -181,10 +204,10 @@ if [ -z "$RELX_CONFIG_PATH" ]; then
     fi
 fi
 
-[ "x" = "x$EMQ_NODE_NAME" ] || NAME_ARG="-name $EMQ_NODE_NAME"
+[ "x" = "x$EMQX_NODE_NAME" ] || NAME_ARG="-name $EMQX_NODE_NAME"
 # Extract the target node name from node.args
 if [ -z "$NAME_ARG" ]; then
-    NODENAME=`egrep '^[ \t]*node.name[ \t]*=[ \t]*' $RUNNER_ETC_DIR/emq.conf 2> /dev/null | tail -1 | cut -d = -f 2-`
+    NODENAME=`egrep '^[ \t]*node.name[ \t]*=[ \t]*' $RUNNER_ETC_DIR/emqx.conf 2> /dev/null | tail -1 | cut -d = -f 2-`
     if [ -z "$NODENAME" ]; then
         echoerr "vm.args needs to have a -name parameter."
         echoerr "  -sname is not supported."
@@ -200,10 +223,10 @@ NAME="$(echo "$NAME_ARG" | awk '{print $2}')"
 
 PIPE_DIR="${PIPE_DIR:-/$RUNNER_DATA_DIR/${WHOAMI}_erl_pipes/$NAME/}"
 
-[ "x" = "x$EMQ_NODE_COOKIE" ] || COOKIE_ARG="-setcookie $EMQ_NODE_COOKIE"
+[ "x" = "x$EMQX_NODE_COOKIE" ] || COOKIE_ARG="-setcookie $EMQX_NODE_COOKIE"
 # Extract the target cookie
 if [ -z "$COOKIE_ARG" ]; then
-    COOKIE=`egrep '^[ \t]*node.cookie[ \t]*=[ \t]*' $RUNNER_ETC_DIR/emq.conf 2> /dev/null | tail -1 | cut -d = -f 2-`
+    COOKIE=`egrep '^[ \t]*node.cookie[ \t]*=[ \t]*' $RUNNER_ETC_DIR/emqx.conf 2> /dev/null | tail -1 | cut -d = -f 2-`
     if [ -z "$COOKIE" ]; then
         echoerr "vm.args needs to have a -setcookie parameter."
         exit 1
@@ -216,21 +239,21 @@ fi
 COOKIE="$(echo "$COOKIE_ARG" | awk '{print $2}')"
 
 # Support for IPv6 Dist. See: https://github.com/emqtt/emqttd/issues/1460
-PROTO_DIST=`egrep '^[ \t]*node.proto_dist[ \t]*=[ \t]*' $RUNNER_ETC_DIR/emq.conf 2> /dev/null | tail -1 | cut -d = -f 2-`
+PROTO_DIST=`egrep '^[ \t]*node.proto_dist[ \t]*=[ \t]*' $RUNNER_ETC_DIR/emqx.conf 2> /dev/null | tail -1 | cut -d = -f 2-`
 if [ -z "$PROTO_DIST" ]; then
     PROTO_DIST_ARG=""
 else
     PROTO_DIST_ARG="-proto_dist $PROTO_DIST"
 fi
 
-find_erts_dir
 export ROOTDIR="$RUNNER_ROOT_DIR"
+export ERTS_DIR="$ROOTDIR/erts-$ERTS_VSN"
 export BINDIR="$ERTS_DIR/bin"
 export EMU="beam"
 export PROGNAME="erl"
 export LD_LIBRARY_PATH="$ERTS_DIR/lib:$LD_LIBRARY_PATH"
 ERTS_LIB_DIR="$ERTS_DIR/../lib"
-MNESIA_DATA_DIR="{{ runner_data_dir }}/mnesia/$NAME"
+MNESIA_DATA_DIR="$RUNNER_DATA_DIR/mnesia/$NAME"
 
 cd "$ROOTDIR"
 
@@ -254,6 +277,9 @@ case "$1" in
             echo "Node is already running!"
             exit 1
         fi
+        # Bootstrap daemon command (check perms & drop to $RUNNER_USER)
+        bootstrapd $@
+
         # Save this for later.
         CMD=$1
         case "$1" in
@@ -271,11 +297,11 @@ case "$1" in
         RUN_PARAM="$@"
 
         # Set arguments for the heart command
-        set -- "$SCRIPT_DIR/$REL_NAME" "$HEART_OPTION"
+        set -- "$RUNNER_SCRIPT" "$HEART_OPTION"
         [ "$RUN_PARAM" ] && set -- "$@" "$RUN_PARAM"
 
         # Export the HEART_COMMAND
-        HEART_COMMAND="{{ runner_bin_dir }}/$REL_NAME $CMD"
+        HEART_COMMAND="$RUNNER_SCRIPT $CMD"
         export HEART_COMMAND
 
         ## See: http://erlang.org/doc/man/run_erl.html
@@ -299,11 +325,11 @@ case "$1" in
             if ! relx_nodetool "ping" >/dev/null 2>&1; then
                 continue
             fi
-            echo "emqttd {{ rel_vsn }} is started successfully!"
+            echo "emqx $REL_VSN is started successfully!"
             exit 0
         done
         echo "The broker failed to start within ${WAIT_FOR_ERLANG:-15} seconds,"
-        echo "see the output of './bin/emqttd console' for more information."
+        echo "see the output of './bin/emqx console' for more information."
         echo "If you want to wait longer, set the environment variable"
         echo "WAIT_FOR_ERLANG to the number of seconds to wait."
         exit 1
@@ -363,6 +389,9 @@ case "$1" in
             exit 1
         fi
 
+        # Bootstrap daemon command (check perms & drop to $RUNNER_USER)
+        bootstrapd $@
+
         shift
         exec "$BINDIR/to_erl" "$PIPE_DIR"
         ;;
@@ -373,6 +402,9 @@ case "$1" in
             echo "Node is not running!"
             exit 1
         fi
+
+        # Bootstrap daemon command (check perms & drop to $RUNNER_USER)
+        bootstrapd $@
 
         shift
         relx_rem_sh
@@ -415,6 +447,9 @@ case "$1" in
         ;;
 
     console|console_clean|console_boot)
+        # Bootstrap daemon command (check perms & drop to $RUNNER_USER)
+        bootstrapd $@
+
         # .boot file typically just $REL_NAME (ie, the app name)
         # however, for debugging, sometimes start_clean.boot is useful.
         # For e.g. 'setup', one may even want to name another boot script.
@@ -469,6 +504,8 @@ case "$1" in
         ;;
 
     foreground)
+        # Bootstrap daemon command (check perms & drop to $RUNNER_USER)
+        bootstrapd $@
         # start up the release in the foreground for use by runit
         # or other supervision services
 
@@ -503,6 +540,9 @@ case "$1" in
         # Start the VM
         exec "$@" -- ${1+$ARGS}
         ;;
+    ertspath)
+        echo $ERTS_PATH
+        ;;
     rpc)
         # Make sure a node IS running
         if ! relx_nodetool "ping" > /dev/null; then
@@ -536,7 +576,7 @@ case "$1" in
         relx_nodetool "eval" $@
         ;;
     *)
-        echo "Usage: $REL_NAME {start|start_boot <file>|foreground|stop|restart|reboot|pid|ping|console|console_clean|console_boot <file>|attach|remote_console|upgrade|escript|rpc|rpcterms|eval}"
+        echo "Usage: $REL_NAME {start|start_boot <file>|ertspath|foreground|stop|restart|reboot|pid|ping|console|console_clean|console_boot <file>|attach|remote_console|upgrade|escript|rpc|rpcterms|eval}"
         exit 1
         ;;
 esac

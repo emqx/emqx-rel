@@ -4,35 +4,12 @@
 
 set -e
 
-SCRIPT=$(readlink $0 || true)
-if [ -z $SCRIPT ]; then
-    SCRIPT=$0
-fi;
-SCRIPT_DIR="$(cd `dirname "$SCRIPT"` && pwd -P)"
-RUNNER_ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd -P){{ runner_root_dir }}"
-REL_NAME="emqttd"
-REL_VSN="{{ rel_vsn }}"
-ERTS_VSN="{{ erts_vsn }}"
-REL_DIR="$RUNNER_ROOT_DIR/releases/$REL_VSN"
-ERL_OPTS="{{ erl_opts }}"
-RUNNER_LOG_DIR={{ runner_log_dir }}
-RUNNER_LIB_DIR={{ runner_lib_dir }}
-RUNNER_ETC_DIR={{ runner_etc_dir }}
-RUNNER_DATA_DIR={{ runner_data_dir }}
+REL_NAME="emqx"
 
-find_erts_dir() {
-    __erts_dir="$RUNNER_ROOT_DIR/erts-$ERTS_VSN"
-    if [ -d "$__erts_dir" ]; then
-        ERTS_DIR="$__erts_dir";
-        ROOTDIR="$RUNNER_ROOT_DIR"
-    else
-        __erl="$(which erl)"
-        code="io:format(\"~s\", [code:root_dir()]), halt()."
-        __erl_root="$("$__erl" -noshell -eval "$code")"
-        ERTS_DIR="$__erl_root/erts-$ERTS_VSN"
-        ROOTDIR="$__erl_root"
-    fi
-}
+## constants from relx template
+RUNNER_ROOT_DIR="{{ runner_root_dir }}"
+ERTS_VSN="{{ erts_vsn }}"
+RUNNER_ETC_DIR="{{ runner_etc_dir }}"
 
 relx_get_nodename() {
     id="longname$(relx_gen_id)-${NAME}"
@@ -49,10 +26,10 @@ relx_nodetool() {
 }
 
 
-[ "x" = "x$EMQ_NODE_NAME" ] || NAME_ARG="-name $EMQ_NODE_NAME"
+[ "x" = "x$EMQX_NODE_NAME" ] || NAME_ARG="-name $EMQX_NODE_NAME"
 # Extract the target node name from node.args
 if [ -z "$NAME_ARG" ]; then
-    NODENAME=`egrep '^[ \t]*node.name[ \t]*=[ \t]*' $RUNNER_ETC_DIR/emq.conf 2> /dev/null | tail -1 | cut -d = -f 2-`
+    NODENAME=`egrep '^[ \t]*node.name[ \t]*=[ \t]*' $RUNNER_ETC_DIR/emqx.conf 2> /dev/null | tail -1 | cut -d = -f 2-`
     if [ -z "$NODENAME" ]; then
         echoerr "vm.args needs to have a -name parameter."
         echoerr "  -sname is not supported."
@@ -66,10 +43,10 @@ fi
 NAME_TYPE="$(echo "$NAME_ARG" | awk '{print $1}')"
 NAME="$(echo "$NAME_ARG" | awk '{print $2}')"
 
-[ "x" = "x$EMQ_NODE_COOKIE" ] || COOKIE_ARG="-setcookie $EMQ_NODE_COOKIE"
+[ "x" = "x$EMQX_NODE_COOKIE" ] || COOKIE_ARG="-setcookie $EMQX_NODE_COOKIE"
 # Extract the target cookie
 if [ -z "$COOKIE_ARG" ]; then
-    COOKIE=`egrep '^[ \t]*node.cookie[ \t]*=[ \t]*' $RUNNER_ETC_DIR/emq.conf 2> /dev/null | tail -1 | cut -d = -f 2-`
+    COOKIE=`egrep '^[ \t]*node.cookie[ \t]*=[ \t]*' $RUNNER_ETC_DIR/emqx.conf 2> /dev/null | tail -1 | cut -d = -f 2-`
     if [ -z "$COOKIE" ]; then
         echoerr "vm.args needs to have a -setcookie parameter."
         exit 1
@@ -82,17 +59,17 @@ fi
 COOKIE="$(echo "$COOKIE_ARG" | awk '{print $2}')"
 
 # Support for IPv6 Dist. See: https://github.com/emqtt/emqttd/issues/1460
-PROTO_DIST=`egrep '^[ \t]*node.proto_dist[ \t]*=[ \t]*' $RUNNER_ETC_DIR/emq.conf 2> /dev/null | tail -1 | cut -d = -f 2-`
+PROTO_DIST=`egrep '^[ \t]*node.proto_dist[ \t]*=[ \t]*' $RUNNER_ETC_DIR/emqx.conf 2> /dev/null | tail -1 | cut -d = -f 2-`
 if [ -z "$PROTO_DIST" ]; then
     PROTO_DIST_ARG=""
 else
     PROTO_DIST_ARG="-proto_dist $PROTO_DIST"
 fi
 
-find_erts_dir
 export ROOTDIR="$RUNNER_ROOT_DIR"
+export ERTS_DIR="$ROOTDIR/erts-$ERTS_VSN"
 export BINDIR="$ERTS_DIR/bin"
 cd "$ROOTDIR"
 
-relx_nodetool rpc emqttd_ctl run $@
+relx_nodetool rpc emqx_ctl run_command $@
 

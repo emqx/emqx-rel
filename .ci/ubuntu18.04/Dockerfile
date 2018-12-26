@@ -1,10 +1,10 @@
-FROM ubuntu:16.04
+FROM ubuntu:18.04
 
-RUN apt-get update \
+RUN apt-get update \ 
     && apt-get install -y wget git zip curl unzip
-RUN apt-get update \
+RUN apt-get update \ 
     && apt-get install -y build-essential debhelper
-RUN wget http://packages.erlang-solutions.com/site/esl/esl-erlang/FLAVOUR_1_general/esl-erlang_21.2-1~ubuntu~xenial_amd64.deb -O /tmp/erlang.deb
+RUN wget http://packages.erlang-solutions.com/site/esl/esl-erlang/FLAVOUR_1_general/esl-erlang_21.2-1~ubuntu~bionic_amd64.deb -O /tmp/erlang.deb
 RUN dpkg -i /tmp/erlang.deb || true
 RUN apt-get -f install -y
 RUN mkdir -p /root/.ssh/

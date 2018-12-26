@@ -1,60 +1,66 @@
-PROJECT = emq-relx
-PROJECT_DESCRIPTION = Release Project for the EMQ Broker
-PROJECT_VERSION = 2.3.11
+PROJECT = emqx-rel
+PROJECT_DESCRIPTION = Release Project for EMQ X Broker
 
-## Fix 'rebar command not found'
-DEPS = goldrush
-dep_goldrush = git https://github.com/basho/goldrush 0.1.9
+# All emqx app names. Repo name, not Erlang app name
+# By default, app name is the same as repo name with dash replaced by underscore.
+# Otherwise define the dependency in regular erlang.mk style:
+## DEPS += emqx
+## dep_emqx = git https://github.com/emqx/emqx.git emqx30
 
-DEPS += emqttd emq_modules emq_dashboard emq_retainer emq_recon emq_reloader \
-        emq_auth_clientid emq_auth_username emq_auth_ldap emq_auth_http \
-        emq_auth_mysql emq_auth_pgsql emq_auth_redis emq_auth_mongo \
-        emq_sn emq_coap emq_stomp emq_plugin_template emq_web_hook \
-        emq_lua_hook emq_auth_jwt
+OUR_APPS = emqx emqx-retainer emqx-recon emqx-reloader emqx-dashboard emqx-management \
+           emqx-auth-clientid emqx-auth-username emqx-auth-ldap emqx-auth-http \
+           emqx-auth-mysql emqx-auth-pgsql emqx-auth-redis emqx-auth-mongo \
+           emqx-sn emqx-coap emqx-lwm2m emqx-stomp emqx-plugin-template emqx-web-hook \
+           emqx-auth-jwt emqx-statsd emqx-delayed-publish emqx-lua-hook
 
-# emq deps
-dep_emqttd        = git https://github.com/emqtt/emqttd master
-dep_emq_modules   = git https://github.com/emqtt/emq-modules master
-dep_emq_dashboard = git https://github.com/emqtt/emq-dashboard master
-dep_emq_retainer  = git https://github.com/emqtt/emq-retainer master
-dep_emq_recon     = git https://github.com/emqtt/emq-recon master
-dep_emq_reloader  = git https://github.com/emqtt/emq-reloader master
+# Default release profiles
+RELX_OUTPUT_DIR ?= _rel
+REL_PROFILE ?= dev
+DEPLOY ?= cloud
 
-# emq auth/acl plugins
-dep_emq_auth_clientid = git https://github.com/emqtt/emq-auth-clientid master
-dep_emq_auth_username = git https://github.com/emqtt/emq-auth-username master
-dep_emq_auth_ldap     = git https://github.com/emqtt/emq-auth-ldap master
-dep_emq_auth_http     = git https://github.com/emqtt/emq-auth-http master
-dep_emq_auth_mysql    = git https://github.com/emqtt/emq-auth-mysql master
-dep_emq_auth_pgsql    = git https://github.com/emqtt/emq-auth-pgsql master
-dep_emq_auth_redis    = git https://github.com/emqtt/emq-auth-redis master
-dep_emq_auth_mongo    = git https://github.com/emqtt/emq-auth-mongo master
-dep_emq_auth_jwt      = git https://github.com/emqtt/emq-auth-jwt master
+# Default version for all OUR_APPS
+## This is either a tag or branch name for ALL dependencies
+EMQX_DEPS_DEFAULT_VSN ?= v3.0.0
 
-# mqtt-sn, coap and stomp
-dep_emq_sn    = git https://github.com/emqtt/emq-sn master
-dep_emq_coap  = git https://github.com/emqtt/emq-coap master
-dep_emq_stomp = git https://github.com/emqtt/emq-stomp master
+dash = -
+uscore = _
 
-# plugin template
-dep_emq_plugin_template = git https://github.com/emqtt/emq-plugin-template master
+# Make Erlang app name from repo name.
+# Replace dashes with underscores
+app_name = $(subst $(dash),$(uscore),$(1))
 
-# web_hook lua_hook
-dep_emq_web_hook  = git https://github.com/emqtt/emq-web-hook master
-dep_emq_lua_hook  = git https://github.com/emqtt/emq-lua-hook master
-#dep_emq_elixir_plugin = git  https://github.com/emqtt/emq-elixir-plugin master
+# set emqx_app_name_vsn = x.y.z to override default version
+app_vsn = $(if $($(call app_name,$(1))_vsn),$($(call app_name,$(1))_vsn),$(EMQX_DEPS_DEFAULT_VSN))
+
+DEPS += $(foreach dep,$(OUR_APPS),$(call app_name,$(dep)))
+
+# Inject variables like
+# dep_app_name = git-emqx https://github.com/emqx/app-name branch-or-tag
+# for erlang.mk
+$(foreach dep,$(OUR_APPS),$(eval dep_$(call app_name,$(dep)) = git-emqx https://github.com/emqx/$(dep) $(call app_vsn,$(dep))))
+
+# Add this dependency before including erlang.mk
+all:: OTP_21_OR_NEWER
 
 # COVER = true
 
-#NO_AUTOPATCH = emq_elixir_plugin
+$(shell [ -f erlang.mk ] || curl -s -o erlang.mk https://raw.githubusercontent.com/emqx/erlmk/master/erlang.mk)
 
 include erlang.mk
+
+# Fail fast in case older than OTP 21
+.PHONY: OTP_21_OR_NEWER
+OTP_21_OR_NEWER:
+	@erl -noshell -eval "R = list_to_integer(erlang:system_info(otp_release)), halt(if R >= 21 -> 0; true -> 1 end)"
+
+# Compile options
+ERLC_OPTS += +warn_export_all +warn_missing_spec +warn_untyped_record
 
 plugins:
 	@rm -rf rel
 	@mkdir -p rel/conf/plugins/ rel/schema/
 	@for conf in $(DEPS_DIR)/*/etc/*.conf* ; do \
-		if [ "emq.conf" = "$${conf##*/}" ] ; then \
+		if [ "emqx.conf" = "$${conf##*/}" ] ; then \
 			cp $${conf} rel/conf/ ; \
 		elif [ "acl.conf" = "$${conf##*/}" ] ; then \
 			cp $${conf} rel/conf/ ; \
@@ -68,4 +74,15 @@ plugins:
 		cp $${schema} rel/schema/ ; \
 	done
 
-app:: plugins
+vm_args:
+	@if [ $(DEPLOY) = "cloud" ] ; then \
+		cp deps/emqx/etc/vm.args rel/conf/vm.args ; \
+	else \
+		cp deps/emqx/etc/vm.args.$(DEPLOY) rel/conf/vm.args ; \
+	fi ;
+
+app:: plugins vm_args vars-ln
+
+vars-ln:
+	ln -s -f vars-$(REL_PROFILE).config vars.config
+
