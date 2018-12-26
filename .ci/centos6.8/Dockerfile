@@ -8,7 +8,7 @@ RUN wget https://packages.erlang-solutions.com/erlang-solutions-1.0-1.noarch.rpm
 RUN yum install -y epel-release
 RUN rpm -Uvh /tmp/erlang-solutions-1.0-1.noarch.rpm
 RUN yum install -y esl-erlang
-RUN yum install openssl-devel bzip2-devel expat-devel gdbm-devel readline-devel sqlite-devel gcc gcc-c++  openssl-devel \
+RUN yum install -y openssl-devel bzip2-devel expat-devel gdbm-devel readline-devel sqlite-devel gcc gcc-c++  openssl-devel \
     && wget https://www.python.org/ftp/python/3.6.7/Python-3.6.7.tgz \
     && tar xvf Python-3.6.7.tgz \
     && cd Python-3.6.7 \
