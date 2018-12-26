@@ -18,6 +18,8 @@ RUN apt-get install -y gcc make zlib1g-dev libffi-dev libssl-dev \
     && wget https://www.python.org/ftp/python/3.6.7/Python-3.6.7.tgz \
     && tar xvf Python-3.6.7.tgz \
     && cd Python-3.6.7 \
+    && echo "_socket socketmodule.c" >> Modules/Setup.dist \ 
+    && echo "_ssl _ssl.c -DUSE_SSL -I/usr/local/ssl/include -I/usr/local/ssl/include/openssl -L/usr/local/ssl/lib -lssl -lcrypto" >> Modules/Setup.dist \
     && ./configure --prefix=/usr/local/python3.6.7 \
     && make \
     && make install \

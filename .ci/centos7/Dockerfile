@@ -7,9 +7,12 @@ RUN wget https://packages.erlang-solutions.com/erlang-solutions-1.0-1.noarch.rpm
 RUN yum install -y epel-release
 RUN rpm -Uvh /tmp/erlang-solutions-1.0-1.noarch.rpm
 RUN yum install -y esl-erlang
-RUN yum install -y zlib* \
+RUN yum install openssl-devel bzip2-devel expat-devel gdbm-devel readline-devel sqlite-devel gcc gcc-c++  openssl-devel \
     && wget https://www.python.org/ftp/python/3.6.7/Python-3.6.7.tgz \
-    && tar xvf Python-3.6.7.tgz && cd Python-3.6.7 \
+    && tar xvf Python-3.6.7.tgz \
+    && cd Python-3.6.7 \
+    && echo "_socket socketmodule.c" >> Modules/Setup.dist \ 
+    && echo "_ssl _ssl.c -DUSE_SSL -I/usr/local/ssl/include -I/usr/local/ssl/include/openssl -L/usr/local/ssl/lib -lssl -lcrypto" >> Modules/Setup.dist \
     && ./configure --prefix=/usr/local/python3.6.7 \
     && make \
     && make install \
@@ -28,3 +31,6 @@ ADD ./files/emqx_ci.sh /
 RUN chmod +x /emqx_ci.sh 
 
 CMD ["/bin/bash", "-c", "source /emqx_ci.sh"]
+
+
+
