@@ -8,14 +8,11 @@
   asn1,
   syntax_tools,
   ssl,
-  xmerl,
   os_mon,
   inets,
   compiler,
   runtime_tools,
-  {observer, load},
   gproc,
-  luerl,
   esockd,
   clique,
   cuttlefish,
@@ -28,27 +25,18 @@
   {ekka, load},
   {emqx_sn, load},
   {emqx_coap, load},
-  {emqx_lwm2m, load},
   {emqx_recon, load},
   {emqx_stomp, load},
-  {emqx_statsd, load},
   {emqx_management, load},
   {emqx_retainer, load},
   {emqx_reloader, load},
-  {emqx_dashboard, load},
   {emqx_delayed_publish, load},
   {emqx_web_hook, load},
-  {emqx_lua_hook, load},
   {emqx_auth_clientid, load},
   {emqx_auth_username, load},
-  {emqx_auth_ldap, load},
   {emqx_auth_http, load},
-  {emqx_auth_mongo, load},
   {emqx_auth_mysql, load},
-  {emqx_auth_pgsql, load},
-  {emqx_auth_redis, load},
-  {emqx_auth_jwt, load},
-  {emqx_plugin_template, load}
+  {emqx_auth_jwt, load}
 ]}.
 
 {include_src, false}.
@@ -69,7 +57,6 @@
     {mkdir, "data/"},
     {mkdir, "data/mnesia"},
     {mkdir, "data/configs"},
-    {mkdir, "hook_lua"},
     {template, "bin/emqx_env", "bin/emqx_env"},
     {template, "bin/emqx", "bin/emqx"},
     {template, "bin/emqx_ctl", "bin/emqx_ctl"},
@@ -81,13 +68,11 @@
     {template, "rel/conf/vm.args", "etc/vm.args"},
     {template, "rel/conf/ssl_dist.conf", "etc/ssl_dist.conf"},
     {template, "rel/conf/plugins/emqx_coap.conf", "etc/plugins/emqx_coap.conf"},
-    {template, "rel/conf/plugins/emqx_lwm2m.conf", "etc/plugins/emqx_lwm2m.conf"},
     {copy, "rel/conf/acl.conf", "etc/acl.conf"},
     {copy, "data/loaded_plugins", "data/loaded_plugins"},
     {copy, "bin/nodetool", "bin/nodetool"},
     {copy, "rel/schema", "releases/\{\{rel_vsn\}\}/"},
     {copy, "bin/install_upgrade_escript", "bin/install_upgrade_escript"},
-    {copy, "deps/cuttlefish/cuttlefish", "bin/"},
-    {copy, "deps/emqx_lwm2m/lwm2m_xml", "etc/"}
+    {copy, "deps/cuttlefish/cuttlefish", "bin/"}
 ]}.
 
