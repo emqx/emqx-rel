@@ -15,15 +15,15 @@ REL_PROFILE ?= dev
 DEPLOY ?= cloud
 
 MAIN_APPS = emqx emqx-retainer emqx-recon emqx-management \
-           emqx-auth-clientid emqx-auth-username emqx-auth-http \
-           emqx-auth-mysql \
-           emqx-sn emqx-coap emqx-stomp emqx-web-hook \
-           emqx-auth-jwt emqx-delayed-publish
+            emqx-auth-clientid emqx-auth-username emqx-auth-http \
+            emqx-auth-mysql emqx-reloader \
+            emqx-sn emqx-coap emqx-stomp emqx-web-hook \
+            emqx-auth-jwt emqx-delayed-publish
 
-CLOUD_ONLY_APPS = emqx-lwm2m emqx-reloader emqx-dashboard emqx-auth-ldap emqx-auth-pgsql emqx-auth-redis emqx-auth-mongo emqx-plugin-template emqx-statsd emqx-lua-hook
+CLOUD_APPS = emqx-lwm2m emqx-dashboard emqx-auth-ldap emqx-auth-pgsql emqx-auth-redis emqx-auth-mongo emqx-plugin-template emqx-statsd emqx-lua-hook
 
 ifeq (cloud,$(DEPLOY))
-  MAIN_APPS += $(CLOUD_ONLY_APPS)
+  MAIN_APPS += $(CLOUD_APPS)
 endif
 
 # Default version for all MAIN_APPS
