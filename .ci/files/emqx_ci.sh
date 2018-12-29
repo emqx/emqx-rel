@@ -12,6 +12,10 @@ main() {
 }
 
 emqx_prepare(){
+    if [ $(cat /etc/issue | awk '{print $1}') == "Raspbian" ];then
+        export DEPLOY=edge
+    fi
+
     if [ -z ${version} ];then
         export version=emqx30
     fi
