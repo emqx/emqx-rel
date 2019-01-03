@@ -1,18 +1,66 @@
-#! /bin/bash
+#!/bin/bash
+#buildserver=ubuntu@172.31.10.24
+#buildbase=/opt/emq_packages/free
+#version=emqx30
 
-# Usage:
-#       ./bulid.sh {versionid} {type}
-# Example:
-#       ./bulid.sh 2.2 beta.1
+set -o errexit
 
-cp ~/.ssh/id_rsa ./files
-cp ~/.ssh/id_rsa.pub ./files
+if [[ ! -z $(echo $version | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?") ]]
+then
+	buildname=rel
+    buildlocation=${buildbase}/${version}/
+else
+	buildname=nb
+	today=$(date +%Y-%m-%d)
+	buildlocation=${buildbase}/nightly-build/${today}
+fi
 
-mkdir -p /home/ubuntu/package
+ssh -o StrictHostKeyChecking=no ${buildserver} "mkdir -p ${buildlocation}"
 
-oslist=(debian7 debian8 debian9 centos6.8 centos7 ubuntu12.04 ubuntu14.04 ubuntu16.04 ubuntu18.04)
+
+cd "${WORKSPACE}/emqx-rel/.ci"
+commitid=$(git rev-parse HEAD)
+if [[ ! -z $(git show ${commitid} .ci/) ]]
+then
+	sudo ./docker-image-build.sh ${dockeruser} ${dockerpasswd}
+fi
+
+# build zip/packages 
+key=$RANDOM
+oslist=$(ls -l |grep -v 'files' |awk '/^d/ {print $NF}')
+#oslist=(centos7 ubuntu18.04)
 for var in ${oslist[@]};do
-    sudo docker build -t emq_ci-${var} -f ${var}/Dockerfile .
-    sudo docker rm -f emq-${var}
-    sudo docker run -itd --net='host' --name emq-${var} -e "ostype=${var}" -e "host=emqtt.io" -e "tag=release" -e "versionid=$1" -e "type=$2" emq_ci-${var}
+    sudo docker run -d \
+        --name emqx-${key}-${buildname}-${var} \
+        -v "${WORKSPACE}":/emqx_code \
+        -e "ostype=${var}" \
+        -e "host=${buildserver}" \
+        -e "version=${version}" \
+        -e "buildlocation=${buildlocation}" \
+        emqx/build-env:${var} 
 done
+
+sudo docker ps -f name=emqx-${key}-${buildname}-*  -f status=running --format "{{.Names}}: {{.Status}}"
+
+# check docker containers status
+while [ $(sudo docker ps -f name=emqx-${key}-${buildname}-*  -f status=running --format "{{.Names}}" |wc -l) -ne 0 ]; do
+	sleep 30;
+done
+
+failed=0
+list=$(sudo docker ps -f name=emqx-${key}-${buildname}-* --format "{{.Names}}: {{.Status}}" -a)
+for(( i=0; i<${#list[@]}; i++ )) ; do
+	echo "${list[$i]}"
+    if [[ ! ${list[$i]} =~ "Exited (0)" ]]; then
+       let failed++ 
+    fi  
+done
+
+if [[ ${failed} -ne 0 ]]; then
+    exit 1
+else
+	sudo docker rm $(sudo docker ps -a |grep emqx-${key}-${buildname} | awk '{print $1}')
+	sudo docker rmi $(sudo docker images -f "dangling=true" -q)
+	sudo docker volume rm $(sudo docker volume ls -qf dangling=true)
+    exit 0
+fi
