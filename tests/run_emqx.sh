@@ -7,4 +7,6 @@ while IFS='' read line || [[ -n $line ]]; do
     rm -rf ../deps/$line/deps
     rm -rf ../deps/$line/erlang.mk
     make -C ../deps/$line/ tests </dev/null
+    mkdir -p logs/$line
+    cp -r ../deps/$line/logs/* logs/$line
 done < $1
