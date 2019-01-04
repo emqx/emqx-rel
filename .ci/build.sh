@@ -5,6 +5,8 @@
 
 set -o errexit
 
+sudo docker run --rm --privileged multiarch/qemu-user-static:register --reset
+
 if [[ ! -z $(echo $version | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?") ]]
 then
 	buildname=rel
