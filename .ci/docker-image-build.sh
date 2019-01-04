@@ -14,11 +14,11 @@ echo '{
   "storage-driver": "overlay2",
   "max-concurrent-downloads": 50,
   "max-concurrent-uploads": 50
-}' | sudo tee /etc/docker/daemon.json
+}' | tee /etc/docker/daemon.json
 
-sudo service docker restart
+service docker restart
 
-sudo docker run --rm --privileged multiarch/qemu-user-static:register --reset
+docker run --rm --privileged multiarch/qemu-user-static:register --reset
 
 cp ~/.ssh/id_rsa files/
 cp ~/.ssh/id_rsa.pub files/
