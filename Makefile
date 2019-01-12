@@ -28,7 +28,7 @@ endif
 
 # Default version for all MAIN_APPS
 ## This is either a tag or branch name for ALL dependencies
-EMQX_DEPS_DEFAULT_VSN ?= v3.0.0
+EMQX_DEPS_DEFAULT_VSN ?= emqx30
 
 dash = -
 uscore = _
