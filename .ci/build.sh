@@ -1,6 +1,4 @@
 #!/bin/bash
-#buildserver=ubuntu@172.31.10.24
-#buildbase=/opt/emq_packages/free
 #version=emqx30
 
 set -o errexit
@@ -30,7 +28,6 @@ fi
 # build zip/packages 
 key=$RANDOM
 oslist=$(ls -l |grep -v 'files' |awk '/^d/ {print $NF}')
-#oslist=(centos7 ubuntu18.04)
 for var in ${oslist[@]};do
     sudo docker run -d \
         --name emqx-${key}-${buildname}-${var} \
