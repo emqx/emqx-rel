@@ -1,5 +1,11 @@
 #!/bin/bash
 
+git clone -b emqx30 https://github.com/emqx/emqx-auth-username emqx_auth_username 
+
+cd emqx_auth_username && make
+
+cd ..
+
 make -C .. deps
 
 while IFS='' read line || [[ -n $line ]]; do
@@ -21,6 +27,8 @@ while IFS='' read line || [[ -n $line ]]; do
     fi
     rm -rf ../deps/$line/deps
     rm -rf ../deps/$line/erlang.mk
+    mkdir -p ../deps/$line/deps
+    cp -r ./emqx_auth_username/deps ../deps/$line/
     make -C ../deps/$line/ tests </dev/null
     mkdir -p logs/$line
     cp -r ../deps/$line/logs/* logs/$line
