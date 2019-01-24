@@ -59,7 +59,7 @@ main(Args) ->
         ["restart", "-config", ConfigFile | RestArgs1] ->
             io:format("~p\n", [rpc:call(TargetNode, emqx, restart, [ConfigFile], 60000)]);
         ["reboot", "-config", ConfigFile | RestArgs1] ->
-            io:format("~p\n", [rpc:call(TargetNode, emqx, reboot, [ConfigFile], 60000)]);
+            io:format("~p\n", [rpc:call(TargetNode, emqx, restart, [ConfigFile], 60000)]);
         ["rpc", Module, Function | RpcArgs] ->
             case rpc:call(TargetNode, list_to_atom(Module), list_to_atom(Function),
                           [RpcArgs], 60000) of
