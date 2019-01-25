@@ -30,8 +30,10 @@ while IFS='' read line || [[ -n $line ]]; do
     rm -rf ./deps/$line/deps
     rm -rf ./deps/$line/erlang.mk
     mkdir -p ./deps/$line/deps
-    cp -r ./emqx_auth_username/deps ./deps/$line/
-    make -C ./deps/$line/ tests </dev/null
+    if [ $line != "emqx" ];then
+        cp -r ./emqx_auth_username/deps ./deps/$line/
+        make -C ./deps/$line/ tests </dev/null
+    fi
     mkdir -p logs/$line
     cp -r ./deps/$line/logs/* logs/$line
 done < $1
