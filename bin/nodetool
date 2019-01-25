@@ -56,10 +56,10 @@ main(Args) ->
         ["stop"] ->
             rpc:call(TargetNode, emqx_plugins, unload, [], 60000),
             io:format("~p\n", [rpc:call(TargetNode, init, stop, [], 60000)]);
-        ["restart"] ->
-            io:format("~p\n", [rpc:call(TargetNode, init, restart, [], 60000)]);
-        ["reboot"] ->
-            io:format("~p\n", [rpc:call(TargetNode, init, reboot, [], 60000)]);
+        ["restart", "-config", ConfigFile | _RestArgs1] ->
+            io:format("~p\n", [rpc:call(TargetNode, emqx, restart, [ConfigFile], 60000)]);
+        ["reboot", "-config", ConfigFile | _RestArgs1] ->
+            io:format("~p\n", [rpc:call(TargetNode, emqx, restart, [ConfigFile], 60000)]);
         ["rpc", Module, Function | RpcArgs] ->
             case rpc:call(TargetNode, list_to_atom(Module), list_to_atom(Function),
                           [RpcArgs], 60000) of
