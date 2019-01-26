@@ -348,15 +348,21 @@ case "$1" in
         ;;
 
     restart)
+        #generate app.config and vm.args
+        generate_config
+
         ## Restart the VM without exiting the process
-        if ! relx_nodetool "restart"; then
+        if ! relx_nodetool "restart" $CONFIG_ARGS; then
             exit 1
         fi
         ;;
 
     reboot)
+        #generate app.config and vm.args
+        generate_config
+
         ## Restart the VM completely (uses heart to restart it)
-        if ! relx_nodetool "reboot"; then
+        if ! relx_nodetool "reboot" $CONFIG_ARGS; then
             exit 1
         fi
         ;;
