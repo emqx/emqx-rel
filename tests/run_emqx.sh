@@ -25,15 +25,15 @@ while IFS='' read line || [[ -n $line ]]; do
         sed -i "/auth.pgsql.server/c auth.pgsql.server = pgsql_server:5432" ./deps/$line/etc/emqx_auth_pgsql.conf 
     fi
     if [ $line == "emqx_auth_ldap" ];then
-        sed -i "/auth.ldap.server/c auth.ldap.server = ldap_server:3306" ./deps/$line/etc/emqx_auth_ldap.conf 
+        sed -i "/auth.ldap.servers/c auth.ldap.servers = ldap_server" ./deps/$line/etc/emqx_auth_ldap.conf 
     fi
     rm -rf ./deps/$line/deps
     rm -rf ./deps/$line/erlang.mk
     mkdir -p ./deps/$line/deps
     if [ $line != "emqx" ];then
         cp -r ./emqx_auth_username/deps ./deps/$line/
-        make -C ./deps/$line/ tests </dev/null
     fi
+    make -C ./deps/$line/ tests </dev/null
     mkdir -p logs/$line
     cp -r ./deps/$line/logs/* logs/$line
 done < $1
