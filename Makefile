@@ -11,6 +11,8 @@ PROJECT_DESCRIPTION = Release Project for EMQ X Broker
 RELX_OUTPUT_DIR ?= _rel
 REL_PROFILE ?= dev
 
+CLONE_METHOD ?= git-emqx
+
 # Deploy to edge or cloud
 DEPLOY ?= cloud
 
@@ -28,7 +30,7 @@ endif
 
 # Default version for all MAIN_APPS
 ## This is either a tag or branch name for ALL dependencies
-EMQX_DEPS_DEFAULT_VSN ?= v3.0.1
+EMQX_DEPS_DEFAULT_VSN ?= testing
 
 dash = -
 uscore = _
@@ -45,7 +47,7 @@ DEPS += $(foreach dep,$(MAIN_APPS),$(call app_name,$(dep)))
 # Inject variables like
 # dep_app_name = git-emqx https://github.com/emqx/app-name branch-or-tag
 # for erlang.mk
-$(foreach dep,$(MAIN_APPS),$(eval dep_$(call app_name,$(dep)) = git-emqx https://github.com/emqx/$(dep) $(call app_vsn,$(dep))))
+$(foreach dep,$(MAIN_APPS),$(eval dep_$(call app_name,$(dep)) = $(CLONE_METHOD) https://github.com/emqx/$(dep) $(call app_vsn,$(dep))))
 
 # Add this dependency before including erlang.mk
 all:: OTP_21_OR_NEWER
@@ -103,4 +105,3 @@ app:: plugins vm_args relx_conf loaded_plugins vars-ln
 
 vars-ln:
 	ln -s -f vars-$(REL_PROFILE).config vars.config
-
