@@ -29,7 +29,7 @@ endif
 
 # Default version for all MAIN_APPS
 ## This is either a tag or branch name for ALL dependencies
-EMQX_DEPS_DEFAULT_VSN ?= testing
+EMQX_DEPS_DEFAULT_VSN ?= develop
 
 dash = -
 uscore = _
