@@ -1,5 +1,8 @@
 #!/bin/bash
-EMQX_DEPS_DEFAULT_VSN=${EMQX_DEPS_DEFAULT_VSN:-emqx30}
+
+set -x
+
+EMQX_DEPS_DEFAULT_VSN=${EMQX_DEPS_DEFAULT_VSN:-testing}
 git clone -b $EMQX_DEPS_DEFAULT_VSN https://github.com/emqx/emqx-auth-username emqx_auth_username 
 cd emqx_auth_username && make
 cd ..
