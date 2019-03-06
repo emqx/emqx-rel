@@ -20,3 +20,4 @@ ct/logs/*
 .idea/
 *.d
 *.iml
+erlang.mk
