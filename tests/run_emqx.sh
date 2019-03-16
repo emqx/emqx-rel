@@ -1,5 +1,5 @@
 #!/bin/bash
-EMQX_DEPS_DEFAULT_VSN=${EMQX_DEPS_DEFAULT_VSN:-emqx30}
+EMQX_DEPS_DEFAULT_VSN=`git branch | grep -e "^*" | cut -d' ' -f 2`
 git clone -b $EMQX_DEPS_DEFAULT_VSN https://github.com/emqx/emqx-auth-username emqx_auth_username 
 cd emqx_auth_username && make
 cd ..
@@ -7,7 +7,7 @@ cd ..
 # make -C .. deps
 mkdir -p deps
 while IFS='' read line || [[ -n $line ]]; do
-    echo ============start test $line===============
+    echo ============start test $line by $EMQX_DEPS_DEFAULT_VSN===============
     rm -rf ./deps/$line
     git clone -b $EMQX_DEPS_DEFAULT_VSN https://github.com/emqx/${line//_/-} ./deps/$line
     if [ $line == "emqx_auth_mysql" ];then
