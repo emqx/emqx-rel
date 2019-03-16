@@ -1,6 +1,6 @@
 #!/bin/bash
 EMQX_DEPS_DEFAULT_VSN=${EMQX_DEPS_DEFAULT_VSN:-develop}
-git clone -b $EMQX_DEPS_DEFAULT_VSN https://github.com/emqx/emqx-auth-username emqx_auth_username 
+git clone -b $EMQX_DEPS_DEFAULT_VSN https://github.com/emqx/emqx-auth-clientid emqx_auth_clientid
 cd emqx_auth_username && make
 cd ..
 
