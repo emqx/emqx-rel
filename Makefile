@@ -13,7 +13,7 @@ REL_PROFILE ?= dev
 CLONE_METHOD ?= git-emqx
 
 # Deploy to edge or cloud
-DEPLOY ?= cloud
+DEPLOY ?= edge
 
 MAIN_APPS = emqx emqx-retainer emqx-recon emqx-management \
             emqx-auth-clientid emqx-auth-username emqx-auth-http \
@@ -23,8 +23,12 @@ MAIN_APPS = emqx emqx-retainer emqx-recon emqx-management \
 
 CLOUD_APPS = emqx-lwm2m emqx-dashboard emqx-auth-ldap emqx-auth-pgsql emqx-auth-redis emqx-auth-mongo emqx-plugin-template emqx-statsd emqx-lua-hook
 
+EDGE_APPS = emqx-storm
+
 ifeq (cloud,$(DEPLOY))
   MAIN_APPS += $(CLOUD_APPS)
+else
+  MAIN_APPS += $(EDGE_APPS)
 endif
 
 # Default version for all MAIN_APPS
