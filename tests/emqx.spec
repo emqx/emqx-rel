@@ -20,4 +20,3 @@ emqx_retainer
 emqx_sn
 emqx_stomp
 emqx_web_hook
-emqx_psk_file
