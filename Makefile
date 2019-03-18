@@ -15,41 +15,41 @@ DEPS += emqx emqx_retainer emqx_recon emqx_reloader emqx_dashboard emqx_manageme
 
 # emqx and plugins
 dep_emqx            = git-emqx https://github.com/emqx/emqx win30
-dep_emqx_retainer   = git-emqx https://github.com/emqx/emqx-retainer $EMQX_DEPS_DEFAULT_VSN
-dep_emqx_recon      = git-emqx https://github.com/emqx/emqx-recon $EMQX_DEPS_DEFAULT_VSN
-dep_emqx_reloader   = git-emqx https://github.com/emqx/emqx-reloader $EMQX_DEPS_DEFAULT_VSN
-dep_emqx_dashboard  = git-emqx https://github.com/emqx/emqx-dashboard $EMQX_DEPS_DEFAULT_VSN
-dep_emqx_management = git-emqx https://github.com/emqx/emqx-management $EMQX_DEPS_DEFAULT_VSN
-dep_emqx_statsd     = git-emqx https://github.com/emqx/emqx-statsd $EMQX_DEPS_DEFAULT_VSN
-dep_emqx_delayed_publish = git-emqx https://github.com/emqx/emqx-delayed-publish $EMQX_DEPS_DEFAULT_VSN
+dep_emqx_retainer   = git-emqx https://github.com/emqx/emqx-retainer $(EMQX_DEPS_DEFAULT_VSN)
+dep_emqx_recon      = git-emqx https://github.com/emqx/emqx-recon $(EMQX_DEPS_DEFAULT_VSN)
+dep_emqx_reloader   = git-emqx https://github.com/emqx/emqx-reloader $(EMQX_DEPS_DEFAULT_VSN)
+dep_emqx_dashboard  = git-emqx https://github.com/emqx/emqx-dashboard $(EMQX_DEPS_DEFAULT_VSN)
+dep_emqx_management = git-emqx https://github.com/emqx/emqx-management $(EMQX_DEPS_DEFAULT_VSN)
+dep_emqx_statsd     = git-emqx https://github.com/emqx/emqx-statsd $(EMQX_DEPS_DEFAULT_VSN)
+dep_emqx_delayed_publish = git-emqx https://github.com/emqx/emqx-delayed-publish $(EMQX_DEPS_DEFAULT_VSN)
 
 # emq auth/acl plugins
-dep_emqx_auth_clientid = git-emqx https://github.com/emqx/emqx-auth-clientid $EMQX_DEPS_DEFAULT_VSN
-dep_emqx_auth_username = git-emqx https://github.com/emqx/emqx-auth-username $EMQX_DEPS_DEFAULT_VSN
-dep_emqx_auth_ldap     = git-emqx https://github.com/emqx/emqx-auth-ldap $EMQX_DEPS_DEFAULT_VSN
-dep_emqx_auth_http     = git-emqx https://github.com/emqx/emqx-auth-http $EMQX_DEPS_DEFAULT_VSN
-dep_emqx_auth_mysql    = git-emqx https://github.com/emqx/emqx-auth-mysql $EMQX_DEPS_DEFAULT_VSN
-dep_emqx_auth_pgsql    = git-emqx https://github.com/emqx/emqx-auth-pgsql $EMQX_DEPS_DEFAULT_VSN
-dep_emqx_auth_redis    = git-emqx https://github.com/emqx/emqx-auth-redis $EMQX_DEPS_DEFAULT_VSN
-dep_emqx_auth_mongo    = git-emqx https://github.com/emqx/emqx-auth-mongo $EMQX_DEPS_DEFAULT_VSN
-dep_emqx_auth_jwt      = git-emqx https://github.com/emqx/emqx-auth-jwt $EMQX_DEPS_DEFAULT_VSN
+dep_emqx_auth_clientid = git-emqx https://github.com/emqx/emqx-auth-clientid $(EMQX_DEPS_DEFAULT_VSN)
+dep_emqx_auth_username = git-emqx https://github.com/emqx/emqx-auth-username $(EMQX_DEPS_DEFAULT_VSN)
+dep_emqx_auth_ldap     = git-emqx https://github.com/emqx/emqx-auth-ldap $(EMQX_DEPS_DEFAULT_VSN)
+dep_emqx_auth_http     = git-emqx https://github.com/emqx/emqx-auth-http $(EMQX_DEPS_DEFAULT_VSN)
+dep_emqx_auth_mysql    = git-emqx https://github.com/emqx/emqx-auth-mysql $(EMQX_DEPS_DEFAULT_VSN)
+dep_emqx_auth_pgsql    = git-emqx https://github.com/emqx/emqx-auth-pgsql $(EMQX_DEPS_DEFAULT_VSN)
+dep_emqx_auth_redis    = git-emqx https://github.com/emqx/emqx-auth-redis $(EMQX_DEPS_DEFAULT_VSN)
+dep_emqx_auth_mongo    = git-emqx https://github.com/emqx/emqx-auth-mongo $(EMQX_DEPS_DEFAULT_VSN)
+dep_emqx_auth_jwt      = git-emqx https://github.com/emqx/emqx-auth-jwt $(EMQX_DEPS_DEFAULT_VSN)
 
 # mqtt-sn, coap and stomp
-dep_emqx_sn    = git-emqx https://github.com/emqx/emqx-sn $EMQX_DEPS_DEFAULT_VSN
-dep_emqx_coap  = git-emqx https://github.com/emqx/emqx-coap $EMQX_DEPS_DEFAULT_VSN
-dep_emqx_lwm2m = git-emqx https://github.com/emqx/emqx-lwm2m $EMQX_DEPS_DEFAULT_VSN
-dep_emqx_stomp = git-emqx https://github.com/emqx/emqx-stomp $EMQX_DEPS_DEFAULT_VSN
+dep_emqx_sn    = git-emqx https://github.com/emqx/emqx-sn $(EMQX_DEPS_DEFAULT_VSN)
+dep_emqx_coap  = git-emqx https://github.com/emqx/emqx-coap $(EMQX_DEPS_DEFAULT_VSN)
+dep_emqx_lwm2m = git-emqx https://github.com/emqx/emqx-lwm2m $(EMQX_DEPS_DEFAULT_VSN)
+dep_emqx_stomp = git-emqx https://github.com/emqx/emqx-stomp $(EMQX_DEPS_DEFAULT_VSN)
 
 # plugin template
-dep_emqx_plugin_template = git-emqx https://github.com/emqx/emq-plugin-template $EMQX_DEPS_DEFAULT_VSN
+dep_emqx_plugin_template = git-emqx https://github.com/emqx/emq-plugin-template $(EMQX_DEPS_DEFAULT_VSN)
 
 # web_hook
-dep_emqx_web_hook  = git-emqx https://github.com/emqx/emqx-web-hook $EMQX_DEPS_DEFAULT_VSN
+dep_emqx_web_hook  = git-emqx https://github.com/emqx/emqx-web-hook $(EMQX_DEPS_DEFAULT_VSN)
 
-dep_emqx_lua_hook  = git-emqx https://github.com/emqx/emqx-lua-hook $EMQX_DEPS_DEFAULT_VSN
+dep_emqx_lua_hook  = git-emqx https://github.com/emqx/emqx-lua-hook $(EMQX_DEPS_DEFAULT_VSN)
 
 #tls psk
-dep_emqx_psk_file = git-emqx https://github.com/emqx/emqx-psk-file $EMQX_DEPS_DEFAULT_VSN
+dep_emqx_psk_file = git-emqx https://github.com/emqx/emqx-psk-file $(EMQX_DEPS_DEFAULT_VSN)
 
 # Add this dependency before including erlang.mk
 all:: OTP_21_OR_NEWER
