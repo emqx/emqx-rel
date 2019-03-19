@@ -1,7 +1,7 @@
 #!/bin/bash
-EMQX_DEPS_DEFAULT_VSN=`git branch | grep -e "^*" | cut -d' ' -f 2`
-git clone -b $EMQX_DEPS_DEFAULT_VSN https://github.com/emqx/emqx-auth-username emqx_auth_username 
-cd emqx_auth_username && make
+EMQX_DEPS_DEFAULT_VSN=`[[ $(git rev-parse --abbrev-ref HEAD) == "HEAD" ]] && git describe --always --tag || git rev-parse --abbrev-ref HEAD`
+git clone -b $EMQX_DEPS_DEFAULT_VSN https://github.com/emqx/emqx-auth-clientid emqx_auth_clientid
+cd emqx_auth_clientid && make
 cd ..
 
 # make -C .. deps
