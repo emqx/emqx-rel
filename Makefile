@@ -4,9 +4,8 @@ PROJECT_DESCRIPTION = Release Project for EMQ X Broker
 # All emqx app names. Repo name, not Erlang app name
 # By default, app name is the same as repo name with dash replaced by underscore.
 # Otherwise define the dependency in regular erlang.mk style:
-DEPS += emqx emqx_rule_engine
-dep_emqx = git https://github.com/emqx/emqx.git rule-engine
-dep_emqx_rule_engine = git git@github.com:emqx/emqx-rule-engine.git develop
+## DEPS += emqx
+## dep_emqx = git https://github.com/emqx/emqx.git emqx30
 
 # Default release profiles
 RELX_OUTPUT_DIR ?= _rel
@@ -16,11 +15,11 @@ CLONE_METHOD ?= git-emqx
 # Deploy to edge or cloud
 DEPLOY ?= cloud
 
-MAIN_APPS = emqx-retainer emqx-recon emqx-management \
+MAIN_APPS = emqx emqx-retainer emqx-recon emqx-management \
             emqx-auth-clientid emqx-auth-username emqx-auth-http \
             emqx-auth-mysql emqx-reloader \
             emqx-sn emqx-coap emqx-stomp emqx-web-hook \
-            emqx-auth-jwt emqx-delayed-publish emqx-psk-file
+            emqx-auth-jwt emqx-delayed-publish emqx-psk-file emqx-rule-engine
 
 CLOUD_APPS = emqx-lwm2m emqx-dashboard emqx-auth-ldap emqx-auth-pgsql emqx-auth-redis emqx-auth-mongo emqx-plugin-template emqx-statsd emqx-lua-hook
 
