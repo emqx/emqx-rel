@@ -16,10 +16,7 @@ emqx_lwm2m
 emqx_management
 emqx_passwd
 emqx_plugin_template
-emqx_recon
-emqx_reloader
 emqx_retainer
 emqx_sn
-emqx_statsd
 emqx_stomp
 emqx_web_hook
