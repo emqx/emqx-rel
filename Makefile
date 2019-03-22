@@ -11,7 +11,8 @@ DEPS += emqx emqx_retainer emqx_recon emqx_reloader emqx_dashboard emqx_manageme
 		emqx_auth_clientid emqx_auth_username emqx_auth_ldap emqx_auth_http \
         emqx_auth_mysql emqx_auth_pgsql emqx_auth_redis emqx_auth_mongo \
         emqx_sn emqx_coap emqx_lwm2m emqx_stomp emqx_plugin_template emqx_web_hook \
-        emqx_auth_jwt emqx_statsd emqx_delayed_publish emqx_lua_hook emqx_psk_file
+        emqx_auth_jwt emqx_statsd emqx_delayed_publish emqx_lua_hook emqx_psk_file \
+        emqx_rule_engine
 
 # emqx and plugins
 dep_emqx            = git-emqx https://github.com/emqx/emqx win30
@@ -50,6 +51,9 @@ dep_emqx_lua_hook  = git-emqx https://github.com/emqx/emqx-lua-hook $(EMQX_DEPS_
 
 #tls psk
 dep_emqx_psk_file = git-emqx https://github.com/emqx/emqx-psk-file $(EMQX_DEPS_DEFAULT_VSN)
+
+#rule engine
+dep_emqx_rule_engine = git-emqx https://github.com/emqx/emqx-rule-engine $(EMQX_DEPS_DEFAULT_VSN)
 
 # Add this dependency before including erlang.mk
 all:: OTP_21_OR_NEWER
