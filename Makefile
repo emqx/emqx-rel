@@ -18,7 +18,7 @@ DEPLOY ?= cloud
 MAIN_APPS = emqx emqx-retainer emqx-management emqx-reloader emqx-sn \
 			emqx-coap emqx-stomp emqx-auth-clientid  emqx-auth-username \
 			emqx-auth-http emqx-auth-jwt emqx-auth-mysql emqx-web-hook \
-			emqx-delayed-publish emqx-recon emqx-psk-file emqx-rule-engine
+			emqx-delayed-publish emqx-recon emqx-psk-file
 
 CLOUD_APPS = emqx-lwm2m emqx-auth-ldap emqx-auth-pgsql emqx-auth-redis \
 			 emqx-auth-mongo emqx-lua-hook emqx-plugin-template emqx-dashboard \
