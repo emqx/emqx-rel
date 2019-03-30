@@ -45,6 +45,7 @@ app_name = $(subst $(dash),$(uscore),$(1))
 
 # set emqx_app_name_vsn = x.y.z to override default version
 app_vsn = $(if $($(call app_name,$(1))_vsn),$($(call app_name,$(1))_vsn),$(EMQX_DEPS_DEFAULT_VSN))
+emqx_vsn = build-with-rebar3
 
 DEPS += $(foreach dep,$(MAIN_APPS),$(call app_name,$(dep)))
 
@@ -110,3 +111,5 @@ app:: plugins vm_args relx_conf loaded_plugins vars-ln
 vars-ln:
 	ln -s -f vars-$(REL_PROFILE).config vars.config
 
+distclean::
+	rm -rf _build
