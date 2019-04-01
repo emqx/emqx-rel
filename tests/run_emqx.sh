@@ -9,7 +9,11 @@ mkdir -p deps
 while IFS='' read line || [[ -n $line ]]; do
     echo ============start test $line by $EMQX_DEPS_DEFAULT_VSN===============
     rm -rf ./deps/$line
-    git clone -b $EMQX_DEPS_DEFAULT_VSN https://github.com/emqx/${line//_/-} ./deps/$line
+    if [[ $line =~ "emqx" ]];then
+        git clone -b $EMQX_DEPS_DEFAULT_VSN https://github.com/emqx/${line//_/-} ./deps/$line
+    else
+        git clone -b develop https://github.com/emqx/${line//_/-} ./deps/$line 
+    fi
     if [ $line == "emqx_auth_mysql" ];then
         sed -i "/auth.mysql.server/c auth.mysql.server = mysql_server:3306" ./deps/$line/etc/emqx_auth_mysql.conf 
         echo "auth.mysql.username = root" >> ./deps/$line/etc/emqx_auth_mysql.conf
