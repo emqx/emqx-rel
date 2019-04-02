@@ -20,3 +20,4 @@ emqx_retainer
 emqx_sn
 emqx_stomp
 emqx_web_hook
+minirest
