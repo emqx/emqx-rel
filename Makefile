@@ -15,16 +15,21 @@ CLONE_METHOD ?= git-emqx
 # Deploy to edge or cloud
 DEPLOY ?= cloud
 
-MAIN_APPS = emqx emqx-retainer emqx-recon emqx-management \
-            emqx-auth-clientid emqx-auth-username emqx-auth-http \
-            emqx-auth-mysql emqx-reloader \
-            emqx-sn emqx-coap emqx-stomp emqx-web-hook \
-            emqx-auth-jwt emqx-delayed-publish emqx-psk-file emqx-rule-engine
+MAIN_APPS = emqx emqx-retainer emqx-management emqx-reloader emqx-sn \
+			emqx-coap emqx-stomp emqx-auth-clientid  emqx-auth-username \
+			emqx-auth-http emqx-auth-jwt emqx-auth-mysql emqx-web-hook \
+			emqx-delayed-publish emqx-recon emqx-psk-file emqx-rule-engine
 
-CLOUD_APPS = emqx-lwm2m emqx-dashboard emqx-auth-ldap emqx-auth-pgsql emqx-auth-redis emqx-auth-mongo emqx-plugin-template emqx-statsd emqx-lua-hook
+CLOUD_APPS = emqx-lwm2m emqx-auth-ldap emqx-auth-pgsql emqx-auth-redis \
+			 emqx-auth-mongo emqx-lua-hook emqx-plugin-template emqx-dashboard \
+			 emqx-statsd \
+
+EDGE_APPS = emqx-storm
 
 ifeq (cloud,$(DEPLOY))
   MAIN_APPS += $(CLOUD_APPS)
+else
+  MAIN_APPS += $(EDGE_APPS)
 endif
 
 # Default version for all MAIN_APPS
