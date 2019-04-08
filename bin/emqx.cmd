@@ -30,6 +30,7 @@
 @set rel_dir=%rel_root_dir%\releases\%rel_vsn%
 
 @set etc_dir=%rel_root_dir%\etc
+@set bin_dir=%rel_root_dir%\bin
 @set lib_dir=%rel_root_dir%\lib
 @set data_dir=%rel_root_dir%\data
 @set emqx_conf=%etc_dir%\emqx.conf
@@ -49,7 +50,6 @@
 @set werl="%bindir%\werl.exe"
 @set erl_exe="%bindir%\erl.exe"
 @set nodetool="%rel_root_dir%\bin\nodetool"
-@set cuttlefish="%rel_root_dir%\bin\cuttlefish"
 
 :: Extract node name from emqx.conf
 @for /f "usebackq delims=\= tokens=2" %%I in (`findstr /b node\.name "%emqx_conf%"`) do @(
@@ -130,24 +130,6 @@
 )
 @goto :eof
 
-:create_mnesia_dir
-@set create_dir_cmd=%escript% %nodetool% mnesia_dir %data_dir%\mnesia %node_name%
-@for /f "delims=" %%Z in ('%%create_dir_cmd%%') do @(
-  set mnesia_dir=%%Z
-)
-@goto :eof
-
-:generate_app_config
-@set mergeconf_cmd=%escript% %nodetool% mergeconf %etc_dir%\emqx.conf %etc_dir%\plugins %data_dir%\configs
-@for /f %%Z in ('%%mergeconf_cmd%%') do @(
-  set merged_app_conf=%%Z
-)
-@set gen_config_cmd=%escript% %cuttlefish% -s %rel_dir%\schema -c %merged_app_conf% -d %data_dir%\configs generate
-@for /f "delims=" %%A in ('%%gen_config_cmd%%') do @(
-  set generated_config_args=%%A
-)
-@goto :eof
-
 :: set boot_script variable
 :set_boot_script_var
 @if exist "%rel_dir%\%rel_name%.boot" (
@@ -178,12 +160,12 @@
 :install
 @if "" == "%2" (
   :: Install the service
-  set args=%erl_opts% -setcookie %node_cookie% ++ -rootdir \"%rootdir%\"
-  set start_erl=%erts_dir%\bin\start_erl.exe
-  set description=EMQ-2.0 node %node_name% in %rootdir%
-  %erlsrv% add %service_name% %node_type% "%node_name%" -c "%description%" ^
-           -w "%rootdir%" -m "%start_erl%" -args "%args%" ^
-           -stopaction "init:stop()."
+  set description=EMQX-3.1 node %node_name% in %rootdir% 
+  sc create %service_name%
+  binpath= "%bin_dir%\emqx.cmd start"^
+  DisplayName = "emqx_3.1"^
+  start = auto
+  sc description "emqx 3.1" %description%
 ) else (
   :: relup and reldown
   goto relup
@@ -192,21 +174,18 @@
 
 :: Uninstall the Windows service
 :uninstall
-@%erlsrv% remove %service_name%
-@%epmd% -kill
+sc delete %service_name%
 @goto :eof
 
 :: Start the Windows service
 :start
 :: window service?
 :: @%erlsrv% start %service_name%
-@call :create_mnesia_dir
-@call :generate_app_config
-@set args=-detached %sys_config% %args_file% %generated_config_args% -mnesia dir '%mnesia_dir%'
 @echo off
 cd /d %rel_root_dir%
 @echo on
-@start "%rel_name%" %werl% -boot "%boot_script%" %args%
+@set vm_args="-args_file etc/vm.args"
+@start "%rel_name%" %werl% -boot "%boot_script%" -detached "%vm_args%"
 @goto :eof
 
 :: Stop the Windows service
@@ -230,13 +209,11 @@ cd /d %rel_root_dir%
 
 :: Start a console
 :console
-@call :create_mnesia_dir
-@call :generate_app_config
-@set args=%sys_config% %args_file% %generated_config_args% -mnesia dir '%mnesia_dir%'
 @echo off
 cd /d %rel_root_dir%
 @echo on
-@start "bin\%rel_name% console" %werl% -boot "%boot_script%" %args%
+@set vm_args="-args_file etc/vm.args"
+@start "bin\%rel_name% console" %werl% -boot "%boot_script%" "%vm_args%"
 @goto :eof
 
 :: Ping the running node
@@ -260,4 +237,3 @@ cd /d %rel_root_dir%
 :set_trim
 @set %1=%2
 @goto :eof
-
