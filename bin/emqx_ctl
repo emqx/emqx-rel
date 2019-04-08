@@ -22,7 +22,7 @@ relx_nodetool() {
 
     ERL_FLAGS="$ERL_FLAGS $PROTO_DIST_ARG" \
     "$ERTS_DIR/bin/escript" "$ROOTDIR/bin/nodetool" "$NAME_TYPE" "$NAME" \
-                                -setcookie "$COOKIE" "$command" $@
+                                -setcookie "$COOKIE" "$command" "$@"
 }
 
 
@@ -71,5 +71,5 @@ export ERTS_DIR="$ROOTDIR/erts-$ERTS_VSN"
 export BINDIR="$ERTS_DIR/bin"
 cd "$ROOTDIR"
 
-relx_nodetool rpc emqx_ctl run_command $@
+relx_nodetool rpc emqx_ctl run_command "$@"
 
