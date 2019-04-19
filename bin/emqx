@@ -110,7 +110,7 @@ relx_start_command() {
 generate_config() {
     ## Delete the *.siz files first or it cann't start after
     ## changing the config 'log.rotation.size'
-    find $RUNNER_LOG_DIR -name "*.siz" -print0 | xargs -0 rm
+    rm -rf "${RUNNER_LOG_DIR}"/*.siz
 
     if [ "$CUTTLEFISH" != "yes" ]; then
         # Note: we have added a parameter '-vm_args' to this. It
