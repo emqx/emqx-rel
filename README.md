@@ -9,7 +9,7 @@ Build on Linux/Unix/Mac
 -----------------------
 
 ```
-git clone -b X https://github.com/emqx/emqx-rel.git emqx-rel
+git clone https://github.com/emqx/emqx-rel.git emqx-rel
 cd emqx-rel && make
 cd _rel/emqx && ./bin/emqx console
 ```
@@ -18,7 +18,7 @@ Build Docker Image
 ------------------
 
 ```
-git clone -b X https://github.com/emqx/emqx-docker.git emqx_docker
+git clone https://github.com/emqx/emqx-docker.git emqx_docker
 cd emqx_docker && docker build -t emqx:latest .
 ```
 
@@ -34,7 +34,7 @@ https://erlang.mk/guide/installation.html#_on_windows
 Clone and build the EMQ X Broker with erlang.mk:
 
 ```
-git clone -b X https://github.com/emqx/emqx-rel.git emqx-rel
+git clone https://github.com/emqx/emqx-rel.git emqx-rel
 cd emqx-rel
 make
 cd _rel\emqx
