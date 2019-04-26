@@ -5,7 +5,7 @@ RELX_TAR = 0
 
 NO_AUTOPATCH = cuttlefish
 
-EMQX_DEPS_DEFAULT_VSN = v3.1-rc.3
+EMQX_DEPS_DEFAULT_VSN = v3.1.0
 
 DEPS += emqx emqx_retainer emqx_recon emqx_reloader emqx_dashboard emqx_management \
 		emqx_auth_clientid emqx_auth_username emqx_auth_ldap emqx_auth_http \
