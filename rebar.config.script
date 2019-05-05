@@ -83,13 +83,13 @@ RelxCloud = fun(Vars) -> MakeRelx(RelxCloudApps, RelxCloudOverlay, Vars) end,
 %% Profiles
 %% ==============================================================================
 Profiles =
-    [ {edge_dev,  [ {deps, MakeDeps(BaseDeps, {branch, develop})}
+    [ {edge_dev,  [ {deps, MakeDeps(BaseDeps, {branch, "develop-3.2"})}
                   , {relx, Relx([edge, dev])}
                   ]}
     , {edge_pkg,  [ {deps, MakeDeps(BaseDeps, DefaultDepRef)}
                   , {relx, Relx([edge, pkg])}
                   ]}
-    , {cloud_dev, [ {deps, MakeDeps(CloudDeps, {branch, develop})}
+    , {cloud_dev, [ {deps, MakeDeps(CloudDeps, {branch, "develop-3.2"})}
                   , {relx, RelxCloud([cloud, dev])}
                   ]}
     , {cloud_pkg, [ {deps, MakeDeps(CloudDeps, DefaultDepRef)}
