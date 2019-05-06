@@ -1,112 +1,28 @@
-PROJECT = emqx-rel
-PROJECT_DESCRIPTION = Release Project for EMQ X Broker
+## shallow clone for speed
 
-# All emqx app names. Repo name, not Erlang app name
-# By default, app name is the same as repo name with dash replaced by underscore.
-# Otherwise define the dependency in regular erlang.mk style:
-## DEPS += emqx
-## dep_emqx = git https://github.com/emqx/emqx.git emqx30
+REBAR_GIT_CLONE_OPTIONS += --depth 1
+export REBAR_GIT_CLONE_OPTIONS
 
-# Default release profiles
-RELX_OUTPUT_DIR ?= _rel
-REL_PROFILE ?= dev
-CLONE_METHOD ?= git-emqx
+REBAR = rebar3
+all: build
 
-# Deploy to edge or cloud
-DEPLOY ?= cloud
+build: cloud_dev
 
-MAIN_APPS = emqx emqx-retainer emqx-management emqx-reloader emqx-sn \
-			emqx-coap emqx-stomp emqx-auth-clientid  emqx-auth-username \
-			emqx-auth-http emqx-auth-jwt emqx-auth-mysql emqx-web-hook \
-			emqx-delayed-publish emqx-recon emqx-psk-file emqx-rule-engine
+edge_dev:
+	rebar3 as edge_dev release
 
-CLOUD_APPS = emqx-lwm2m emqx-auth-ldap emqx-auth-pgsql emqx-auth-redis \
-			 emqx-auth-mongo emqx-lua-hook emqx-plugin-template emqx-dashboard \
-			 emqx-statsd \
+edge_pkg:
+	rebar3 as edge_pkg release
 
-EDGE_APPS = emqx-storm
+cloud_dev:
+	rebar3 as cloud_dev release
 
-ifeq (cloud,$(DEPLOY))
-  MAIN_APPS += $(CLOUD_APPS)
-else
-  MAIN_APPS += $(EDGE_APPS)
-endif
+cloud_pkg:
+	rebar3 as cloud_pkg release
 
-# Default version for all MAIN_APPS
-## This is either a tag or branch name for ALL dependencies
-EMQX_DEPS_DEFAULT_VSN ?= develop
+clean: distclean
 
-dash = -
-uscore = _
-
-# Make Erlang app name from repo name.
-# Replace dashes with underscores
-app_name = $(subst $(dash),$(uscore),$(1))
-
-# set emqx_app_name_vsn = x.y.z to override default version
-app_vsn = $(if $($(call app_name,$(1))_vsn),$($(call app_name,$(1))_vsn),$(EMQX_DEPS_DEFAULT_VSN))
-
-DEPS += $(foreach dep,$(MAIN_APPS),$(call app_name,$(dep)))
-
-# Inject variables like
-# dep_app_name = git-emqx https://github.com/emqx/app-name branch-or-tag
-# for erlang.mk
-$(foreach dep,$(MAIN_APPS),$(eval dep_$(call app_name,$(dep)) = $(CLONE_METHOD) https://github.com/emqx/$(dep) $(call app_vsn,$(dep))))
-
-# Add this dependency before including erlang.mk
-all:: OTP_21_OR_NEWER
-
-# COVER = true
-
-$(shell [ -f erlang.mk ] || curl -s -o erlang.mk https://raw.githubusercontent.com/emqx/erlmk/master/erlang.mk)
-
-include erlang.mk
-
-# Fail fast in case older than OTP 21
-.PHONY: OTP_21_OR_NEWER
-OTP_21_OR_NEWER:
-	@erl -noshell -eval "R = list_to_integer(erlang:system_info(otp_release)), halt(if R >= 21 -> 0; true -> 1 end)"
-
-# Compile options
-ERLC_OPTS += +warn_export_all +warn_missing_spec +warn_untyped_record
-
-plugins:
-	@rm -rf rel
-	@mkdir -p rel/conf/plugins/ rel/schema/
-	@for conf in $(DEPS_DIR)/*/etc/*.conf* ; do \
-		if [ "emqx.conf" = "$${conf##*/}" ] ; then \
-			cp $${conf} rel/conf/ ; \
-		elif [ "acl.conf" = "$${conf##*/}" ] ; then \
-			cp $${conf} rel/conf/ ; \
-		elif [ "ssl_dist.conf" = "$${conf##*/}" ] ; then \
-			cp $${conf} rel/conf/ ; \
-		else \
-			cp $${conf} rel/conf/plugins ; \
-		fi ; \
-	done
-	@for schema in $(DEPS_DIR)/*/priv/*.schema ; do \
-		cp $${schema} rel/schema/ ; \
-	done
-
-vm_args:
-	@if [ $(DEPLOY) = "cloud" ] ; then \
-		cp deps/emqx/etc/vm.args rel/conf/vm.args ; \
-	else \
-		cp deps/emqx/etc/vm.args.$(DEPLOY) rel/conf/vm.args ; \
-	fi ;
-
-relx_conf:
-	@if [ $(DEPLOY) != "cloud" ] ; then \
-		cp relx.config.$(DEPLOY) relx.config ; \
-	fi ;
-
-loaded_plugins:
-	@if [ $(DEPLOY) != "cloud" ] ; then \
-		cp data/loaded_plugins.$(DEPLOY) data/loaded_plugins ; \
-	fi ;
-
-app:: plugins vm_args relx_conf loaded_plugins vars-ln
-
-vars-ln:
-	ln -s -f vars-$(REL_PROFILE).config vars.config
-
+distclean:
+	@rm -rf _build
+	@rm -f data/app.*.config
+	@rm -f data/vm.*.args
