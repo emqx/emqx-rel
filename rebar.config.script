@@ -19,6 +19,7 @@ CONFIG1 = case os:getenv("TRAVIS") of
 Kf = fun(K, L) -> {K, V} = lists:keyfind(K, 1, L), V end,
 BaseDeps = Kf(deps, CONFIG1),
 CloudDeps = BaseDeps ++ Kf(cloud_deps, CONFIG1),
+EdgeDeps = BaseDeps ++ Kf(edge_deps, CONFIG1),
 
 %% Make a dep element for rebar.config GitRef should be either {tag, Tag} or {branch, Branch}
 MakeDep =
@@ -83,10 +84,10 @@ RelxCloud = fun(Vars) -> MakeRelx(RelxCloudApps, RelxCloudOverlay, Vars) end,
 %% Profiles
 %% ==============================================================================
 Profiles =
-    [ {edge_dev,  [ {deps, MakeDeps(BaseDeps, {branch, "develop-3.2"})}
+    [ {edge_dev,  [ {deps, MakeDeps(EdgeDeps, {branch, "develop-3.2"})}
                   , {relx, Relx([edge, dev])}
                   ]}
-    , {edge_pkg,  [ {deps, MakeDeps(BaseDeps, DefaultDepRef)}
+    , {edge_pkg,  [ {deps, MakeDeps(EdgeDeps, DefaultDepRef)}
                   , {relx, Relx([edge, pkg])}
                   ]}
     , {cloud_dev, [ {deps, MakeDeps(CloudDeps, {branch, "develop-3.2"})}
