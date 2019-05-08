@@ -1,5 +1,5 @@
 emqx_management.
-emqx-rule-engine.
+emqx_rule_engine.
 emqx_recon.
 emqx_retainer.
 emqx_dashboard.
