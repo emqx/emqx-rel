@@ -8,19 +8,19 @@ export EMQX_DEPS_DEFAULT_VSN = develop
 REBAR = rebar3
 all: build
 
-build: cloud_dev
+build: emqx
 
-edge_dev:
-	rebar3 as edge_dev release
+emqx_edge:
+	rebar3 as emqx_edge release
 
-edge_pkg:
-	rebar3 as edge_pkg release
+emqx_edge_pkg:
+	rebar3 as emqx_edge_pkg release
 
-cloud_dev:
-	rebar3 as cloud_dev release
+emqx:
+	rebar3 as emqx release
 
-cloud_pkg:
-	rebar3 as cloud_pkg release
+emqx_pkg:
+	rebar3 as emqx_pkg release
 
 clean: distclean
 

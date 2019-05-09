@@ -67,8 +67,11 @@ Relx0 = Kf(relx, CONFIG1),
 
 RelxOverlay = Kf(overlay, Relx0),
 RelxCloudApps = RelxBaseApps ++ Kf(cloud_relx_apps, CONFIG1),
+RelxEdgeApps = RelxBaseApps ++ Kf(edge_relx_apps, CONFIG1),
 RelxCloudOverlay0 = Kf(cloud_relx_overlay, CONFIG1),
+RelxEdgeOverlay0 = Kf(edge_relx_overlay, CONFIG1),
 RelxCloudOverlay = RelxOverlay ++ RelxCloudOverlay0,
+RelxEdgeOverlay = RelxOverlay ++ RelxEdgeOverlay0,
 
 MakeRelx =
     fun(Apps, Overlay, Vars) ->
@@ -79,22 +82,23 @@ MakeRelx =
     end,
 Relx = fun(Vars) -> MakeRelx(RelxBaseApps, RelxOverlay, Vars) end,
 RelxCloud = fun(Vars) -> MakeRelx(RelxCloudApps, RelxCloudOverlay, Vars) end,
+RelxEdge = fun(Vars) -> MakeRelx(RelxEdgeApps, RelxEdgeOverlay, Vars) end,
 
 %% ==============================================================================
 %% Profiles
 %% ==============================================================================
 Profiles =
-    [ {edge_dev,  [ {deps, MakeDeps(EdgeDeps, {branch, "develop"})}
-                  , {relx, Relx([edge, dev])}
-                  ]}
-    , {edge_pkg,  [ {deps, MakeDeps(EdgeDeps, DefaultDepRef)}
-                  , {relx, Relx([edge, pkg])}
-                  ]}
-    , {cloud_dev, [ {deps, MakeDeps(CloudDeps, {branch, "develop"})}
+    [ {emqx, [ {deps, MakeDeps(CloudDeps, {branch, "develop"})}
                   , {relx, RelxCloud([cloud, dev])}
                   ]}
-    , {cloud_pkg, [ {deps, MakeDeps(CloudDeps, DefaultDepRef)}
+    , {emqx_pkg, [ {deps, MakeDeps(CloudDeps, DefaultDepRef)}
                   , {relx, RelxCloud([cloud, pkg])}
+                  ]}
+    , {emqx_edge, [ {deps, MakeDeps(EdgeDeps, {branch, "develop"})}
+                  , {relx, RelxEdge([edge, dev])}
+                  ]}
+    , {emqx_edge_pkg, [ {deps, MakeDeps(EdgeDeps, DefaultDepRef)}
+                  , {relx, RelxEdge([edge, pkg])}
                   ]}
     ],
 
