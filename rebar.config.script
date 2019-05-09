@@ -1,0 +1,108 @@
+%% ==============================================================================
+%% maybe upload coverdata
+%% ==============================================================================
+
+CONFIG1 = case os:getenv("TRAVIS") of
+              "true" ->
+                  JobId = os:getenv("TRAVIS_JOB_ID"),
+                  [{coveralls_service_job_id, JobId},
+                   {coveralls_coverdata, "_build/test/cover/*.coverdata"},
+                   {coveralls_service_name , "travis-ci"} | CONFIG];
+              _ ->
+                  CONFIG
+          end,
+
+%% ==============================================================================
+%% Dependencies
+%% ==============================================================================
+
+Kf = fun(K, L) -> {K, V} = lists:keyfind(K, 1, L), V end,
+BaseDeps = Kf(deps, CONFIG1),
+CloudDeps = BaseDeps ++ Kf(cloud_deps, CONFIG1),
+EdgeDeps = BaseDeps ++ Kf(edge_deps, CONFIG1),
+
+%% Make a dep element for rebar.config GitRef should be either {tag, Tag} or {branch, Branch}
+MakeDep =
+    fun({Name, {git, _, _}} = App, _DefaultDepRef) ->
+        %% alreay a complete ref
+        App;
+       (App, DefaultDepRef) ->
+        {AppName, GitRef} =
+            case App of
+                {Name, Pinned} when is_tuple(Pinned) -> {Name, Pinned};
+                {Name, Tag} when is_list(Tag) -> {Name, {tag, Tag}};
+                Name when is_atom(Name) -> {Name, DefaultDepRef}
+           end,
+        RepoName = string:join(string:tokens(atom_to_list(AppName), "_"), "-"),
+        URL = "https://github.com/emqx/" ++ RepoName,
+        {AppName, {git, URL, GitRef}}
+    end,
+
+MakeDeps = fun(Deps, DefaultDepRef) -> [MakeDep(App, DefaultDepRef) || App <- Deps] end,
+
+%% TODO: this is only a temporary workaround in order to be backward compatible
+%% The right way is to always pin dependency version in rebar.config
+%% Any dependency that can not be tested and released independently
+%% (i.e. has to be a part of a emqx release in order to be tested)
+%% should not be a dependency but a local application reside in the same repo.
+%% (Meaning: emqx should be an umbrella project)
+DefaultDepRef =
+    case os:getenv("EMQX_DEPS_DEFAULT_VSN") of
+        false -> {branch, "develop"}; %% not set
+        "" -> {branch, "develop"}; %% set empty
+        MaybeTag ->
+            case re:run(MaybeTag, "v\[0-9\]+\.\[0-9\]+\.*") of
+                nomatch -> {branch, MaybeTag};
+                _ -> {tag, MaybeTag}
+            end
+    end,
+
+%% ==============================================================================
+%% Relx configs
+%% ==============================================================================
+
+GitDescribe = [I || I <- os:cmd("git describe --tag --match 'v*'"), I =/= $\n],
+Relx0 = Kf(relx, CONFIG1),
+{release, _, RelxBaseApps} = lists:keyfind(release, 1, Relx0),
+
+RelxOverlay = Kf(overlay, Relx0),
+RelxCloudApps = RelxBaseApps ++ Kf(cloud_relx_apps, CONFIG1),
+RelxCloudOverlay0 = Kf(cloud_relx_overlay, CONFIG1),
+RelxCloudOverlay = RelxOverlay ++ RelxCloudOverlay0,
+
+MakeRelx =
+    fun(Apps, Overlay, Vars) ->
+        VarFiles = ["vars-" ++ atom_to_list(Var) ++ ".config" || Var <- Vars],
+        Relx1 = lists:keystore(release, 1, Relx0, {release, {emqx, GitDescribe}, Apps}),
+        Relx2 = lists:keystore(overlay, 1, Relx1, {overlay, Overlay}),
+        lists:keystore(overlay_vars, 1, Relx2, {overlay_vars, VarFiles})
+    end,
+Relx = fun(Vars) -> MakeRelx(RelxBaseApps, RelxOverlay, Vars) end,
+RelxCloud = fun(Vars) -> MakeRelx(RelxCloudApps, RelxCloudOverlay, Vars) end,
+
+%% ==============================================================================
+%% Profiles
+%% ==============================================================================
+Profiles =
+    [ {edge_dev,  [ {deps, MakeDeps(EdgeDeps, {branch, "develop-3.2"})}
+                  , {relx, Relx([edge, dev])}
+                  ]}
+    , {edge_pkg,  [ {deps, MakeDeps(EdgeDeps, DefaultDepRef)}
+                  , {relx, Relx([edge, pkg])}
+                  ]}
+    , {cloud_dev, [ {deps, MakeDeps(CloudDeps, {branch, "develop-3.2"})}
+                  , {relx, RelxCloud([cloud, dev])}
+                  ]}
+    , {cloud_pkg, [ {deps, MakeDeps(CloudDeps, DefaultDepRef)}
+                  , {relx, RelxCloud([cloud, pkg])}
+                  ]}
+    ],
+
+Deletes = [deps, relx, cloud_deps, cloud_relx_apps, cloud_relx_overlay],
+Additions = [{profiles, Profiles}],
+
+CONFIG2 = lists:foldl(fun(K, Acc) -> lists:keydelete(K, 1, Acc) end, CONFIG1, Deletes),
+CONFIG3 = lists:foldl(fun({K, V}, Acc) -> lists:keystore(K, 1, Acc, {K, V}) end, CONFIG2, Additions),
+ok = file:write_file("/tmp/emqx.rebar.config", [io_lib:format("~p.\n", [I]) || I <- CONFIG3]),
+CONFIG3.
+
