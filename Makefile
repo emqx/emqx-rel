@@ -3,6 +3,8 @@
 REBAR_GIT_CLONE_OPTIONS += --depth 1
 export REBAR_GIT_CLONE_OPTIONS
 
+export EMQX_DEPS_DEFAULT_VSN = develop
+
 REBAR = rebar3
 all: build
 
