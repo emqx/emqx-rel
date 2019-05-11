@@ -1,3 +1,5 @@
+%%-*- mode: erlang -*-
+
 %% ==============================================================================
 %% maybe upload coverdata
 %% ==============================================================================
@@ -107,6 +109,15 @@ Additions = [{profiles, Profiles}],
 
 CONFIG2 = lists:foldl(fun(K, Acc) -> lists:keydelete(K, 1, Acc) end, CONFIG1, Deletes),
 CONFIG3 = lists:foldl(fun({K, V}, Acc) -> lists:keystore(K, 1, Acc, {K, V}) end, CONFIG2, Additions),
+
+FilePath = case os:type() of
+               {win32, nt} ->
+                   "C:\\Tmp\\emqx.rebar.config";
+               _ ->
+                   "/tmp/emqx.rebar.config"
+           end,
+
 ok = file:write_file("/tmp/emqx.rebar.config", [io_lib:format("~p.\n", [I]) || I <- CONFIG3]),
+
 CONFIG3.
 
