@@ -10,7 +10,7 @@ There are 4 target profiles for building emqx-rel: emqx, emqx_pkg, emqx_edge,and
 Install Erlang/OTP-R21.3 and rebar3
 -----------------------------------
 
-Clone and build the EMQ X Broker with rebar3:
+Read the section below and install rebar3
 
 ```
 https://www.rebar3.org/docs/getting-started#section-installing-from-source
@@ -22,7 +22,7 @@ Build on Linux/Unix/Mac
 ```
 git clone https://github.com/emqx/emqx-rel.git emqx-rel
 cd emqx-rel && make
-./_build/cloud_dev/rel/emqx/bin/emqx console
+./_build/emqx/rel/emqx/bin/emqx console
 ```
 
 Build on Windows
@@ -34,7 +34,6 @@ cd emqx-rel
 make
 cd _build\emqx\rel\emqx
 bin\emqx console
-```
 
 License
 -------
