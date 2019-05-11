@@ -117,7 +117,7 @@ FilePath = case os:type() of
                    "/tmp/emqx.rebar.config"
            end,
 
-ok = file:write_file("/tmp/emqx.rebar.config", [io_lib:format("~p.\n", [I]) || I <- CONFIG3]),
+file:write_file(FilePath, [io_lib:format("~p.\n", [I]) || I <- CONFIG3]),
 
 CONFIG3.
 
