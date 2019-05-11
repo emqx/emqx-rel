@@ -10,17 +10,26 @@ all: build
 
 build: emqx
 
+emqx:
+	rebar3 as emqx release
+
+emqx_clean:
+	rebar3 as emqx clean
+
+emqx_pkg_clean:
+	rebar3 as emqx_pkg clean
+
 emqx_edge:
 	rebar3 as emqx_edge release
+
+emqx_edge_clean:
+	rebar3 as emqx_edge clean
 
 emqx_edge_pkg:
 	rebar3 as emqx_edge_pkg release
 
-emqx:
-	rebar3 as emqx release
-
-emqx_pkg:
-	rebar3 as emqx_pkg release
+emqx_edge_pkg_clean:
+	rebar3 as emqx_edge_pkg clean
 
 clean: distclean
 
