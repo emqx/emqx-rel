@@ -16,6 +16,9 @@ emqx:
 emqx_clean:
 	rebar3 as emqx clean
 
+emqx_pkg:
+	rebar3 as emqx_pkg release
+
 emqx_pkg_clean:
 	rebar3 as emqx_pkg clean
 
