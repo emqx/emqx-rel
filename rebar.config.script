@@ -78,7 +78,8 @@ RelxEdgeOverlay = RelxOverlay ++ RelxEdgeOverlay0,
 MakeRelx =
     fun(Apps, Overlay, Vars) ->
         VarFiles = ["vars-" ++ atom_to_list(Var) ++ ".config" || Var <- Vars],
-        Relx1 = lists:keystore(release, 1, Relx0, {release, {emqx, GitDescribe}, Apps}),
+        Apps1 = case os:type() of {win32, nt} -> Apps -- [bcrypt]; _Other -> Apps end,
+        Relx1 = lists:keystore(release, 1, Relx0, {release, {emqx, GitDescribe}, Apps1}),
         Relx2 = lists:keystore(overlay, 1, Relx1, {overlay, Overlay}),
         lists:keystore(overlay_vars, 1, Relx2, {overlay_vars, VarFiles})
     end,
@@ -112,7 +113,7 @@ CONFIG3 = lists:foldl(fun({K, V}, Acc) -> lists:keystore(K, 1, Acc, {K, V}) end,
 
 FilePath = case os:type() of
                {win32, nt} ->
-                   "C:\\Tmp\\emqx.rebar.config";
+                   "emqx.rebar.config";
                _ ->
                    "/tmp/emqx.rebar.config"
            end,
