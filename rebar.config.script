@@ -18,29 +18,11 @@ CONFIG1 = case os:getenv("TRAVIS") of
 %% Dependencies
 %% ==============================================================================
 
-Kf = fun(K, L) -> {K, V} = lists:keyfind(K, 1, L), V end,
-BaseDeps = Kf(deps, CONFIG1),
-CloudDeps = BaseDeps ++ Kf(cloud_deps, CONFIG1),
-EdgeDeps = BaseDeps ++ Kf(edge_deps, CONFIG1),
-
-%% Make a dep element for rebar.config GitRef should be either {tag, Tag} or {branch, Branch}
-MakeDep =
-    fun({Name, {git, _, _}} = App, _DefaultDepRef) ->
-        %% alreay a complete ref
-        App;
-       (App, DefaultDepRef) ->
-        {AppName, GitRef} =
-            case App of
-                {Name, Pinned} when is_tuple(Pinned) -> {Name, Pinned};
-                {Name, Tag} when is_list(Tag) -> {Name, {tag, Tag}};
-                Name when is_atom(Name) -> {Name, DefaultDepRef}
-           end,
-        RepoName = string:join(string:tokens(atom_to_list(AppName), "_"), "-"),
-        URL = "https://github.com/emqx/" ++ RepoName,
-        {AppName, {git, URL, GitRef}}
-    end,
-
-MakeDeps = fun(Deps, DefaultDepRef) -> [MakeDep(App, DefaultDepRef) || App <- Deps] end,
+Kf = fun(K, L) -> case lists:keyfind(K, 1, L) of
+                    false -> [];
+                    {K, V} -> V
+                  end
+     end,
 
 %% TODO: this is only a temporary workaround in order to be backward compatible
 %% The right way is to always pin dependency version in rebar.config
@@ -59,57 +41,38 @@ DefaultDepRef =
             end
     end,
 
-%% ==============================================================================
-%% Relx configs
-%% ==============================================================================
-
-GitDescribe = [I || I <- os:cmd("git describe --tag --match \"v*\""), I =/= $\n],
-Relx0 = Kf(relx, CONFIG1),
-{release, _, RelxBaseApps} = lists:keyfind(release, 1, Relx0),
-
-RelxOverlay = Kf(overlay, Relx0),
-RelxCloudApps = RelxBaseApps ++ Kf(cloud_relx_apps, CONFIG1),
-RelxEdgeApps = RelxBaseApps ++ Kf(edge_relx_apps, CONFIG1),
-RelxCloudOverlay0 = Kf(cloud_relx_overlay, CONFIG1),
-RelxEdgeOverlay0 = Kf(edge_relx_overlay, CONFIG1),
-RelxCloudOverlay = RelxOverlay ++ RelxCloudOverlay0,
-RelxEdgeOverlay = RelxOverlay ++ RelxEdgeOverlay0,
-
-MakeRelx =
-    fun(Apps, Overlay, Vars) ->
-        VarFiles = ["vars-" ++ atom_to_list(Var) ++ ".config" || Var <- Vars],
-        Apps1 = case os:type() of {win32, nt} -> Apps -- [bcrypt]; _Other -> Apps end,
-        Relx1 = lists:keystore(release, 1, Relx0, {release, {emqx, GitDescribe}, Apps1}),
-        Relx2 = lists:keystore(overlay, 1, Relx1, {overlay, Overlay}),
-        lists:keystore(overlay_vars, 1, Relx2, {overlay_vars, VarFiles})
+%% Make a dep element for rebar.config GitRef should be either {tag, Tag} or {branch, Branch}
+MakeDep =
+    fun(App) ->
+        {AppName, GitRef} =
+            case App of
+                {Name, Pinned} when is_tuple(Pinned) -> {Name, Pinned};
+                {Name, Tag} when is_list(Tag) -> {Name, {tag, Tag}};
+                Name when is_atom(Name) -> {Name, DefaultDepRef}
+           end,
+        RepoName = string:join(string:tokens(atom_to_list(AppName), "_"), "-"),
+        URL = "https://github.com/emqx/" ++ RepoName,
+        {AppName, {git, URL, GitRef}}
     end,
-Relx = fun(Vars) -> MakeRelx(RelxBaseApps, RelxOverlay, Vars) end,
-RelxCloud = fun(Vars) -> MakeRelx(RelxCloudApps, RelxCloudOverlay, Vars) end,
-RelxEdge = fun(Vars) -> MakeRelx(RelxEdgeApps, RelxEdgeOverlay, Vars) end,
 
-%% ==============================================================================
-%% Profiles
-%% ==============================================================================
-Profiles =
-    [ {emqx, [ {deps, MakeDeps(CloudDeps, {branch, "develop"})}
-                  , {relx, RelxCloud([cloud, dev])}
-                  ]}
-    , {emqx_pkg, [ {deps, MakeDeps(CloudDeps, DefaultDepRef)}
-                  , {relx, RelxCloud([cloud, pkg])}
-                  ]}
-    , {emqx_edge, [ {deps, MakeDeps(EdgeDeps, {branch, "develop"})}
-                  , {relx, RelxEdge([edge, dev])}
-                  ]}
-    , {emqx_edge_pkg, [ {deps, MakeDeps(EdgeDeps, DefaultDepRef)}
-                  , {relx, RelxEdge([edge, pkg])}
-                  ]}
-    ],
+TranslateDeps =
+    fun(C) ->
+        case Kf(emqx_deps, C) of
+          false -> C;
+          DepApps ->
+            EmqxDeps = lists:map(MakeDep, DepApps),
+            ExistingDeps = Kf(deps, C),
+            lists:keyreplace(emqx_deps, 1, C, {deps, ExistingDeps ++ EmqxDeps})
+        end
+    end,
 
-Deletes = [deps, relx, cloud_deps, cloud_relx_apps, cloud_relx_overlay],
-Additions = [{profiles, Profiles}],
-
-CONFIG2 = lists:foldl(fun(K, Acc) -> lists:keydelete(K, 1, Acc) end, CONFIG1, Deletes),
-CONFIG3 = lists:foldl(fun({K, V}, Acc) -> lists:keystore(K, 1, Acc, {K, V}) end, CONFIG2, Additions),
+%% Translate top level emqx_deps (in default profile)
+CONFIG2 = TranslateDeps(CONFIG1),
+%% Translate extra deps from other profiles as well
+UpdatedProfiles = lists:map(
+  fun ({PName, PConfig}) -> {PName, TranslateDeps(PConfig)} end,
+  Kf(profiles, CONFIG2)),
+CONFIG3 = lists:keyreplace(profiles, 1, CONFIG2, {profiles, UpdatedProfiles}),
 
 FilePath = case os:type() of
                {win32, nt} ->

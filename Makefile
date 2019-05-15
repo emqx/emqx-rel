@@ -3,7 +3,8 @@
 REBAR_GIT_CLONE_OPTIONS += --depth 1
 export REBAR_GIT_CLONE_OPTIONS
 
-export EMQX_DEPS_DEFAULT_VSN = develop
+# Set this variable to a tag or branch name to use that tag/branch for all emqx repos
+# export EMQX_DEPS_DEFAULT_VSN = develop
 
 REBAR = rebar3
 all: build
@@ -13,34 +14,34 @@ build: emqx
 run: emqx_run
 
 emqx:
-	rebar3 as emqx release
+	rebar3 as dev,cloud release
 
 emqx_clean:
-	rebar3 as emqx clean
+	rebar3 as dev,cloud clean
 
 emqx_run:
-	rebar3 as emqx run
+	rebar3 as dev,cloud run
 
 emqx_pkg:
-	rebar3 as emqx_pkg release
+	rebar3 as pkg,cloud release
 
 emqx_pkg_clean:
-	rebar3 as emqx_pkg clean
+	rebar3 as pkg,cloud clean
 
 emqx_edge:
-	rebar3 as emqx_edge release
+	rebar3 as dev,edge release
 
 emqx_edge_run:
-	rebar3 as emqx_edge run
+	rebar3 as dev,edge run
 
 emqx_edge_clean:
-	rebar3 as emqx_edge clean
+	rebar3 as dev,edge clean
 
 emqx_edge_pkg:
-	rebar3 as emqx_edge_pkg release
+	rebar3 as pkg,edge release
 
 emqx_edge_pkg_clean:
-	rebar3 as emqx_edge_pkg clean
+	rebar3 as pkg,edge clean
 
 clean: distclean
 
