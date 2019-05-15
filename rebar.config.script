@@ -63,7 +63,7 @@ DefaultDepRef =
 %% Relx configs
 %% ==============================================================================
 
-GitDescribe = [I || I <- os:cmd("git describe --tag --match 'v*'"), I =/= $\n],
+GitDescribe = [I || I <- os:cmd("git describe --tag --match \"v*\""), I =/= $\n],
 Relx0 = Kf(relx, CONFIG1),
 {release, _, RelxBaseApps} = lists:keyfind(release, 1, Relx0),
 
