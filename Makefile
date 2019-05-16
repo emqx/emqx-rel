@@ -10,11 +10,16 @@ all: build
 
 build: emqx
 
+run: emqx_run
+
 emqx:
 	rebar3 as emqx release
 
 emqx_clean:
 	rebar3 as emqx clean
+
+emqx_run:
+	rebar3 as emqx run
 
 emqx_pkg:
 	rebar3 as emqx_pkg release
@@ -24,6 +29,9 @@ emqx_pkg_clean:
 
 emqx_edge:
 	rebar3 as emqx_edge release
+
+emqx_edge_run:
+	rebar3 as emqx_edge run
 
 emqx_edge_clean:
 	rebar3 as emqx_edge clean
