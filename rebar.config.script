@@ -1,3 +1,5 @@
+%%-*- mode: erlang -*-
+
 %% ==============================================================================
 %% maybe upload coverdata
 %% ==============================================================================
@@ -61,40 +63,45 @@ DefaultDepRef =
 %% Relx configs
 %% ==============================================================================
 
-GitDescribe = [I || I <- os:cmd("git describe --tag --match 'v*'"), I =/= $\n],
+GitDescribe = [I || I <- os:cmd("git describe --tag --match \"v*\""), I =/= $\n],
 Relx0 = Kf(relx, CONFIG1),
 {release, _, RelxBaseApps} = lists:keyfind(release, 1, Relx0),
 
 RelxOverlay = Kf(overlay, Relx0),
 RelxCloudApps = RelxBaseApps ++ Kf(cloud_relx_apps, CONFIG1),
+RelxEdgeApps = RelxBaseApps ++ Kf(edge_relx_apps, CONFIG1),
 RelxCloudOverlay0 = Kf(cloud_relx_overlay, CONFIG1),
+RelxEdgeOverlay0 = Kf(edge_relx_overlay, CONFIG1),
 RelxCloudOverlay = RelxOverlay ++ RelxCloudOverlay0,
+RelxEdgeOverlay = RelxOverlay ++ RelxEdgeOverlay0,
 
 MakeRelx =
     fun(Apps, Overlay, Vars) ->
         VarFiles = ["vars-" ++ atom_to_list(Var) ++ ".config" || Var <- Vars],
-        Relx1 = lists:keystore(release, 1, Relx0, {release, {emqx, GitDescribe}, Apps}),
+        Apps1 = case os:type() of {win32, nt} -> Apps -- [bcrypt]; _Other -> Apps end,
+        Relx1 = lists:keystore(release, 1, Relx0, {release, {emqx, GitDescribe}, Apps1}),
         Relx2 = lists:keystore(overlay, 1, Relx1, {overlay, Overlay}),
         lists:keystore(overlay_vars, 1, Relx2, {overlay_vars, VarFiles})
     end,
 Relx = fun(Vars) -> MakeRelx(RelxBaseApps, RelxOverlay, Vars) end,
 RelxCloud = fun(Vars) -> MakeRelx(RelxCloudApps, RelxCloudOverlay, Vars) end,
+RelxEdge = fun(Vars) -> MakeRelx(RelxEdgeApps, RelxEdgeOverlay, Vars) end,
 
 %% ==============================================================================
 %% Profiles
 %% ==============================================================================
 Profiles =
-    [ {edge_dev,  [ {deps, MakeDeps(EdgeDeps, {branch, "develop-3.2"})}
-                  , {relx, Relx([edge, dev])}
-                  ]}
-    , {edge_pkg,  [ {deps, MakeDeps(EdgeDeps, DefaultDepRef)}
-                  , {relx, Relx([edge, pkg])}
-                  ]}
-    , {cloud_dev, [ {deps, MakeDeps(CloudDeps, {branch, "develop-3.2"})}
+    [ {emqx, [ {deps, MakeDeps(CloudDeps, {branch, "develop"})}
                   , {relx, RelxCloud([cloud, dev])}
                   ]}
-    , {cloud_pkg, [ {deps, MakeDeps(CloudDeps, DefaultDepRef)}
+    , {emqx_pkg, [ {deps, MakeDeps(CloudDeps, DefaultDepRef)}
                   , {relx, RelxCloud([cloud, pkg])}
+                  ]}
+    , {emqx_edge, [ {deps, MakeDeps(EdgeDeps, {branch, "develop"})}
+                  , {relx, RelxEdge([edge, dev])}
+                  ]}
+    , {emqx_edge_pkg, [ {deps, MakeDeps(EdgeDeps, DefaultDepRef)}
+                  , {relx, RelxEdge([edge, pkg])}
                   ]}
     ],
 
@@ -103,6 +110,15 @@ Additions = [{profiles, Profiles}],
 
 CONFIG2 = lists:foldl(fun(K, Acc) -> lists:keydelete(K, 1, Acc) end, CONFIG1, Deletes),
 CONFIG3 = lists:foldl(fun({K, V}, Acc) -> lists:keystore(K, 1, Acc, {K, V}) end, CONFIG2, Additions),
-ok = file:write_file("/tmp/emqx.rebar.config", [io_lib:format("~p.\n", [I]) || I <- CONFIG3]),
+
+FilePath = case os:type() of
+               {win32, nt} ->
+                   "emqx.rebar.config";
+               _ ->
+                   "/tmp/emqx.rebar.config"
+           end,
+
+file:write_file(FilePath, [io_lib:format("~p.\n", [I]) || I <- CONFIG3]),
+
 CONFIG3.
 

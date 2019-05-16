@@ -1,4 +1,4 @@
-#!/bin/bash -eu
+#!/bin/sh -eu
 
 cd ${REBAR_BUILD_DIR}
 
