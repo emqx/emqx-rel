@@ -57,12 +57,26 @@ MakeDep =
 
 TranslateDeps =
     fun(C) ->
-        case Kf(emqx_deps, C) of
-          false -> C;
-          DepApps ->
-            EmqxDeps = lists:map(MakeDep, DepApps),
-            ExistingDeps = Kf(deps, C),
-            lists:keyreplace(emqx_deps, 1, C, {deps, ExistingDeps ++ EmqxDeps})
+        DepApps = Kf(emqx_deps, C),
+        EmqxDeps = lists:map(MakeDep, DepApps),
+        ExistingDeps = Kf(deps, C),
+        lists:keyreplace(emqx_deps, 1, C, {deps, ExistingDeps ++ EmqxDeps})
+    end,
+
+%% Temporary workaround to malfunctioning {extend, Relname} behaviour in relx releases
+%% Extending mistakenly converts {application, load} to {application, permanent}
+%% This will do some magic until that is debugged and resolved
+TranslateReleases =
+    fun(C) ->
+        Relx = Kf(relx, C),
+        Release = lists:keyfind(release, 1, Relx),
+        case Release of
+          {release, {Name, Vsn, {extend, emqx_base}}, Apps} ->
+            {release, {emqx_base, _}, BaseApps} = lists:keyfind(release, 1, Kf(relx, CONFIG)),
+            NewRel = {release, {Name, Vsn}, BaseApps ++ Apps},
+            Relx1 = lists:keyreplace(release, 1, Relx, NewRel),
+            lists:keyreplace(relx, 1, C, {relx, Relx1});
+          _ -> C
         end
     end,
 
@@ -70,9 +84,11 @@ TranslateDeps =
 CONFIG2 = TranslateDeps(CONFIG1),
 %% Translate extra deps from other profiles as well
 UpdatedProfiles = lists:map(
-  fun ({PName, PConfig}) -> {PName, TranslateDeps(PConfig)} end,
+  fun ({PName, PConfig}) -> {PName, TranslateReleases(TranslateDeps(PConfig))} end,
   Kf(profiles, CONFIG2)),
 CONFIG3 = lists:keyreplace(profiles, 1, CONFIG2, {profiles, UpdatedProfiles}),
+
+
 
 FilePath = case os:type() of
                {win32, nt} ->
