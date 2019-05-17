@@ -5,8 +5,6 @@ git clone -b $EMQX_DEPS_DEFAULT_VSN https://github.com/emqx/emqx-auth-clientid e
 cd emqx_auth_clientid && make
 cd ..
 
-# make -C .. deps
-mkdir -p deps
 while IFS='' read line || [[ -n $line ]]; do
     echo ============start test $line by $EMQX_DEPS_DEFAULT_VSN===============
     rm -rf ./deps/$line
@@ -32,13 +30,11 @@ while IFS='' read line || [[ -n $line ]]; do
     if [ $line == "emqx_auth_ldap" ];then
         sed -i "/auth.ldap.servers/c auth.ldap.servers = ldap_server" ./deps/$line/etc/emqx_auth_ldap.conf 
     fi
-    make -C ./deps/$line/ eunit </dev/null
     mkdir -p ./deps/$line/_build/test/lib
     if [ $line != "emqx" ];then
-        cp -r ./emqx_auth_clientid/_build/default/lib ./deps/$line/_build/test/lib
-    else
-        mkdir -p ./deps/$line/_build/test/lib/emqx/
+        cp -r ./emqx_auth_clientid/_build/default/lib/* ./deps/$line/_build/test/lib
     fi
+    make -C ./deps/$line/ eunit </dev/null
     make -C ./deps/$line/ ct </dev/null
     mkdir -p logs/$line
     cp -r ./deps/$line/_build/test/logs/* logs/$line
