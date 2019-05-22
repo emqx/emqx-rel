@@ -19,7 +19,8 @@ CT_APPS := emqx_auth_jwt emqx_auth_mysql emqx_auth_username \
 		emqx_dashboard emqx_lwm2m emqx_psk_file emqx_retainer emqx_statsd
 
 .PHONY: all
-all: $(PROFILES)
+all:
+	$(REBAR) as $(PROFILE) release
 
 .PHONY: distclean
 distclean:
