@@ -36,8 +36,8 @@ bin\emqx console
 
 # Test
 
-``` bash
-make test-cloud_dev
+```bash
+make ct
 ```
 
 # License

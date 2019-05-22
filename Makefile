@@ -9,7 +9,7 @@ export EMQX_DEPS_DEFAULT_VSN
 REBAR := rebar3
 
 PROFILE ?= emqx
-PROFILES := emqx_edge_dev emqx_edge_pkg emqx_dev emqx_pkg
+PROFILES := emqx emqx_pkg emqx_edge emqx_edge_pkg
 
 CT_APPS := emqx_auth_jwt emqx_auth_mysql emqx_auth_username \
 		emqx_delayed_publish emqx_management emqx_recon emqx_rule_enginex \
@@ -33,6 +33,11 @@ $(PROFILES:%=%):
 .PHONY: $(PROFILES:%=build-%)
 $(PROFILES:%=build-%):
 	$(REBAR) as $(@:build-%=%) compile
+
+.PHONY: run $(PROFILES:%=run-%)
+run: $(PROFILES:%=run-%)
+$(PROFILES:%=run-%):
+	$(REBAR) as $(@:run-%=%) run
 
 .PHONY: clean $(PROFILES:%=clean-%)
 clean: $(PROFILES:%=clean-%)
