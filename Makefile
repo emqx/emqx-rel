@@ -18,9 +18,11 @@ CT_APPS := emqx_auth_jwt emqx_auth_mysql emqx_auth_username \
 		emqx_web_hook emqx_auth_http emqx_auth_mongo emqx_auth_redis \
 		emqx_dashboard emqx_lwm2m emqx_psk_file emqx_retainer emqx_statsd
 
+.PHONY: default
+default: $(PROFILE)
+
 .PHONY: all
-all:
-	$(REBAR) as $(PROFILE) release
+all: $(PROFILES)
 
 .PHONY: distclean
 distclean:
@@ -29,6 +31,7 @@ distclean:
 
 .PHONY: $(PROFILES)
 $(PROFILES:%=%):
+	@ln -snf _build/$(@)/lib ./_checkouts
 	$(REBAR) as $(@) release
 
 .PHONY: $(PROFILES:%=build-%)
@@ -36,8 +39,9 @@ $(PROFILES:%=build-%):
 	$(REBAR) as $(@:build-%=%) compile
 
 .PHONY: run $(PROFILES:%=run-%)
-run: $(PROFILES:%=run-%)
+run: run-$(PROFILE)
 $(PROFILES:%=run-%):
+	@ln -snf _build/$(@:run-%=%)/lib ./_checkouts
 	$(REBAR) as $(@:run-%=%) run
 
 .PHONY: clean $(PROFILES:%=clean-%)
