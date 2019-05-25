@@ -40,7 +40,7 @@ MakeDep =
         {AppName, {git, URL, GitRef}}
     end,
 
-MakeDeps = fun(Deps, DefaultDepRef) -> [MakeDep(App, DefaultDepRef) || App <- Deps] end,
+MakeDeps = fun(Deps, DefaultDepRef, TestDeps) -> [MakeDep(App, DefaultDepRef) || App <- Deps] ++ TestDeps end,
 
 %% TODO: this is only a temporary workaround in order to be backward compatible
 %% The right way is to always pin dependency version in rebar.config
@@ -87,23 +87,28 @@ Relx = fun(Vars) -> MakeRelx(RelxBaseApps, RelxOverlay, Vars) end,
 RelxCloud = fun(Vars) -> MakeRelx(RelxCloudApps, RelxCloudOverlay, Vars) end,
 RelxEdge = fun(Vars) -> MakeRelx(RelxEdgeApps, RelxEdgeOverlay, Vars) end,
 
+TestDeps = [ {meck, "0.8.13"} % hex
+           , {bbmustache, "1.7.0"} % hex
+           , {emqx_ct_helpers, {git, "https://github.com/emqx/emqx-ct-helpers", {tag, "v1.1.1"}}}
+           ],
+
 %% ==============================================================================
 %% Profiles
 %% ==============================================================================
 Profiles =
-    [ {emqx, [ {deps, MakeDeps(CloudDeps, {branch, "develop"})}
-                  , {relx, RelxCloud([cloud, dev])}
-                  ]}
-    , {emqx_pkg, [ {deps, MakeDeps(CloudDeps, DefaultDepRef)}
-                  , {relx, RelxCloud([cloud, pkg])}
-                  ]}
-    , {emqx_edge, [ {deps, MakeDeps(EdgeDeps, {branch, "develop"})}
-                  , {relx, RelxEdge([edge, dev])}
-                  ]}
-    , {emqx_edge_pkg, [ {deps, MakeDeps(EdgeDeps, DefaultDepRef)}
+[ {emqx, [ {deps, MakeDeps(CloudDeps, {branch, "develop"}, TestDeps)}
+         , {relx, RelxCloud([cloud, dev])}
+         ]}
+, {emqx_pkg, [ {deps, MakeDeps(CloudDeps, DefaultDepRef, [])}
+             , {relx, RelxCloud([cloud, pkg])}
+             ]}
+, {emqx_edge, [ {deps, MakeDeps(EdgeDeps, {branch, "develop"}, TestDeps)}
+              , {relx, RelxEdge([edge, dev])}
+              ]}
+, {emqx_edge_pkg, [ {deps, MakeDeps(EdgeDeps, DefaultDepRef, [])}
                   , {relx, RelxEdge([edge, pkg])}
                   ]}
-    ],
+],
 
 Deletes = [deps, relx, cloud_deps, cloud_relx_apps, cloud_relx_overlay],
 Additions = [{profiles, Profiles}],

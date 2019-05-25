@@ -1,5 +1,12 @@
 #!/bin/sh -eu
 
+case ${REBAR_BUILD_DIR} in *+test) exit 0;; esac
+
+if [ ! -d ${REBAR_BUILD_DIR} ]; then
+    # profile dir is not created yet
+    exit 0
+fi
+
 cd ${REBAR_BUILD_DIR}
 
 ## Collect config files, some are direct usable
