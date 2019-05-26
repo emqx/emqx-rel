@@ -96,13 +96,13 @@ TestDeps = [ {meck, "0.8.13"} % hex
 %% Profiles
 %% ==============================================================================
 Profiles =
-[ {emqx, [ {deps, MakeDeps(CloudDeps, {branch, "develop"}, TestDeps)}
+[ {emqx, [ {deps, MakeDeps(CloudDeps, DefaultDepRef, [])}
          , {relx, RelxCloud([cloud, dev])}
          ]}
 , {emqx_pkg, [ {deps, MakeDeps(CloudDeps, DefaultDepRef, [])}
              , {relx, RelxCloud([cloud, pkg])}
              ]}
-, {emqx_edge, [ {deps, MakeDeps(EdgeDeps, {branch, "develop"}, TestDeps)}
+, {emqx_edge, [ {deps, MakeDeps(EdgeDeps, DefaultDepRef, [])}
               , {relx, RelxEdge([edge, dev])}
               ]}
 , {emqx_edge_pkg, [ {deps, MakeDeps(EdgeDeps, DefaultDepRef, [])}
