@@ -48,10 +48,18 @@ MakeDeps = fun(Deps, DefaultDepRef, TestDeps) -> [MakeDep(App, DefaultDepRef) ||
 %% (i.e. has to be a part of a emqx release in order to be tested)
 %% should not be a dependency but a local application reside in the same repo.
 %% (Meaning: emqx should be an umbrella project)
+
+CUR_BRANCH = os:cmd("git branch | grep -e '^*' | cut -d' ' -f 2") -- "\n",
+
+BRANCH = case lists:member(CUR_BRANCH, ["master", "develop"]) of
+             true -> CUR_BRANCH;
+             false -> "develop"
+end,
+
 DefaultDepRef =
     case os:getenv("EMQX_DEPS_DEFAULT_VSN") of
-        false -> {branch, "develop"}; %% not set
-        "" -> {branch, "develop"}; %% set empty
+        false -> {branch, BRANCH}; %% not set
+        "" -> {branch, BRANCH}; %% set empty
         MaybeTag ->
             case re:run(MaybeTag, "v\[0-9\]+\.\[0-9\]+\.*") of
                 nomatch -> {branch, MaybeTag};
