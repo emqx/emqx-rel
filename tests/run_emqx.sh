@@ -1,11 +1,10 @@
 #!/bin/bash
 EMQX_DEPS_DEFAULT_VSN=`[[ $(git rev-parse --abbrev-ref HEAD) == "HEAD" ]] && git describe --always --tag || git rev-parse --abbrev-ref HEAD`
+rm -rf ./emqx_auth_clientid
 git clone -b $EMQX_DEPS_DEFAULT_VSN https://github.com/emqx/emqx-auth-clientid emqx_auth_clientid
 cd emqx_auth_clientid && make
 cd ..
 
-# make -C .. deps
-mkdir -p deps
 while IFS='' read line || [[ -n $line ]]; do
     echo ============start test $line by $EMQX_DEPS_DEFAULT_VSN===============
     rm -rf ./deps/$line
@@ -31,13 +30,12 @@ while IFS='' read line || [[ -n $line ]]; do
     if [ $line == "emqx_auth_ldap" ];then
         sed -i "/auth.ldap.servers/c auth.ldap.servers = ldap_server" ./deps/$line/etc/emqx_auth_ldap.conf 
     fi
-    rm -rf ./deps/$line/deps
-    rm -rf ./deps/$line/erlang.mk
-    mkdir -p ./deps/$line/deps
+    mkdir -p ./deps/$line/_build/test/lib
     if [ $line != "emqx" ];then
-        cp -r ./emqx_auth_username/deps ./deps/$line/
+        cp -r ./emqx_auth_clientid/_build/default/lib/* ./deps/$line/_build/test/lib
     fi
-    make -C ./deps/$line/ tests </dev/null
+    make -C ./deps/$line/ eunit </dev/null
+    make -C ./deps/$line/ ct </dev/null
     mkdir -p logs/$line
-    cp -r ./deps/$line/logs/* logs/$line
+    cp -r ./deps/$line/_build/test/logs/* logs/$line
 done < $1

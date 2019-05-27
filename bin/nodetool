@@ -9,7 +9,10 @@
 -mode(compile).
 
 main(Args) ->
-    ok = start_epmd(),
+    ok = case os:type() of
+             {win32, nt} -> ok;
+             _Other -> start_epmd()
+         end,
     ok = do_with_halt(Args, "mnesia_dir", fun create_mnesia_dir/2),
     ok = do_with_halt(Args, "mergeconf", fun mergeconf/3),
     ok = do_with_halt(Args, "chkconfig", fun("-config", X) -> chkconfig(X) end),

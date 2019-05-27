@@ -4,6 +4,7 @@ deps
 *.beam
 *.plt
 erl_crash.dump
+rebar3.crashdump
 ebin
 _rel/*
 .concrete/DEV_MODE
@@ -22,3 +23,7 @@ ct/logs/*
 *.iml
 vars.config
 erlang.mk
+_build
+rebar.lock
+test/
+_checkouts
