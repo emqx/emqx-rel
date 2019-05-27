@@ -54,7 +54,7 @@ CUR_BRANCH = os:cmd("git branch | grep -e '^*' | cut -d' ' -f 2") -- "\n",
 BRANCH = case lists:member(CUR_BRANCH, ["master", "develop"]) of
              true -> CUR_BRANCH;
              false -> "develop"
-end,
+         end,
 
 DefaultDepRef =
     case os:getenv("EMQX_DEPS_DEFAULT_VSN") of
