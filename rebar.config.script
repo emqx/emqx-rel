@@ -4,7 +4,7 @@
 %% maybe upload coverdata
 %% ==============================================================================
 
-CONFIG1 = case os:getenv("TRAVIS") of
+CONFIG0 = case os:getenv("TRAVIS") of
               "true" ->
                   JobId = os:getenv("TRAVIS_JOB_ID"),
                   [{coveralls_service_job_id, JobId},
@@ -17,8 +17,27 @@ CONFIG1 = case os:getenv("TRAVIS") of
 %% ==============================================================================
 %% Dependencies
 %% ==============================================================================
+PluginsNeededByElixir = [rebar_mix, 
+                         {rebar3_elixir_compile,
+                          {git, "https://github.com/barrel-db/rebar3_elixir_compile.git",
+                           {branch, "master"}}}],
+
+HooksNeededByElixir = {provider_hooks, [{pre, [{compile, {ex, compile}}]}]},
+
+OptsNeededByElixir = {elixir_opts, [{env, dev}]},
 
 Kf = fun(K, L) -> {K, V} = lists:keyfind(K, 1, L), V end,
+{ElixirDeps, CONFIG1} = case Kf(elixir_deps, CONFIG0) of
+                            false ->{[], CONFIG0};
+                            [] -> {[], CONFIG0};
+                            ElixirDeps0 ->
+                                Plugins = Kf(plugins, CONFIG0),
+                                NewConfig = lists:keydelete(plugins, 1, CONFIG0),
+                                NewPlugins = {plugins, PluginsNeededByElixir ++ Plugins},
+                                {ElixirDeps0,
+                                 [NewPlugins, HooksNeededByElixir, OptsNeededByElixir|NewConfig]}
+                        end,
+
 BaseDeps = Kf(deps, CONFIG1),
 CloudDeps = BaseDeps ++ Kf(cloud_deps, CONFIG1),
 EdgeDeps = BaseDeps ++ Kf(edge_deps, CONFIG1),
@@ -73,8 +92,10 @@ DefaultDepRef =
 
 GitDescribe = [I || I <- os:cmd("git describe --tag --match \"v*\""), I =/= $\n],
 Relx0 = Kf(relx, CONFIG1),
-{release, _, RelxBaseApps} = lists:keyfind(release, 1, Relx0),
+{release, _, RelxBaseApps0} = lists:keyfind(release, 1, Relx0),
 
+RelxElixirApps = Kf(elixir_relx_apps, CONFIG1),
+RelxBaseApps = RelxBaseApps0 ++ RelxElixirApps,
 RelxOverlay = Kf(overlay, Relx0),
 RelxCloudApps = RelxBaseApps ++ Kf(cloud_relx_apps, CONFIG1),
 RelxEdgeApps = RelxBaseApps ++ Kf(edge_relx_apps, CONFIG1),
@@ -118,7 +139,16 @@ Profiles =
                   ]}
 ],
 
-Deletes = [deps, relx, cloud_deps, cloud_relx_apps, cloud_relx_overlay],
+Deletes = [ deps
+          , relx
+          , elixir_deps
+          , edge_deps
+          , cloud_deps
+          , elixir_relx_apps
+          , edge_relx_apps
+          , cloud_relx_apps
+          , cloud_relx_overlay],
+
 Additions = [{profiles, Profiles}],
 
 CONFIG2 = lists:foldl(fun(K, Acc) -> lists:keydelete(K, 1, Acc) end, CONFIG1, Deletes),
