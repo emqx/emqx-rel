@@ -28,6 +28,7 @@ all: $(PROFILES)
 distclean:
 	@rm -rf _build
 	@rm -f data/app.*.config data/vm.*.args rebar.lock
+	@rm -rf _checkouts
 
 .PHONY: $(PROFILES)
 $(PROFILES:%=%):
