@@ -28,10 +28,13 @@ all: $(PROFILES)
 distclean:
 	@rm -rf _build
 	@rm -f data/app.*.config data/vm.*.args rebar.lock
+	@rm -rf _checkouts
 
 .PHONY: $(PROFILES)
 $(PROFILES:%=%):
-	@ln -snf _build/$(@)/lib ./_checkouts
+ifneq ($(OS),Windows_NT)
+	ln -snf _build/$(@)/lib ./_checkouts
+endif
 	$(REBAR) as $(@) release
 
 .PHONY: $(PROFILES:%=build-%)
@@ -41,7 +44,9 @@ $(PROFILES:%=build-%):
 .PHONY: run $(PROFILES:%=run-%)
 run: run-$(PROFILE)
 $(PROFILES:%=run-%):
+ifneq ($(OS),Windows_NT)
 	@ln -snf _build/$(@:run-%=%)/lib ./_checkouts
+endif
 	$(REBAR) as $(@:run-%=%) run
 
 .PHONY: clean $(PROFILES:%=clean-%)
