@@ -33,9 +33,13 @@ Kf = fun(K, L) -> {K, V} = lists:keyfind(K, 1, L), V end,
                             ElixirDeps0 ->
                                 Plugins = Kf(plugins, CONFIG0),
                                 NewConfig = lists:keydelete(plugins, 1, CONFIG0),
-                                NewPlugins = {plugins, PluginsNeededByElixir ++ Plugins},
+                                Plugins1 = PluginsNeededByElixir ++ Plugins,
+                                Plugins2 = {plugins, case os:type() of
+                                                         {win32, nt} -> Plugins1 -- [rebar3_run];
+                                                         _ -> Plugins1
+                                                     end},
                                 {ElixirDeps0,
-                                 [NewPlugins, HooksNeededByElixir, OptsNeededByElixir|NewConfig]}
+                                 [Plugins2, HooksNeededByElixir, OptsNeededByElixir|NewConfig]}
                         end,
 
 BaseDeps = Kf(deps, CONFIG1),
@@ -70,10 +74,17 @@ MakeDeps = fun(Deps, DefaultDepRef, TestDeps) -> [MakeDep(App, DefaultDepRef) ||
 
 CUR_BRANCH = os:cmd("git branch | grep -e '^*' | cut -d' ' -f 2") -- "\n",
 
-BRANCH = case lists:member(CUR_BRANCH, ["master", "develop"]) of
-             true -> CUR_BRANCH;
-             false -> "develop"
-         end,
+MATCH_BRANCH = fun (BranchName) when BranchName =:= "master";
+                                     BranchName =:= "develop" ->
+                       BranchName;
+                   (BranchName) ->
+                       case string:prefix(BranchName, "release") of
+                           nomatch -> "develop";
+                           _Match -> BranchName
+                       end
+               end,
+
+BRANCH = MATCH_BRANCH(CUR_BRANCH),
 
 DefaultDepRef =
     case os:getenv("EMQX_DEPS_DEFAULT_VSN") of
@@ -147,7 +158,8 @@ Deletes = [ deps
           , elixir_relx_apps
           , edge_relx_apps
           , cloud_relx_apps
-          , cloud_relx_overlay],
+          , cloud_relx_overlay
+          ],
 
 Additions = [{profiles, Profiles}],
 
