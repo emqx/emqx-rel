@@ -3,9 +3,6 @@
 REBAR_GIT_CLONE_OPTIONS += --depth 1
 export REBAR_GIT_CLONE_OPTIONS
 
-# EMQX_DEPS_DEFAULT_VSN ?= develop
-# export EMQX_DEPS_DEFAULT_VSN
-
 TAG = $(shell git tag -l --points-at HEAD)
 
 ifneq ($(TAG),)
