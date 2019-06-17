@@ -34,17 +34,24 @@ Kf = fun(K, L) -> {K, V} = lists:keyfind(K, 1, L), V end,
                                 Plugins = Kf(plugins, CONFIG0),
                                 NewConfig = lists:keydelete(plugins, 1, CONFIG0),
                                 Plugins1 = PluginsNeededByElixir ++ Plugins,
-                                Plugins2 = {plugins, case os:type() of
-                                                         {win32, nt} -> Plugins1 -- [rebar3_run];
-                                                         _ -> Plugins1
-                                                     end},
                                 {ElixirDeps0,
-                                 [Plugins2, HooksNeededByElixir, OptsNeededByElixir|NewConfig]}
+                                 [Plugins1, HooksNeededByElixir, OptsNeededByElixir | NewConfig]}
                         end,
 
-BaseDeps = Kf(deps, CONFIG1),
-CloudDeps = BaseDeps ++ Kf(cloud_deps, CONFIG1),
-EdgeDeps = BaseDeps ++ Kf(edge_deps, CONFIG1),
+PluginCompatWindowsPlatform = fun(Config) ->
+                                      PluginsTmp = Kf(plugins, Config),
+                                      ConfigTmp = lists:keydelete(plugins, 1, Config),
+                                      Plugins2 = {plugins, case os:type() of
+                                                               {win32, nt} -> PluginsTmp -- [rebar3_run];
+                                                               _ -> PluginsTmp
+                                                           end},
+                                      CONFIG2 = [Plugins2 | ConfigTmp]
+                              end,
+
+CONFIG2 = PluginCompatWindowsPlatform(CONFIG1),
+BaseDeps = Kf(deps, CONFIG2),
+CloudDeps = BaseDeps ++ Kf(cloud_deps, CONFIG2),
+EdgeDeps = BaseDeps ++ Kf(edge_deps, CONFIG2),
 
 %% Make a dep element for rebar.config GitRef should be either {tag, Tag} or {branch, Branch}
 MakeDep =
@@ -102,16 +109,16 @@ DefaultDepRef =
 %% ==============================================================================
 
 GitDescribe = [I || I <- os:cmd("git describe --tag --match \"v*\""), I =/= $\n],
-Relx0 = Kf(relx, CONFIG1),
+Relx0 = Kf(relx, CONFIG2),
 {release, _, RelxBaseApps0} = lists:keyfind(release, 1, Relx0),
 
-RelxElixirApps = Kf(elixir_relx_apps, CONFIG1),
+RelxElixirApps = Kf(elixir_relx_apps, CONFIG2),
 RelxBaseApps = RelxBaseApps0 ++ RelxElixirApps,
 RelxOverlay = Kf(overlay, Relx0),
-RelxCloudApps = RelxBaseApps ++ Kf(cloud_relx_apps, CONFIG1),
-RelxEdgeApps = RelxBaseApps ++ Kf(edge_relx_apps, CONFIG1),
-RelxCloudOverlay0 = Kf(cloud_relx_overlay, CONFIG1),
-RelxEdgeOverlay0 = Kf(edge_relx_overlay, CONFIG1),
+RelxCloudApps = RelxBaseApps ++ Kf(cloud_relx_apps, CONFIG2),
+RelxEdgeApps = RelxBaseApps ++ Kf(edge_relx_apps, CONFIG2),
+RelxCloudOverlay0 = Kf(cloud_relx_overlay, CONFIG2),
+RelxEdgeOverlay0 = Kf(edge_relx_overlay, CONFIG2),
 RelxCloudOverlay = RelxOverlay ++ RelxCloudOverlay0,
 RelxEdgeOverlay = RelxOverlay ++ RelxEdgeOverlay0,
 
@@ -163,8 +170,9 @@ Deletes = [ deps
 
 Additions = [{profiles, Profiles}],
 
-CONFIG2 = lists:foldl(fun(K, Acc) -> lists:keydelete(K, 1, Acc) end, CONFIG1, Deletes),
-CONFIG3 = lists:foldl(fun({K, V}, Acc) -> lists:keystore(K, 1, Acc, {K, V}) end, CONFIG2, Additions),
+CONFIG3 = lists:foldl(fun(K, Acc) -> lists:keydelete(K, 1, Acc) end, CONFIG2, Deletes),
+
+CONFIG4 = lists:foldl(fun({K, V}, Acc) -> lists:keystore(K, 1, Acc, {K, V}) end, CONFIG3, Additions),
 
 FilePath = case os:type() of
                {win32, nt} ->
@@ -173,7 +181,7 @@ FilePath = case os:type() of
                    "/tmp/emqx.rebar.config"
            end,
 
-file:write_file(FilePath, [io_lib:format("~p.\n", [I]) || I <- CONFIG3]),
+file:write_file(FilePath, [io_lib:format("~p.\n", [I]) || I <- CONFIG4]),
 
-CONFIG3.
+CONFIG4.
 
