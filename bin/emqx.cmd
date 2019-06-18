@@ -50,10 +50,10 @@
 @set erl_exe="%bindir%\erl.exe"
 @set nodetool="%rel_root_dir%\bin\nodetool"
 @set cuttlefish="%rel_root_dir%\bin\cuttlefish"
+@set node_type="-name"
 
 :: Extract node name from emqx.conf
 @for /f "usebackq delims=\= tokens=2" %%I in (`findstr /b node\.name "%emqx_conf%"`) do @(
-  @set node_type="-name"
   @call :set_trim node_name %%I
 )
 
@@ -177,12 +177,13 @@
 :: or install the specified version passed as argument
 :install
 @if "" == "%2" (
+  call :create_mnesia_dir
+  call :generated_app_config
   :: Install the service
-  set args=%erl_opts% -setcookie %node_cookie% ++ -rootdir \"%rootdir%\"
-  set start_erl=%erts_dir%\bin\start_erl.exe
-  set description=EMQ-2.0 node %node_name% in %rootdir%
-  %erlsrv% add %service_name% %node_type% "%node_name%" -c "%description%" ^
-           -w "%rootdir%" -m "%start_erl%" -args "%args%" ^
+  set args="-boot %boot_script% %sys_config% %generated_config_args% -mnesia dir %mnesia_dir%"
+  set description=EMQ node %node_name% in %rootdir%
+  %erlsrv% add %service_name% %node_type% "%node_name%" -on restart -d new -c "%description%" ^
+           -w "%rootdir%" -m "%erl_exe%" -args "%args%" ^
            -stopaction "init:stop()."
 ) else (
   :: relup and reldown

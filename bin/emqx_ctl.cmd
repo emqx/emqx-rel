@@ -23,10 +23,10 @@
 @set progname=erl.exe
 @set escript="%bindir%\escript.exe"
 @set nodetool="%rel_root_dir%\bin\nodetool"
+@set node_type="-name"
 
 :: Extract node name from emqx.conf
 @for /f "usebackq tokens=1-2" %%I in (`findstr /b "node.name=" "%emqx_conf%"`) do @(
-  @set node_type="-name"
   @call :set_trim node_name %%I
 )
 
