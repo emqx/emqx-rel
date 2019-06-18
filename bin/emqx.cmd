@@ -178,9 +178,9 @@
 :install
 @if "" == "%2" (
   call :create_mnesia_dir
-  call :generated_app_config
+  call :generate_app_config
   :: Install the service
-  set args="-boot %boot_script% %sys_config% %generated_config_args% -mnesia dir %mnesia_dir%"
+  set args="-boot %boot_script% %sys_config% %generated_config_args% -mnesia dir '%mnesia_dir%'"
   set description=EMQ node %node_name% in %rootdir%
   %erlsrv% add %service_name% %node_type% "%node_name%" -on restart -d new -c "%description%" ^
            -w "%rootdir%" -m %erl_exe% -args %args% ^
