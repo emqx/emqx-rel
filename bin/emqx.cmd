@@ -183,7 +183,7 @@
   set args="-boot %boot_script% %sys_config% %generated_config_args% -mnesia dir %mnesia_dir%"
   set description=EMQ node %node_name% in %rootdir%
   %erlsrv% add %service_name% %node_type% "%node_name%" -on restart -d new -c "%description%" ^
-           -w "%rootdir%" -m "%erl_exe%" -args "%args%" ^
+           -w "%rootdir%" -m %erl_exe% -args %args% ^
            -stopaction "init:stop()."
 ) else (
   :: relup and reldown
