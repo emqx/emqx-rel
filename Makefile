@@ -3,8 +3,15 @@
 REBAR_GIT_CLONE_OPTIONS += --depth 1
 export REBAR_GIT_CLONE_OPTIONS
 
-# EMQX_DEPS_DEFAULT_VSN ?= develop
-# export EMQX_DEPS_DEFAULT_VSN
+TAG = $(shell git tag -l --points-at HEAD)
+
+ifneq ($(TAG),)
+	EMQX_DEPS_DEFAULT_VSN ?= $(word 1, $(TAG))
+else
+	EMQX_DEPS_DEFAULT_VSN ?= develop
+endif
+
+export EMQX_DEPS_DEFAULT_VSN
 
 REBAR := rebar3
 
@@ -40,6 +47,13 @@ endif
 .PHONY: $(PROFILES:%=build-%)
 $(PROFILES:%=build-%):
 	$(REBAR) as $(@:build-%=%) compile
+
+.PHONY: deps-all
+deps-all: $(PROFILES:%=deps-%)
+
+.PHONY: $(PROFILES:%=deps-%)
+$(PROFILES:%=deps-%):
+	$(REBAR) as $(@:deps-%=%) get-deps
 
 .PHONY: run $(PROFILES:%=run-%)
 run: run-$(PROFILE)
