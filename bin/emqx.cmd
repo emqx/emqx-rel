@@ -182,7 +182,7 @@
 @set args="-boot %boot_script% %sys_config% %generated_config_args% -mnesia dir '%mnesia_dir%'"
 @set description=EMQ node %node_name% in %rootdir%
 @if "" == "%2" (
-  %erlsrv% add %service_name% %node_type% "%node_name%" -on restart -d new -c "%description%" ^
+  %erlsrv% add %service_name% %node_type% "%node_name%" -on restart -c "%description%" ^
            -w "%rootdir%" -m %erl_exe% -args %args% ^
            -st "init:stop()."
 ) else (
@@ -238,6 +238,7 @@ cd /d %rel_root_dir%
 cd /d %rel_root_dir%
 @echo on
 @start "bin\%rel_name% console" %werl% -boot "%boot_script%" %args%
+@echo emqx is started!
 @goto :eof
 
 :: Ping the running node
