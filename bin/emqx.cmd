@@ -176,15 +176,15 @@
 :: Install the release as a Windows service
 :: or install the specified version passed as argument
 :install
+@call :create_mnesia_dir
+@call :generate_app_config
+:: Install the service
+@set args="-boot %boot_script% %sys_config% %generated_config_args% -mnesia dir '%mnesia_dir%'"
+@set description=EMQ node %node_name% in %rootdir%
 @if "" == "%2" (
-  call :create_mnesia_dir
-  call :generate_app_config
-  :: Install the service
-  set args="-boot %boot_script% %sys_config% %generated_config_args% -mnesia dir '%mnesia_dir%'"
-  set description=EMQ node %node_name% in %rootdir%
-  %erlsrv% add %service_name% %node_type% "%node_name%" -on restart -d new -c "%description%" ^
+  %erlsrv% add %service_name% %node_type% "%node_name%" -on restart -c "%description%" ^
            -w "%rootdir%" -m %erl_exe% -args %args% ^
-           -stopaction "init:stop()."
+           -st "init:stop()."
 ) else (
   :: relup and reldown
   goto relup
@@ -238,6 +238,7 @@ cd /d %rel_root_dir%
 cd /d %rel_root_dir%
 @echo on
 @start "bin\%rel_name% console" %werl% -boot "%boot_script%" %args%
+@echo emqx is started!
 @goto :eof
 
 :: Ping the running node
