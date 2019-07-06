@@ -3,7 +3,9 @@
 REBAR_GIT_CLONE_OPTIONS += --depth 1
 export REBAR_GIT_CLONE_OPTIONS
 
-EMQX_DEPS_DEFAULT_VSN ?= develop
+
+EMQX_DEPS_DEFAULT_VSN ?= v3.2-rc.3
+
 export EMQX_DEPS_DEFAULT_VSN
 
 REBAR := rebar3
@@ -28,20 +30,32 @@ all: $(PROFILES)
 distclean:
 	@rm -rf _build
 	@rm -f data/app.*.config data/vm.*.args rebar.lock
+	@rm -rf _checkouts
 
 .PHONY: $(PROFILES)
 $(PROFILES:%=%):
-	@ln -snf _build/$(@)/lib ./_checkouts
+ifneq ($(OS),Windows_NT)
+	ln -snf _build/$(@)/lib ./_checkouts
+endif
 	$(REBAR) as $(@) release
 
 .PHONY: $(PROFILES:%=build-%)
 $(PROFILES:%=build-%):
 	$(REBAR) as $(@:build-%=%) compile
 
+.PHONY: deps-all
+deps-all: $(PROFILES:%=deps-%)
+
+.PHONY: $(PROFILES:%=deps-%)
+$(PROFILES:%=deps-%):
+	$(REBAR) as $(@:deps-%=%) get-deps
+
 .PHONY: run $(PROFILES:%=run-%)
 run: run-$(PROFILE)
 $(PROFILES:%=run-%):
+ifneq ($(OS),Windows_NT)
 	@ln -snf _build/$(@:run-%=%)/lib ./_checkouts
+endif
 	$(REBAR) as $(@:run-%=%) run
 
 .PHONY: clean $(PROFILES:%=clean-%)

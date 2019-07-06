@@ -4,7 +4,7 @@
 %% maybe upload coverdata
 %% ==============================================================================
 
-CONFIG1 = case os:getenv("TRAVIS") of
+CONFIG0 = case os:getenv("TRAVIS") of
               "true" ->
                   JobId = os:getenv("TRAVIS_JOB_ID"),
                   [{coveralls_service_job_id, JobId},
@@ -17,11 +17,41 @@ CONFIG1 = case os:getenv("TRAVIS") of
 %% ==============================================================================
 %% Dependencies
 %% ==============================================================================
+PluginsNeededByElixir = [rebar_mix, 
+                         {rebar3_elixir_compile,
+                          {git, "https://github.com/barrel-db/rebar3_elixir_compile.git",
+                           {branch, "master"}}}],
+
+HooksNeededByElixir = {provider_hooks, [{pre, [{compile, {ex, compile}}]}]},
+
+OptsNeededByElixir = {elixir_opts, [{env, dev}]},
 
 Kf = fun(K, L) -> {K, V} = lists:keyfind(K, 1, L), V end,
-BaseDeps = Kf(deps, CONFIG1),
-CloudDeps = BaseDeps ++ Kf(cloud_deps, CONFIG1),
-EdgeDeps = BaseDeps ++ Kf(edge_deps, CONFIG1),
+{ElixirDeps, CONFIG1} = case Kf(elixir_deps, CONFIG0) of
+                            false ->{[], CONFIG0};
+                            [] -> {[], CONFIG0};
+                            ElixirDeps0 ->
+                                Plugins = Kf(plugins, CONFIG0),
+                                NewConfig = lists:keydelete(plugins, 1, CONFIG0),
+                                Plugins1 = PluginsNeededByElixir ++ Plugins,
+                                {ElixirDeps0,
+                                 [Plugins1, HooksNeededByElixir, OptsNeededByElixir | NewConfig]}
+                        end,
+
+PluginCompatWindowsPlatform = fun(Config) ->
+                                      PluginsTmp = Kf(plugins, Config),
+                                      ConfigTmp = lists:keydelete(plugins, 1, Config),
+                                      Plugins2 = {plugins, case os:type() of
+                                                               {win32, nt} -> PluginsTmp -- [rebar3_run];
+                                                               _ -> PluginsTmp
+                                                           end},
+                                      CONFIG2 = [Plugins2 | ConfigTmp]
+                              end,
+
+CONFIG2 = PluginCompatWindowsPlatform(CONFIG1),
+BaseDeps = Kf(deps, CONFIG2),
+CloudDeps = BaseDeps ++ Kf(cloud_deps, CONFIG2),
+EdgeDeps = BaseDeps ++ Kf(edge_deps, CONFIG2),
 
 %% Make a dep element for rebar.config GitRef should be either {tag, Tag} or {branch, Branch}
 MakeDep =
@@ -48,10 +78,25 @@ MakeDeps = fun(Deps, DefaultDepRef, TestDeps) -> [MakeDep(App, DefaultDepRef) ||
 %% (i.e. has to be a part of a emqx release in order to be tested)
 %% should not be a dependency but a local application reside in the same repo.
 %% (Meaning: emqx should be an umbrella project)
+
+CUR_BRANCH = os:cmd("git branch | grep -e '^*' | cut -d' ' -f 2") -- "\n",
+
+MATCH_BRANCH = fun (BranchName) when BranchName =:= "master";
+                                     BranchName =:= "develop" ->
+                       BranchName;
+                   (BranchName) ->
+                       case string:prefix(BranchName, "release") of
+                           nomatch -> "develop";
+                           _Match -> BranchName
+                       end
+               end,
+
+BRANCH = MATCH_BRANCH(CUR_BRANCH),
+
 DefaultDepRef =
     case os:getenv("EMQX_DEPS_DEFAULT_VSN") of
-        false -> {branch, "develop"}; %% not set
-        "" -> {branch, "develop"}; %% set empty
+        false -> {branch, BRANCH}; %% not set
+        "" -> {branch, BRANCH}; %% set empty
         MaybeTag ->
             case re:run(MaybeTag, "v\[0-9\]+\.\[0-9\]+\.*") of
                 nomatch -> {branch, MaybeTag};
@@ -64,14 +109,16 @@ DefaultDepRef =
 %% ==============================================================================
 
 GitDescribe = [I || I <- os:cmd("git describe --tag --match \"v*\""), I =/= $\n],
-Relx0 = Kf(relx, CONFIG1),
-{release, _, RelxBaseApps} = lists:keyfind(release, 1, Relx0),
+Relx0 = Kf(relx, CONFIG2),
+{release, _, RelxBaseApps0} = lists:keyfind(release, 1, Relx0),
 
+RelxElixirApps = Kf(elixir_relx_apps, CONFIG2),
+RelxBaseApps = RelxBaseApps0 ++ RelxElixirApps,
 RelxOverlay = Kf(overlay, Relx0),
-RelxCloudApps = RelxBaseApps ++ Kf(cloud_relx_apps, CONFIG1),
-RelxEdgeApps = RelxBaseApps ++ Kf(edge_relx_apps, CONFIG1),
-RelxCloudOverlay0 = Kf(cloud_relx_overlay, CONFIG1),
-RelxEdgeOverlay0 = Kf(edge_relx_overlay, CONFIG1),
+RelxCloudApps = RelxBaseApps ++ Kf(cloud_relx_apps, CONFIG2),
+RelxEdgeApps = RelxBaseApps ++ Kf(edge_relx_apps, CONFIG2),
+RelxCloudOverlay0 = Kf(cloud_relx_overlay, CONFIG2),
+RelxEdgeOverlay0 = Kf(edge_relx_overlay, CONFIG2),
 RelxCloudOverlay = RelxOverlay ++ RelxCloudOverlay0,
 RelxEdgeOverlay = RelxOverlay ++ RelxEdgeOverlay0,
 
@@ -110,11 +157,22 @@ Profiles =
                   ]}
 ],
 
-Deletes = [deps, relx, cloud_deps, cloud_relx_apps, cloud_relx_overlay],
+Deletes = [ deps
+          , relx
+          , elixir_deps
+          , edge_deps
+          , cloud_deps
+          , elixir_relx_apps
+          , edge_relx_apps
+          , cloud_relx_apps
+          , cloud_relx_overlay
+          ],
+
 Additions = [{profiles, Profiles}],
 
-CONFIG2 = lists:foldl(fun(K, Acc) -> lists:keydelete(K, 1, Acc) end, CONFIG1, Deletes),
-CONFIG3 = lists:foldl(fun({K, V}, Acc) -> lists:keystore(K, 1, Acc, {K, V}) end, CONFIG2, Additions),
+CONFIG3 = lists:foldl(fun(K, Acc) -> lists:keydelete(K, 1, Acc) end, CONFIG2, Deletes),
+
+CONFIG4 = lists:foldl(fun({K, V}, Acc) -> lists:keystore(K, 1, Acc, {K, V}) end, CONFIG3, Additions),
 
 FilePath = case os:type() of
                {win32, nt} ->
@@ -123,7 +181,7 @@ FilePath = case os:type() of
                    "/tmp/emqx.rebar.config"
            end,
 
-file:write_file(FilePath, [io_lib:format("~p.\n", [I]) || I <- CONFIG3]),
+file:write_file(FilePath, [io_lib:format("~p.\n", [I]) || I <- CONFIG4]),
 
-CONFIG3.
+CONFIG4.
 

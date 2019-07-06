@@ -50,10 +50,10 @@
 @set erl_exe="%bindir%\erl.exe"
 @set nodetool="%rel_root_dir%\bin\nodetool"
 @set cuttlefish="%rel_root_dir%\bin\cuttlefish"
+@set node_type="-name"
 
 :: Extract node name from emqx.conf
 @for /f "usebackq delims=\= tokens=2" %%I in (`findstr /b node\.name "%emqx_conf%"`) do @(
-  @set node_type="-name"
   @call :set_trim node_name %%I
 )
 
@@ -176,14 +176,15 @@
 :: Install the release as a Windows service
 :: or install the specified version passed as argument
 :install
+@call :create_mnesia_dir
+@call :generate_app_config
+:: Install the service
+@set args="-boot %boot_script% %sys_config% %generated_config_args% -mnesia dir '%mnesia_dir%'"
+@set description=EMQ node %node_name% in %rootdir%
 @if "" == "%2" (
-  :: Install the service
-  set args=%erl_opts% -setcookie %node_cookie% ++ -rootdir \"%rootdir%\"
-  set start_erl=%erts_dir%\bin\start_erl.exe
-  set description=EMQ-2.0 node %node_name% in %rootdir%
-  %erlsrv% add %service_name% %node_type% "%node_name%" -c "%description%" ^
-           -w "%rootdir%" -m "%start_erl%" -args "%args%" ^
-           -stopaction "init:stop()."
+  %erlsrv% add %service_name% %node_type% "%node_name%" -on restart -c "%description%" ^
+           -w "%rootdir%" -m %erl_exe% -args %args% ^
+           -st "init:stop()."
 ) else (
   :: relup and reldown
   goto relup
@@ -237,6 +238,7 @@ cd /d %rel_root_dir%
 cd /d %rel_root_dir%
 @echo on
 @start "bin\%rel_name% console" %werl% -boot "%boot_script%" %args%
+@echo emqx is started!
 @goto :eof
 
 :: Ping the running node
