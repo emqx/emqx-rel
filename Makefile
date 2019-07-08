@@ -3,8 +3,15 @@
 REBAR_GIT_CLONE_OPTIONS += --depth 1
 export REBAR_GIT_CLONE_OPTIONS
 
+TAG = $(shell git tag -l --points-at HEAD)
 
-EMQX_DEPS_DEFAULT_VSN ?= v3.2-rc.3
+ifeq ($(EMQX_DEPS_DEFAULT_VSN),)
+	ifneq ($(TAG),)
+		EMQX_DEPS_DEFAULT_VSN ?= $(lastword 1, $(TAG))
+	else
+		EMQX_DEPS_DEFAULT_VSN ?= develop
+	endif
+endif
 
 export EMQX_DEPS_DEFAULT_VSN
 
