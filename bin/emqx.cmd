@@ -203,7 +203,7 @@
 :: @%erlsrv% start %service_name%
 @call :create_mnesia_dir
 @call :generate_app_config
-@set args=-detached %sys_config% %args_file% %generated_config_args% -mnesia dir '%mnesia_dir%'
+@set args=-detached %sys_config% %generated_config_args% -mnesia dir '%mnesia_dir%'
 @echo off
 cd /d %rel_root_dir%
 @echo on
@@ -233,7 +233,7 @@ cd /d %rel_root_dir%
 :console
 @call :create_mnesia_dir
 @call :generate_app_config
-@set args=%sys_config% %args_file% %generated_config_args% -mnesia dir '%mnesia_dir%'
+@set args=%sys_config% %generated_config_args% -mnesia dir '%mnesia_dir%'
 @echo off
 cd /d %rel_root_dir%
 @echo on
