@@ -183,12 +183,14 @@
 @set description=EMQ node %node_name% in %rootdir%
 @if "" == "%2" (
   %erlsrv% add %service_name% %node_type% "%node_name%" -on restart -c "%description%" ^
-           -w "%rootdir%" -m %erl_exe% -args %args% ^
+           -i "emqx" -w "%rootdir%" -m %erl_exe% -args %args% ^
            -st "init:stop()."
+  sc config emqx start=delayed-auto
 ) else (
   :: relup and reldown
   goto relup
 )
+
 @goto :eof
 
 :: Uninstall the Windows service
