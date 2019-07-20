@@ -5,17 +5,21 @@ export REBAR_GIT_CLONE_OPTIONS
 
 TAG = $(shell git tag -l --points-at HEAD)
 
+CUR_BRANCH := $(shell git branch | grep -e "^*" | cut -d' ' -f 2)
+
 ifeq ($(EMQX_DEPS_DEFAULT_VSN),)
 	ifneq ($(TAG),)
 		EMQX_DEPS_DEFAULT_VSN ?= $(lastword 1, $(TAG))
 	else
-		EMQX_DEPS_DEFAULT_VSN ?= develop
+		EMQX_DEPS_DEFAULT_VSN ?= $(CUR_BRANCH)
 	endif
 endif
 
-export EMQX_DEPS_DEFAULT_VSN
+REBAR = $(CURDIR)/rebar3
 
-REBAR := rebar3
+REBAR_URL = https://s3.amazonaws.com/rebar3/rebar3
+
+export EMQX_DEPS_DEFAULT_VSN
 
 PROFILE ?= emqx
 PROFILES := emqx emqx_pkg emqx_edge emqx_edge_pkg
@@ -28,10 +32,10 @@ CT_APPS := emqx_auth_jwt emqx_auth_mysql emqx_auth_username \
 		emqx_dashboard emqx_lwm2m emqx_psk_file emqx_retainer emqx_statsd
 
 .PHONY: default
-default: $(PROFILE)
+default: $(REBAR) $(PROFILE)
 
 .PHONY: all
-all: $(PROFILES)
+all: $(REBAR) $(PROFILES)
 
 .PHONY: distclean
 distclean:
@@ -40,26 +44,26 @@ distclean:
 	@rm -rf _checkouts
 
 .PHONY: $(PROFILES)
-$(PROFILES:%=%):
+$(PROFILES:%=%): $(REBAR)
 ifneq ($(OS),Windows_NT)
 	ln -snf _build/$(@)/lib ./_checkouts
 endif
 	$(REBAR) as $(@) release
 
 .PHONY: $(PROFILES:%=build-%)
-$(PROFILES:%=build-%):
+$(PROFILES:%=build-%): $(REBAR)
 	$(REBAR) as $(@:build-%=%) compile
 
 .PHONY: deps-all
-deps-all: $(PROFILES:%=deps-%)
+deps-all: $(REBAR) $(PROFILES:%=deps-%)
 
 .PHONY: $(PROFILES:%=deps-%)
-$(PROFILES:%=deps-%):
+$(PROFILES:%=deps-%): $(REBAR)
 	$(REBAR) as $(@:deps-%=%) get-deps
 
 .PHONY: run $(PROFILES:%=run-%)
 run: run-$(PROFILE)
-$(PROFILES:%=run-%):
+$(PROFILES:%=run-%): $(REBAR)
 ifneq ($(OS),Windows_NT)
 	@ln -snf _build/$(@:run-%=%)/lib ./_checkouts
 endif
@@ -67,12 +71,12 @@ endif
 
 .PHONY: clean $(PROFILES:%=clean-%)
 clean: $(PROFILES:%=clean-%)
-$(PROFILES:%=clean-%):
+$(PROFILES:%=clean-%): $(REBAR)
 	@rm -rf _build/$(@:clean-%=%)
 	@rm -rf _build/$(@:clean-%=%)+test
 
 .PHONY: $(PROFILES:%=checkout-%)
-$(PROFILES:%=checkout-%): build-$(PROFILE)
+$(PROFILES:%=checkout-%): $(REBAR) build-$(PROFILE)
 	ln -s -f _build/$(@:checkout-%=%)/lib ./_checkouts
 
 # Checkout current profile
@@ -81,8 +85,13 @@ checkout:
 	@ln -s -f _build/$(PROFILE)/lib ./_checkouts
 
 # Run ct for an app in current profile
-.PHONY: $(CT_APPS:%=ct-%)
+.PHONY: $(REBAR) $(CT_APPS:%=ct-%)
 ct: $(CT_APPS:%=ct-%)
 $(CT_APPS:%=ct-%): checkout-$(PROFILE)
 	$(REBAR) as $(PROFILE) ct --verbose --dir _checkouts/$(@:ct-%=%)/test --verbosity 50
 
+$(REBAR):
+ifneq ($(wildcard rebar3),rebar3)
+	@curl -Lo rebar3 $(REBAR_URL) || wget $(REBAR_URL)
+endif
+	@chmod a+x rebar3
