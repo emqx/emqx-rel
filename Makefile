@@ -95,4 +95,3 @@ ifneq ($(wildcard rebar3),rebar3)
 	@curl -Lo rebar3 $(REBAR_URL) || wget $(REBAR_URL)
 endif
 	@chmod a+x rebar3
-	@$(CURDIR)/rebar3 update
