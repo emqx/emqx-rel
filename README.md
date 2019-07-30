@@ -59,6 +59,11 @@ Modify the rebar.config.
 Due to the limit of the `rebar3_elixir_compile`, users have to specify all the
 dependencies of the the elixir plugin in rebar.config in emqx-rel.
 
+## Start with epmd
+
+For now, emqx starts without epmd by default. If you want to run emqx with epmd,
+you should set the environment variable $WITH_EPMD with any value you want, for example `export $WITH_EPMD=true`, then run emqx, epmd will start soon afterwards.
+
 # Test
 
 ```bash
