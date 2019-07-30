@@ -11,6 +11,12 @@ RUNNER_ROOT_DIR="{{ runner_root_dir }}"
 ERTS_VSN="{{ erts_vsn }}"
 RUNNER_ETC_DIR="{{ runner_etc_dir }}"
 
+if [ -z "$WITH_EPMD" ]; then
+    EPMD_ARG="-start_epmd false -epmd_module nodetool_epmd"
+else
+    EPMD_ARG="-start_epmd true"
+fi
+
 relx_get_nodename() {
     id="longname$(relx_gen_id)-${NAME}"
     "$BINDIR/erl" -boot start_clean -eval '[Host] = tl(string:tokens(atom_to_list(node()),"@")), io:format("~s~n", [Host]), halt()' -noshell ${NAME_TYPE} $id
@@ -20,7 +26,7 @@ relx_get_nodename() {
 relx_nodetool() {
     command="$1"; shift
 
-    ERL_FLAGS="$ERL_FLAGS $PROTO_DIST_ARG" \
+    ERL_FLAGS="$ERL_FLAGS $EPMD_ARG $PROTO_DIST_ARG" \
     "$ERTS_DIR/bin/escript" "$ROOTDIR/bin/nodetool" "$NAME_TYPE" "$NAME" \
                                 -setcookie "$COOKIE" "$command" "$@"
 }
@@ -59,7 +65,7 @@ fi
 COOKIE="$(echo "$COOKIE_ARG" | awk '{print $2}')"
 
 # Support for IPv6 Dist. See: https://github.com/emqtt/emqttd/issues/1460
-PROTO_DIST=`egrep '^[ \t]*node.proto_dist[ \t]*=[ \t]*' $RUNNER_ETC_DIR/emqx.conf 2> /dev/null | tail -1 | cut -d = -f 2-`
+PROTO_DIST=`egrep '^[ \t]*cluster.proto_dist[ \t]*=[ \t]*' $RUNNER_ETC_DIR/emqx.conf 2> /dev/null | tail -1 | cut -d = -f 2-`
 if [ -z "$PROTO_DIST" ]; then
     PROTO_DIST_ARG=""
 else

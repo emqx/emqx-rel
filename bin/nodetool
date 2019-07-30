@@ -9,10 +9,16 @@
 -mode(compile).
 
 main(Args) ->
-    ok = case os:type() of
-             {win32, nt} -> ok;
-             _Other -> start_epmd()
-         end,
+    case os:type() of
+        {win32, nt} -> ok;
+        _nix ->
+            case init:get_argument(start_epmd) of
+                {ok, [["true"]]} ->
+                    ok = start_epmd();
+                _ ->
+                    {module, nodetool_epmd} = compile_epmd_module()
+            end
+    end,
     ok = do_with_halt(Args, "mnesia_dir", fun create_mnesia_dir/2),
     ok = do_with_halt(Args, "mergeconf", fun mergeconf/3),
     ok = do_with_halt(Args, "chkconfig", fun("-config", X) -> chkconfig(X) end),
@@ -187,6 +193,53 @@ epmd_path() ->
         Epmd ->
             Epmd
     end.
+
+compile_epmd_module() ->
+    compile([
+      "-module(nodetool_epmd).",
+      "-export([start_link/0]).",
+      "-export([port_please/2, port_please/3]).",
+      "-export([names/0, names/1]).",
+      "-export([register_node/2, register_node/3]).",
+      "start_link() -> ignore.",
+      "register_node(_Name, _Port) ->
+         Creation = rand:uniform(3),
+         {ok, Creation}.",
+      "register_node(Name, Port, _Family) ->
+         register_node(Name, Port).",
+      "port_please(Name, _IP) ->
+         Port = dist_port(Name),
+         Version = 5,
+         {port, Port, Version}.",
+      "port_please(Name, IP, _Timeout) ->
+         port_please(Name, IP).",
+      "names() ->
+         {ok, H} = inet:gethostname(),
+         names(H).",
+      "names(_Hostname) ->
+         {error, address}.",
+      "dist_port(Name) when is_atom(Name) ->
+         dist_port(atom_to_list(Name));
+       dist_port(Name) when is_list(Name) ->
+         NodeName = re:replace(Name, \"@.*$\", \"\"),
+         Offset =
+           case re:run(NodeName, \"[0-9]+$\", [{capture, first, list}]) of
+             nomatch -> 0;
+             {match, [OffsetAsString]} ->
+               list_to_integer(OffsetAsString)
+             end,
+         4370 + Offset."
+    ]).
+
+compile(Exprs) ->
+    Forms = lists:map(
+              fun(Expr) ->
+                  {ok, Tokens, _} = erl_scan:string(lists:flatten(Expr)),
+                  {ok, Form} = erl_parse:parse_form(Tokens),
+                  Form
+              end, Exprs),
+    {ok, Mod, Code} = compile:forms(Forms, []),
+    code:load_binary(Mod, "nofile", Code).
 
 nodename(Name) ->
     case re:split(Name, "@", [{return, list}, unicode]) of
