@@ -27,3 +27,5 @@ _build
 rebar.lock
 test/
 _checkouts
+_packages
+build/docker/tmp

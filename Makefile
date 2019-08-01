@@ -95,3 +95,24 @@ ifneq ($(wildcard rebar3),rebar3)
 	@curl -Lo rebar3 $(REBAR_URL) || wget $(REBAR_URL)
 endif
 	@chmod a+x rebar3
+
+.PHONY: emqx_docker
+emqx_docker:
+	make -C build/docker TARGET=emqx/emqx EMQX_DEPLOY=cloud EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN)
+	if [[ ! -z $$(echo $(EMQX_DEPS_DEFAULT_VSN) | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?") ]]; then \
+      make -C build/docker TARGET=emqx/emqx EMQX_DEPLOY=cloud EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN) push; \
+      make -C build/docker TARGET=emqx/emqx EMQX_DEPLOY=cloud EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN) manifest_list; \
+    fi
+
+.PHONY: emqx_edge_docker
+emqx_edge_docker:
+	make -C build/docker TARGET=emqx/emqx-edge EMQX_DEPLOY=edge EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN)
+	if [[ ! -z $$(echo $(EMQX_DEPS_DEFAULT_VSN) | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?") ]]; then \
+      make -C build/docker TARGET=emqx/emqx-edge EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN) push; \
+      make -C build/docker TARGET=emqx/emqx-edge EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN) manifest_list; \
+    fi
+
+.PHONY: docker_clean
+docker_clean:
+	make -C build/docker TARGET=emqx/emqx EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN) clean
+	make -C build/docker TARGET=emqx/emqx-edge EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN) clean
