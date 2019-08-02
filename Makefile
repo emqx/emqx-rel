@@ -22,7 +22,8 @@ REBAR_URL = https://s3.amazonaws.com/rebar3/rebar3
 export EMQX_DEPS_DEFAULT_VSN
 
 PROFILE ?= emqx
-PROFILES := emqx emqx_pkg emqx_edge emqx_edge_pkg
+PROFILES := emqx emqx_edge 
+PKG_PROFILES := emqx_pkg emqx_edge_pkg 
 
 CT_APPS := emqx_auth_jwt emqx_auth_mysql emqx_auth_username \
 		emqx_delayed_publish emqx_management emqx_recon emqx_rule_enginex \
@@ -55,10 +56,14 @@ $(PROFILES:%=build-%): $(REBAR)
 	$(REBAR) as $(@:build-%=%) compile
 
 .PHONY: deps-all
-deps-all: $(REBAR) $(PROFILES:%=deps-%)
+deps-all: $(REBAR) $(PROFILES:%=deps-%) $(PKG_PROFILES:%=deps-%)
 
 .PHONY: $(PROFILES:%=deps-%)
 $(PROFILES:%=deps-%): $(REBAR)
+	$(REBAR) as $(@:deps-%=%) get-deps
+
+.PHONY: $(PKG_PROFILES:%=deps-%)
+$(PKG_PROFILES:%=deps-%): $(REBAR)
 	$(REBAR) as $(@:deps-%=%) get-deps
 
 .PHONY: run $(PROFILES:%=run-%)
@@ -96,23 +101,28 @@ ifneq ($(wildcard rebar3),rebar3)
 endif
 	@chmod a+x rebar3
 
-.PHONY: emqx_docker
-emqx_docker:
-	make -C build/docker TARGET=emqx/emqx EMQX_DEPLOY=cloud EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN)
-	if [[ ! -z $$(echo $(EMQX_DEPS_DEFAULT_VSN) | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?") ]]; then \
-      make -C build/docker TARGET=emqx/emqx EMQX_DEPLOY=cloud EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN) push; \
-      make -C build/docker TARGET=emqx/emqx EMQX_DEPLOY=cloud EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN) manifest_list; \
-    fi
+# Build packages
+.PHONY: $(PKG_PROFILES)
+$(PKG_PROFILES:%=%): $(REBAR)
+	ln -snf _build/$(@)/lib ./_checkouts
+	$(REBAR) as $(@) release
+	make -C deploy/packages EMQX_REL=$$(pwd) EMQX_BUILD=$(@) EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN)
 
-.PHONY: emqx_edge_docker
-emqx_edge_docker:
-	make -C build/docker TARGET=emqx/emqx-edge EMQX_DEPLOY=edge EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN)
-	if [[ ! -z $$(echo $(EMQX_DEPS_DEFAULT_VSN) | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?") ]]; then \
-      make -C build/docker TARGET=emqx/emqx-edge EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN) push; \
-      make -C build/docker TARGET=emqx/emqx-edge EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN) manifest_list; \
-    fi
+# Build docker image
+.PHONY: $(PROFILES:%=%_docker_build)
+$(PROFILES:%=%_docker_build):
+	@if [ ! -z `echo $(@) |grep -oE edge` ]; then TARGET=emqx/emqx-edge; EMQX_DEPLOY=edge; else TARGET=emqx/emqx; EMQX_DEPLOY=cloud; fi; \
+	make -C deploy/docker TARGET=$$TARGET EMQX_DEPLOY=$$EMQX_DEPLOY EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN); 
+	
+# Push docker image
+.PHONY: $(PROFILES:%=%_docker_push)
+$(PROFILES:%=%_docker_push):
+	@if [ ! -z `echo $(@) |grep -oE edge` ]; then TARGET=emqx/emqx-edge; else TARGET=emqx/emqx; fi; \
+	make -C deploy/docker TARGET=$$TARGET EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN) push; \
+	make -C deploy/docker TARGET=$$TARGET EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN) manifest_list; 
 
-.PHONY: docker_clean
-docker_clean:
-	make -C build/docker TARGET=emqx/emqx EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN) clean
-	make -C build/docker TARGET=emqx/emqx-edge EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN) clean
+# Clean docker image
+.PHONY: $(PROFILES:%=%_docker_clean)
+$(PROFILES:%=%_docker_clean):
+	@if [ ! -z `echo $(@) |grep -oE edge` ]; then TARGET=emqx/emqx-edge; else TARGET=emqx/emqx; fi; \
+	make -C deploy/docker TARGET=$$TARGET EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN) clean

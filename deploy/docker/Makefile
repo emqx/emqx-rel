@@ -63,7 +63,7 @@ build:
 		--build-arg DEPLOY=$(EMQX_DEPLOY) \
 		--build-arg QEMU_ARCH=$(QEMU_ARCH) \
 		--tag $(TARGET):build-$(OS)-$(ARCH) \
-		-f build/docker/Dockerfile . \
+		-f deploy/docker/Dockerfile . \
 	&& cd -
 
 
