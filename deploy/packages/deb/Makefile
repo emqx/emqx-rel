@@ -14,7 +14,7 @@ all: | $(BUILT)
 	sed -i "s#<DATETIME>#$(shell date -u '+%a, %d %b %Y %T %z')#g" $(SRCDIR)/debian/changelog
 	sed -i "s#<VERSION>#$(DEB_VSN)#g" $(SRCDIR)/debian/changelog
 	if [ ! -z $(shell echo $(EMQX_NAME) |grep edge) ]; then \
-		sed -i "s/emqx_pkg/emqx_edge_pkg/g" $(SRCDIR)/debian/rules; \
+		sed -i "s/emqx-pkg/emqx-edge-pkg/g" $(SRCDIR)/debian/rules; \
 		sed -i "s debian/emqx debian/emqx-edge g" $(SRCDIR)/debian/rules; \
 		sed -i "s/Package: emqx/Package: emqx-edge/1" $(SRCDIR)/debian/control; \
 	fi

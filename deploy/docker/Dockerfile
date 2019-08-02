@@ -18,9 +18,9 @@ RUN apk add git \
     libc-dev 
 
 ARG EMQX_DEPS_DEFAULT_VSN=develop
-ARG DEPLOY=cloud
+ARG EMQX_NAME=emqx
 
-RUN cd /emqx_rel && [[ ${DEPLOY} == "edge" ]] && make emqx_edge || make 
+RUN cd /emqx_rel && make ${EMQX_NAME}
 
 FROM $RUN_FROM
 

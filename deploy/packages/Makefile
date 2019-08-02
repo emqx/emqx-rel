@@ -12,7 +12,7 @@ else
 endif
 
 # Default name
-EMQX_BUILD ?= emqx_pkg
+EMQX_BUILD ?= emqx-pkg
 ifneq ($(shell echo $(EMQX_BUILD) |grep edge),)
 	EMQX_NAME := emqx-edge
 else

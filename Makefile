@@ -22,8 +22,8 @@ REBAR_URL = https://s3.amazonaws.com/rebar3/rebar3
 export EMQX_DEPS_DEFAULT_VSN
 
 PROFILE ?= emqx
-PROFILES := emqx emqx_edge 
-PKG_PROFILES := emqx_pkg emqx_edge_pkg 
+PROFILES := emqx emqx-edge 
+PKG_PROFILES := emqx-pkg emqx-edge-pkg 
 
 CT_APPS := emqx_auth_jwt emqx_auth_mysql emqx_auth_username \
 		emqx_delayed_publish emqx_management emqx_recon emqx_rule_enginex \
@@ -109,20 +109,20 @@ $(PKG_PROFILES:%=%): $(REBAR)
 	make -C deploy/packages EMQX_REL=$$(pwd) EMQX_BUILD=$(@) EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN)
 
 # Build docker image
-.PHONY: $(PROFILES:%=%_docker_build)
-$(PROFILES:%=%_docker_build):
+.PHONY: $(PROFILES:%=%-docker-build)
+$(PROFILES:%=%-docker-build):
 	@if [ ! -z `echo $(@) |grep -oE edge` ]; then TARGET=emqx/emqx-edge; EMQX_DEPLOY=edge; else TARGET=emqx/emqx; EMQX_DEPLOY=cloud; fi; \
 	make -C deploy/docker TARGET=$$TARGET EMQX_DEPLOY=$$EMQX_DEPLOY EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN); 
 	
 # Push docker image
-.PHONY: $(PROFILES:%=%_docker_push)
-$(PROFILES:%=%_docker_push):
+.PHONY: $(PROFILES:%=%-docker-push)
+$(PROFILES:%=%-docker-push):
 	@if [ ! -z `echo $(@) |grep -oE edge` ]; then TARGET=emqx/emqx-edge; else TARGET=emqx/emqx; fi; \
 	make -C deploy/docker TARGET=$$TARGET EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN) push; \
 	make -C deploy/docker TARGET=$$TARGET EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN) manifest_list; 
 
 # Clean docker image
-.PHONY: $(PROFILES:%=%_docker_clean)
-$(PROFILES:%=%_docker_clean):
+.PHONY: $(PROFILES:%=%-docker-clean)
+$(PROFILES:%=%-docker-clean):
 	@if [ ! -z `echo $(@) |grep -oE edge` ]; then TARGET=emqx/emqx-edge; else TARGET=emqx/emqx; fi; \
 	make -C deploy/docker TARGET=$$TARGET EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN) clean

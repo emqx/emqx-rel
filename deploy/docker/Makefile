@@ -1,6 +1,5 @@
 ## default globals
 TARGET ?= emqx/emqx
-EMQX_DEPLOY ?= cloud
 QEMU_ARCH ?= x86_64
 ARCH ?= amd64
 QEMU_VERSION ?= v4.0.0
@@ -10,7 +9,7 @@ OS ?= alpine3.9
 EMQX_DEPS_DEFAULT_VSN ?= develop
 BUILD_VERSION ?= $(EMQX_DEPS_DEFAULT_VSN)
 
-BROKER = $(subst emqx/,,$(TARGET))
+EMQX_NAME = $(subst emqx/,,$(TARGET))
 ARCH_LIST = amd64 arm64v8 arm32v7 i386 s390x
 
 .PHONY: all
@@ -42,7 +41,7 @@ build:
 	@echo "DOCKER BUILD: arch - $(ARCH)."
 	@echo "DOCKER BUILD: qemu arch - $(QEMU_ARCH)."
 	@echo "DOCKER BUILD: docker repo - $(TARGET) "
-	@echo "DOCKER BUILD: emqx deploy - $(EMQX_DEPLOY)."
+	@echo "DOCKER BUILD: emqx name - $(EMQX_NAME)."
 	@echo "DOCKER BUILD: emqx version - $(EMQX_DEPS_DEFAULT_VSN)."
 
 	## Prepare qemu to build images other then x86_64 on travis
@@ -60,7 +59,7 @@ build:
 		--build-arg EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN) \
 		--build-arg BUILD_FROM=$(ARCH)/erlang:21.3-alpine  \
 		--build-arg RUN_FROM=$(ARCH)/alpine:3.9 \
-		--build-arg DEPLOY=$(EMQX_DEPLOY) \
+		--build-arg EMQX_NAME=$(EMQX_NAME) \
 		--build-arg QEMU_ARCH=$(QEMU_ARCH) \
 		--tag $(TARGET):build-$(OS)-$(ARCH) \
 		-f deploy/docker/Dockerfile . \
@@ -68,8 +67,8 @@ build:
 
 
 key := $(shell date +%s)
-aclient_name := "test-$(key)-$(BROKER)-docker-for-$(EMQX_DEPS_DEFAULT_VSN)-$(ARCH)-aclient"
-bclient_name := "test-$(key)-$(BROKER)-docker-for-$(EMQX_DEPS_DEFAULT_VSN)-$(ARCH)-bclient"
+aclient_name := "test-$(key)-$(EMQX_NAME)-docker-for-$(EMQX_DEPS_DEFAULT_VSN)-$(ARCH)-aclient"
+bclient_name := "test-$(key)-$(EMQX_NAME)-docker-for-$(EMQX_DEPS_DEFAULT_VSN)-$(ARCH)-bclient"
 
 define create_emqx_container
 	if [ -z $$(docker network ls | grep emqxBridge | awk '{print $$2}') ]; then docker network create emqxBridge; fi
@@ -84,12 +83,12 @@ define create_emqx_container
 	sh -c "sed -i '/deny/'d /opt/emqx/etc/acl.conf \
     && /usr/bin/start.sh"
 
-	if [ -z $$(docker exec -i $1 sh -c "ls /opt/emqx/lib |grep emqx_cube") ] && [ "$(EMQX_DEPLOY)" = "edge" ]; then \
-		echo "emqx $(EMQX_DEPLOY) deploy error"; \
+	if [ -z $$(docker exec -i $1 sh -c "ls /opt/emqx/lib |grep emqx_cube") ] && [ "$(EMQX_NAME)" = "emqx-edge" ]; then \
+		echo "emqx-edge deploy error"; \
 		exit 1; \
 	fi
-  	if [ ! -z $$(docker exec -i $1 sh -c "ls /opt/emqx/lib |grep emqx_cube") ] && [ "$(EMQX_DEPLOY)" = "cloud" ]; then \
-		echo "emqx $(EMQX_DEPLOY) deploy error"; \
+  	if [ ! -z $$(docker exec -i $1 sh -c "ls /opt/emqx/lib |grep emqx_cube") ] && [ "$(EMQX_NAME)" = "emqx" ]; then \
+		echo "emqx deploy error"; \
 		exit 1; \
 	fi
 
@@ -153,14 +152,14 @@ save:
 	@mkdir -p ../../_packages
 
 	@if [ -n  "$$(docker images -q $(TARGET):$(BUILD_VERSION))" ]; then \
-		docker save $(TARGET):$(BUILD_VERSION) > $(BROKER)-docker-$(BUILD_VERSION); \
-		zip -r -m ../../_packages/$(BROKER)-docker-$(BUILD_VERSION).zip $(BROKER)-docker-$(BUILD_VERSION); \
+		docker save $(TARGET):$(BUILD_VERSION) > $(EMQX_NAME)-docker-$(BUILD_VERSION); \
+		zip -r -m ../../_packages/$(EMQX_NAME)-docker-$(BUILD_VERSION).zip $(EMQX_NAME)-docker-$(BUILD_VERSION); \
 	fi
 	
 	@for arch in $(ARCH_LIST); do \
 		if [ -n  "$$(docker images -q  $(TARGET):$(BUILD_VERSION)-$(OS)-$${arch})" ]; then \
-			docker save  $(TARGET):$(BUILD_VERSION)-$(OS)-$${arch} > $(BROKER)-docker-$(BUILD_VERSION)-$(OS)-$${arch}; \
-			zip -r -m ../../_packages/$(BROKER)-docker-$(BUILD_VERSION)-$(OS)-$${arch}.zip $(BROKER)-docker-$(BUILD_VERSION)-$(OS)-$${arch}; \
+			docker save  $(TARGET):$(BUILD_VERSION)-$(OS)-$${arch} > $(EMQX_NAME)-docker-$(BUILD_VERSION)-$(OS)-$${arch}; \
+			zip -r -m ../../_packages/$(EMQX_NAME)-docker-$(BUILD_VERSION)-$(OS)-$${arch}.zip $(EMQX_NAME)-docker-$(BUILD_VERSION)-$(OS)-$${arch}; \
 		fi; \
 	done
 
