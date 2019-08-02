@@ -36,7 +36,7 @@ LABEL org.label-schema.docker.dockerfile="Dockerfile" \
     maintainer="Raymond M Mouthaan <raymondmmouthaan@gmail.com>, Huang Rui <vowstar@gmail.com>, EMQ X Team <support@emqx.io>"
 
 ARG QEMU_ARCH=x86_64
-COPY deploy/docker/docker-entrypoint.sh deploy/docker/start.sh tmp/qemu-$QEMU_ARCH-stati* /usr/bin/
+COPY deploy/docker/docker-entrypoint.sh deploy/docker/start.sh deploy/docker/tmp/qemu-$QEMU_ARCH-stati* /usr/bin/
 COPY --from=builder /emqx_rel/_build/emqx*/rel/emqx /opt/emqx
 
 RUN ln -s /opt/emqx/bin/* /usr/local/bin/ 

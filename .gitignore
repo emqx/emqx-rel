@@ -28,4 +28,4 @@ rebar.lock
 test/
 _checkouts
 _packages
-build/docker/tmp
+deploy/docker/tmp

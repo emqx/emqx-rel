@@ -111,18 +111,36 @@ $(PKG_PROFILES:%=%): $(REBAR)
 # Build docker image
 .PHONY: $(PROFILES:%=%-docker-build)
 $(PROFILES:%=%-docker-build):
-	@if [ ! -z `echo $(@) |grep -oE edge` ]; then TARGET=emqx/emqx-edge; EMQX_DEPLOY=edge; else TARGET=emqx/emqx; EMQX_DEPLOY=cloud; fi; \
-	make -C deploy/docker TARGET=$$TARGET EMQX_DEPLOY=$$EMQX_DEPLOY EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN); 
+	@if [ ! -z `echo $(@) |grep -oE edge` ]; then \
+		TARGET=emqx/emqx-edge EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN) make -C deploy/docker; \
+	else \
+		TARGET=emqx/emqx EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN) make -C deploy/docker; \
+	fi;
+
+# Save docker images
+.PHONY: $(PROFILES:%=%-docker-save)
+$(PROFILES:%=%-docker-save):
+	@if [ ! -z `echo $(@) |grep -oE edge` ]; then \
+		TARGET=emqx/emqx-edge EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN) make -C deploy/docker save; \
+	else \
+		TARGET=emqx/emqx EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN) make -C deploy/docker save; \
+	fi;
 	
 # Push docker image
 .PHONY: $(PROFILES:%=%-docker-push)
-$(PROFILES:%=%-docker-push):
-	@if [ ! -z `echo $(@) |grep -oE edge` ]; then TARGET=emqx/emqx-edge; else TARGET=emqx/emqx; fi; \
-	make -C deploy/docker TARGET=$$TARGET EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN) push; \
-	make -C deploy/docker TARGET=$$TARGET EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN) manifest_list; 
+	@if [ ! -z `echo $(@) |grep -oE edge` ]; then \
+		TARGET=emqx/emqx-edge EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN) make -C deploy/docker push; \
+		TARGET=emqx/emqx-edge EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN) make -C deploy/docker manifest_list; \
+	else \
+		TARGET=emqx/emqx EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN) make -C deploy/docker push; \
+		TARGET=emqx/emqx EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN) make -C deploy/docker manifest_list; \
+	fi;
 
 # Clean docker image
 .PHONY: $(PROFILES:%=%-docker-clean)
 $(PROFILES:%=%-docker-clean):
-	@if [ ! -z `echo $(@) |grep -oE edge` ]; then TARGET=emqx/emqx-edge; else TARGET=emqx/emqx; fi; \
-	make -C deploy/docker TARGET=$$TARGET EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN) clean
+	@if [ ! -z `echo $(@) |grep -oE edge` ]; then \
+		TARGET=emqx/emqx-edge EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN) make -C deploy/docker clean; \
+	else \
+		TARGET=emqx/emqx EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN) make -C deploy/docker clean; \
+	fi;

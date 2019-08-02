@@ -29,6 +29,8 @@ ifeq ($(ID),ubuntu)
 	PKGERDIR := deb
 else ifeq ($(ID),debian)
 	PKGERDIR := deb
+else ifeq ($(ID),raspbian)
+	PKGERDIR := deb
 else
 	PKGERDIR := rpm
 endif

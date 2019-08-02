@@ -42,8 +42,8 @@ all: | $(BUILT)
 		--define "_ostype -$(SYSTEM)" \
 		--define "_sharedstatedir /var/lib" \
 		emqx.spec
-	mkdir -p $(EMQX_REL)/_packages
-	cp $(TOPDIR)/RPMS/x86_64/$(SOURCE_PKG).rpm $(EMQX_REL)/_packages/$(TARGET_PKG).rpm
+	mkdir -p $(EMQX_REL)/_packages/$(EMQX_NAME)
+	cp $(TOPDIR)/RPMS/x86_64/$(SOURCE_PKG).rpm $(EMQX_REL)/_packages/$(EMQX_NAME)/$(TARGET_PKG).rpm
 
 $(BUILT):
 	mkdir -p $(TOPDIR) $(SRCDIR)
