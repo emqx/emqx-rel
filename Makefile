@@ -22,7 +22,7 @@ REBAR_URL = https://s3.amazonaws.com/rebar3/rebar3
 export EMQX_DEPS_DEFAULT_VSN
 
 PROFILE ?= emqx
-PROFILES := emqx emqx_pkg emqx_edge emqx_edge_pkg
+PROFILES := emqx emqx-pkg emqx-edge emqx-edge-pkg
 
 CT_APPS := emqx_auth_jwt emqx_auth_mysql emqx_auth_username \
 		emqx_delayed_publish emqx_management emqx_recon emqx_rule_enginex \
