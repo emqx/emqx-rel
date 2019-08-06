@@ -24,6 +24,19 @@ cd emqx-rel && make
 ./_build/emqx/rel/emqx/bin/emqx console
 ```
 
+## Build rpm or deb package on Linux
+```
+git clone https://github.com/emqx/emqx-rel.git emqx-rel
+cd emqx-rel && make emqx-pkg
+ls _packages/emqx
+```
+
+## Build docker image
+```
+git clone https://github.com/emqx/emqx-rel.git emqx-rel
+cd emqx-rel && make emqx-docker-build
+```
+
 ## Build on Windows
 
 ```
