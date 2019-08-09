@@ -106,7 +106,7 @@ endif
 $(PKG_PROFILES:%=%): $(REBAR)
 	ln -snf _build/$(@)/lib ./_checkouts
 	$(REBAR) as $(@) release
-	make -C deploy/packages EMQX_REL=$$(pwd) EMQX_BUILD=$(@) EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN)
+	EMQX_REL=$$(pwd) EMQX_BUILD=$(@) EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN) make -C deploy/packages
 
 # Build docker image
 .PHONY: $(PROFILES:%=%-docker-build)
