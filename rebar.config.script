@@ -33,7 +33,7 @@ Kf = fun(K, L) -> {K, V} = lists:keyfind(K, 1, L), V end,
                             ElixirDeps0 ->
                                 Plugins = Kf(plugins, CONFIG0),
                                 NewConfig = lists:keydelete(plugins, 1, CONFIG0),
-                                Plugins1 = PluginsNeededByElixir ++ Plugins,
+                                Plugins1 = {plugins, PluginsNeededByElixir ++ Plugins},
                                 {ElixirDeps0,
                                  [Plugins1, HooksNeededByElixir, OptsNeededByElixir | NewConfig]}
                         end,
@@ -49,7 +49,7 @@ PluginCompatWindowsPlatform = fun(Config) ->
                               end,
 
 CONFIG2 = PluginCompatWindowsPlatform(CONFIG1),
-BaseDeps = Kf(deps, CONFIG2),
+BaseDeps = Kf(deps, CONFIG2) ++ ElixirDeps,
 CloudDeps = BaseDeps ++ Kf(cloud_deps, CONFIG2),
 EdgeDeps = BaseDeps ++ Kf(edge_deps, CONFIG2),
 
@@ -146,13 +146,13 @@ Profiles =
 [ {emqx, [ {deps, MakeDeps(CloudDeps, DefaultDepRef, [])}
          , {relx, RelxCloud([cloud, dev])}
          ]}
-, {emqx_pkg, [ {deps, MakeDeps(CloudDeps, DefaultDepRef, [])}
+, {'emqx-pkg', [ {deps, MakeDeps(CloudDeps, DefaultDepRef, [])}
              , {relx, RelxCloud([cloud, pkg])}
              ]}
-, {emqx_edge, [ {deps, MakeDeps(EdgeDeps, DefaultDepRef, [])}
+, {'emqx-edge', [ {deps, MakeDeps(EdgeDeps, DefaultDepRef, [])}
               , {relx, RelxEdge([edge, dev])}
               ]}
-, {emqx_edge_pkg, [ {deps, MakeDeps(EdgeDeps, DefaultDepRef, [])}
+, {'emqx-edge-pkg', [ {deps, MakeDeps(EdgeDeps, DefaultDepRef, [])}
                   , {relx, RelxEdge([edge, pkg])}
                   ]}
 ],
