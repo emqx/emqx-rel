@@ -19,9 +19,14 @@ else
 	EMQX_NAME := emqx
 endif
 
-ID := $(shell sed -n '/^ID=/p' /etc/os-release | sed -r 's/ID=(.*)/\1/g' | sed 's/"//g' )
-VERSION_ID := $(shell sed -n '/^VERSION_ID=/p' /etc/os-release | sed -r 's/VERSION_ID=(.*)/\1/g' | sed 's/"//g')
-SYSTEM := $(ID)$(VERSION_ID)
+ifneq ($(shell cat /etc/*-release |grep -o -i centos),)
+	ID := centos
+	VERSION_ID := $(shell rpm --eval '%{centos_ver}')
+else
+	ID := $(shell sed -n '/^ID=/p' /etc/os-release | sed -r 's/ID=(.*)/\1/g' | sed 's/"//g' )
+	VERSION_ID := $(shell sed -n '/^VERSION_ID=/p' /etc/os-release | sed -r 's/VERSION_ID=(.*)/\1/g' | sed 's/"//g')
+endif
+SYSTEM := $(shell echo $(ID)$(VERSION_ID) | sed -r "s/([a-zA-Z]*)-.*/\1/g")
 ##
 ## Support RPM and Debian based linux systems
 ##
