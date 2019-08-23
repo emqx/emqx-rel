@@ -108,7 +108,10 @@ DefaultDepRef =
 %% Relx configs
 %% ==============================================================================
 
-GitDescribe = [I || I <- os:cmd("git describe --tag --match \"v*\""), I =/= $\n],
+GitDescribe = case DefaultDepRef of
+                  {tag, EnvTag} -> EnvTag;
+                  _Else -> lists:last(string:tokens(os:cmd("git tag -l \"v*\""), "\n"))
+              end,
 Relx0 = Kf(relx, CONFIG2),
 {release, _, RelxBaseApps0} = lists:keyfind(release, 1, Relx0),
 
