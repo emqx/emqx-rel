@@ -13,7 +13,8 @@ EMQX_NAME = $(subst emqx/,,$(TARGET))
 ARCH_LIST = amd64 arm64v8 arm32v7 i386 s390x
 
 .PHONY: all
-all: build test tag
+# all: build test tag
+all: build tag
 
 .PHONY: prepare
 prepare:
