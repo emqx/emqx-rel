@@ -22,8 +22,8 @@ REBAR_URL = https://s3.amazonaws.com/rebar3/rebar3
 export EMQX_DEPS_DEFAULT_VSN
 
 PROFILE ?= emqx
-PROFILES := emqx emqx-edge 
-PKG_PROFILES := emqx-pkg emqx-edge-pkg 
+PROFILES := emqx emqx-edge
+PKG_PROFILES := emqx-pkg emqx-edge-pkg
 
 CT_APPS := emqx_auth_jwt emqx_auth_mysql emqx_auth_username \
 		emqx_delayed_publish emqx_management emqx_recon emqx_rule_enginex \
@@ -125,7 +125,7 @@ $(PROFILES:%=%-docker-save):
 	else \
 		TARGET=emqx/emqx EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN) make -C deploy/docker save; \
 	fi;
-	
+
 # Push docker image
 .PHONY: $(PROFILES:%=%-docker-push)
 	@if [ ! -z `echo $(@) |grep -oE edge` ]; then \
