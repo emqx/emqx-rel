@@ -128,6 +128,7 @@ $(PROFILES:%=%-docker-save):
 
 # Push docker image
 .PHONY: $(PROFILES:%=%-docker-push)
+$(PROFILES:%=%-docker-push):
 	@if [ ! -z `echo $(@) |grep -oE edge` ]; then \
 		TARGET=emqx/emqx-edge EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN) make -C deploy/docker push; \
 		TARGET=emqx/emqx-edge EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN) make -C deploy/docker manifest_list; \
