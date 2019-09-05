@@ -113,8 +113,11 @@ GitDescribe = case DefaultDepRef of
                   _Else -> lists:last(string:tokens(os:cmd("git tag -l \"v*\""), "\n"))
               end,
 Relx0 = Kf(relx, CONFIG2),
-{release, _, RelxBaseApps0} = lists:keyfind(release, 1, Relx0),
-
+{release, {_, Vsn0}, RelxBaseApps0} = lists:keyfind(release, 1, Relx0),
+Vsn1 = case Vsn0 of
+    git_describe -> GitDescribe;
+    Vsn -> Vsn
+end,
 RelxElixirApps = Kf(elixir_relx_apps, CONFIG2),
 RelxBaseApps = RelxBaseApps0 ++ RelxElixirApps,
 RelxOverlay = Kf(overlay, Relx0),
@@ -129,7 +132,7 @@ MakeRelx =
     fun(Apps, Overlay, Vars) ->
         VarFiles = ["vars-" ++ atom_to_list(Var) ++ ".config" || Var <- Vars],
         Apps1 = case os:type() of {win32, nt} -> Apps -- [bcrypt]; _Other -> Apps end,
-        Relx1 = lists:keystore(release, 1, Relx0, {release, {emqx, GitDescribe}, Apps1}),
+        Relx1 = lists:keystore(release, 1, Relx0, {release, {emqx, Vsn1}, Apps1}),
         Relx2 = lists:keystore(overlay, 1, Relx1, {overlay, Overlay}),
         lists:keystore(overlay_vars, 1, Relx2, {overlay_vars, VarFiles})
     end,
