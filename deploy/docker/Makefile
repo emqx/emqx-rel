@@ -153,14 +153,18 @@ save:
 	@mkdir -p ../../_packages/$(EMQX_NAME)
 
 	@if [ -n  "$$(docker images -q $(TARGET):$(BUILD_VERSION))" ]; then \
-		docker save $(TARGET):$(BUILD_VERSION) > ../../_packages/$(EMQX_NAME)/$(EMQX_NAME)-docker-$(BUILD_VERSION); \
-		zip -r -m ../../_packages/$(EMQX_NAME)/$(EMQX_NAME)-docker-$(BUILD_VERSION).zip ../../_packages/$(EMQX_NAME)/$(EMQX_NAME)-docker-$(BUILD_VERSION); \
+		docker save $(TARGET):$(BUILD_VERSION) > $(EMQX_NAME)-docker-$(BUILD_VERSION); \
+		zip -r -m $(EMQX_NAME)-docker-$(BUILD_VERSION).zip $(EMQX_NAME)-docker-$(BUILD_VERSION); \
+		mkdir -p ../../_packages/$(EMQX_NAME); \
+		mv ./$(EMQX_NAME)-docker-$(BUILD_VERSION).zip ../../_packages/$(EMQX_NAME)/$(EMQX_NAME)-docker-$(BUILD_VERSION).zip; \
 	fi
 	
 	@for arch in $(ARCH_LIST); do \
 		if [ -n  "$$(docker images -q  $(TARGET):$(BUILD_VERSION)-$(OS)-$${arch})" ]; then \
-			docker save  $(TARGET):$(BUILD_VERSION)-$(OS)-$${arch} > ../../_packages/$(EMQX_NAME)/$(EMQX_NAME)-docker-$(BUILD_VERSION)-$(OS)-$${arch}; \
-			zip -r -m ../../_packages/$(EMQX_NAME)/$(EMQX_NAME)-docker-$(BUILD_VERSION)-$(OS)-$${arch}.zip ../../_packages/$(EMQX_NAME)/$(EMQX_NAME)-docker-$(BUILD_VERSION)-$(OS)-$${arch}; \
+			docker save  $(TARGET):$(BUILD_VERSION)-$(OS)-$${arch} > $(EMQX_NAME)-docker-$(BUILD_VERSION)-$(OS)-$${arch}; \
+			zip -r -m $(EMQX_NAME)-docker-$(BUILD_VERSION)-$(OS)-$${arch}.zip $(EMQX_NAME)-docker-$(BUILD_VERSION)-$(OS)-$${arch}; \
+			mkdir -p ../../_packages/$(EMQX_NAME); \
+			mv ./$(EMQX_NAME)-docker-$(BUILD_VERSION)-$(OS)-$${arch}.zip ../../_packages/$(EMQX_NAME)/$(EMQX_NAME)-docker-$(BUILD_VERSION)-$(OS)-$${arch}.zip; \
 		fi; \
 	done
 
