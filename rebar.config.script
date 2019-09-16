@@ -149,13 +149,13 @@ Profiles =
 [ {emqx, [ {deps, MakeDeps(CloudDeps, DefaultDepRef, [])}
          , {relx, RelxCloud([cloud, dev])}
          ]}
-, {emqx-pkg, [ {deps, MakeDeps(CloudDeps, DefaultDepRef, [])}
+, {'emqx-pkg', [ {deps, MakeDeps(CloudDeps, DefaultDepRef, [])}
              , {relx, RelxCloud([cloud, pkg])}
              ]}
-, {emqx-edge, [ {deps, MakeDeps(EdgeDeps, DefaultDepRef, [])}
+, {'emqx-edge', [ {deps, MakeDeps(EdgeDeps, DefaultDepRef, [])}
               , {relx, RelxEdge([edge, dev])}
               ]}
-, {emqx-edge-pkg, [ {deps, MakeDeps(EdgeDeps, DefaultDepRef, [])}
+, {'emqx-edge-pkg', [ {deps, MakeDeps(EdgeDeps, DefaultDepRef, [])}
                   , {relx, RelxEdge([edge, pkg])}
                   ]}
 ],
