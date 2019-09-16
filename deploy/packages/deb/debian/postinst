@@ -33,6 +33,8 @@ chmod 0755 /var/run/emqx /etc/emqx
 chmod 0644 /etc/emqx/*
 chmod -R +X /etc/emqx
 chmod -R 0755 /usr/lib/emqx/bin
+[ -f /usr/bin/emqx ] && rm /usr/bin/emqx
+[ -f /usr/bin/emqx_ctl ] && rm /usr/bin/emqx_ctl
 ln -s /usr/lib/emqx/bin/emqx /usr/bin/emqx
 ln -s /usr/lib/emqx/bin/emqx_ctl /usr/bin/emqx_ctl
 
