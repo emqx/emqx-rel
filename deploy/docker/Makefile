@@ -13,7 +13,6 @@ EMQX_NAME = $(subst emqx/,,$(TARGET))
 ARCH_LIST = amd64 arm64v8 arm32v7 i386 s390x
 
 .PHONY: all
-# all: build test tag
 all: build tag
 
 .PHONY: prepare
@@ -65,72 +64,6 @@ build:
 		--tag $(TARGET):build-$(OS)-$(ARCH) \
 		-f deploy/docker/Dockerfile . \
 	&& cd -
-
-
-key := $(shell date +%s)
-aclient_name := "test-$(key)-$(EMQX_NAME)-docker-for-$(EMQX_DEPS_DEFAULT_VSN)-$(ARCH)-aclient"
-bclient_name := "test-$(key)-$(EMQX_NAME)-docker-for-$(EMQX_DEPS_DEFAULT_VSN)-$(ARCH)-bclient"
-
-define create_emqx_container
-	if [ -z $$(docker network ls | grep emqxBridge | awk '{print $$2}') ]; then docker network create emqxBridge; fi
-
-	docker run -d \
-    -e EMQX_ZONE__EXTERNAL__SERVER_KEEPALIVE=60 \
-    -e EMQX_MQTT__MAX_TOPIC_ALIAS=10 \
-    -e EMQX_NAME=emqx \
-    --network emqxBridge \
-    --name $1 \
-    $(TARGET):build-$(OS)-$(ARCH) \
-	sh -c "sed -i '/deny/'d /opt/emqx/etc/acl.conf \
-    && /usr/bin/start.sh"
-
-	if [ -z $$(docker exec -i $1 sh -c "ls /opt/emqx/lib |grep emqx_cube") ] && [ "$(EMQX_NAME)" = "emqx-edge" ]; then \
-		echo "emqx-edge deploy error"; \
-		exit 1; \
-	fi
-  	if [ ! -z $$(docker exec -i $1 sh -c "ls /opt/emqx/lib |grep emqx_cube") ] && [ "$(EMQX_NAME)" = "emqx" ]; then \
-		echo "emqx deploy error"; \
-		exit 1; \
-	fi
-
-	emqx_ver=$$(docker exec $1 /opt/emqx/bin/emqx_ctl status |grep 'is running'|awk '{print $$2}'); \
-	IDLE_TIME=0; \
-	while [ -z $$emqx_ver ]; do \
-	if [ $$IDLE_TIME -gt 10 ]; then \
-		echo "DOCKER TEST: FAILED - Docker container $1 failed to start."; exit 1; \
-	fi; \
-	sleep 10; \
-	IDLE_TIME=$$((IDLE_TIME+1)); \
-	emqx_ver=$$(docker exec $1 /opt/emqx/bin/emqx_ctl status |grep 'is running'|awk '{print $$2}'); \
-	done
-endef
-
-.PHONY: test
-test:
-	$(call create_emqx_container,$(aclient_name))
-	$(call create_emqx_container,$(bclient_name))
-
-	# create cluster
-	aclient_ip=$$(docker inspect -f '{{ .NetworkSettings.Networks.emqxBridge.IPAddress}}' $(aclient_name)); \
-	bclient_ip=$$(docker inspect -f '{{ .NetworkSettings.Networks.emqxBridge.IPAddress}}' $(bclient_name)); \
-	docker exec -i $(bclient_name) sh -c "emqx_ctl cluster join emqx@$${aclient_ip}" ; \
-	cluster=$$(docker exec -i $(bclient_name) sh -c "emqx_ctl cluster status"); \
-	nodes=$$(echo $${cluster} | grep -P 'emqx@((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])' -o); \
-	if [ -z $$(echo $${nodes} | grep "emqx@$${aclient_ip}" -o) ] || [ -z $$(echo $${nodes} | grep "emqx@$${bclient_ip}" -o) ];then \
-		echo "DOCKER TEST: FAILED - Create cluster failed"; \
-		exit 1; \
-	fi; \
-
-	# Paho test
-	docker run -i --rm --network emqxBridge python:3.7.2-alpine3.9 \
-	sh -c "apk update && apk add git \
-	&& git clone -b master https://github.com/emqx/paho.mqtt.testing.git /paho.mqtt.testing \
-	&& sed -i '/host = \"localhost\"/c \ \ host = \"$(aclient_name)\"' /paho.mqtt.testing/interoperability/client_test5.py \
-	&& sed -i '/aclientHost = \"localhost\"/c \ \ aclientHost = \"$(aclient_name)\"' /paho.mqtt.testing/interoperability/client_test5.py \
-	&& sed -i '/bclientHost = \"localhost\"/c \ \ bclientHost = \"$(bclient_name)\"' /paho.mqtt.testing/interoperability/client_test5.py \
-	&& python /paho.mqtt.testing/interoperability/client_test5.py"
-
-	docker rm -f $(aclient_name) $(bclient_name)
 
 .PHONY: tag
 tag:
