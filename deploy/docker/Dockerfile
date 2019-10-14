@@ -1,5 +1,5 @@
-ARG BUILD_FROM=erlang:21.3.6-alpine 
-ARG RUN_FROM=alpine:3.9
+ARG BUILD_FROM=erlang:22.1-alpine 
+ARG RUN_FROM=alpine:3.10
 FROM ${BUILD_FROM} AS builder
 
 ARG QEMU_ARCH=x86_64
