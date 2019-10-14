@@ -3,7 +3,7 @@ TARGET ?= emqx/emqx
 QEMU_ARCH ?= x86_64
 ARCH ?= amd64
 QEMU_VERSION ?= v4.0.0
-OS ?= alpine3.9
+OS ?= alpine3.10
 
 ## versioning
 EMQX_DEPS_DEFAULT_VSN ?= develop
@@ -57,8 +57,8 @@ build:
 	@cd ../.. \
 	&& docker build --no-cache \
 		--build-arg EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN) \
-		--build-arg BUILD_FROM=$(ARCH)/erlang:21.3-alpine  \
-		--build-arg RUN_FROM=$(ARCH)/alpine:3.9 \
+		--build-arg BUILD_FROM=$(ARCH)/erlang:22.1-alpine  \
+		--build-arg RUN_FROM=$(ARCH)/alpine:3.10 \
 		--build-arg EMQX_NAME=$(EMQX_NAME) \
 		--build-arg QEMU_ARCH=$(QEMU_ARCH) \
 		--tag $(TARGET):build-$(OS)-$(ARCH) \
