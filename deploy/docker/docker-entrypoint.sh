@@ -34,9 +34,11 @@ fi
 
 if [[ -z "$EMQX_HOST" ]]; then
     if [[ "$EMQX_CLUSTER__K8S__ADDRESS_TYPE" == "dns" ]] && [[ ! -z "$EMQX_CLUSTER__K8S__NAMESPACE" ]];then
-        # DNSAddress=$(sed -n "/^${LOCAL_IP}/"p /etc/hosts | grep -e "$(hostname).*.${EMQX_CLUSTER__K8S__NAMESPACE}.svc.cluster.local" -o)
         DNSAddress="${LOCAL_IP//./-}.${EMQX_CLUSTER__K8S__NAMESPACE}.pod.cluster.local"
         export EMQX_HOST="$DNSAddress"
+    elif [[ "$EMQX_CLUSTER__K8S__ADDRESS_TYPE" == "hostname" ]] && [[ ! -z "$EMQX_CLUSTER__K8S__NAMESPACE" ]];
+        HostAddress=$(sed -n "/^${LOCAL_IP}/"p /etc/hosts | grep -e "$(hostname).*.${EMQX_CLUSTER__K8S__NAMESPACE}.svc.cluster.local" -o)
+        export EMQX_HOST="$HostAddress"
     else
         export EMQX_HOST="$LOCAL_IP"
     fi
