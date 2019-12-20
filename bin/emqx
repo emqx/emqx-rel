@@ -336,7 +336,7 @@ case "$1" in
             if ! relx_nodetool "ping" >/dev/null 2>&1; then
                 continue
             fi
-            echo "emqx $REL_VSN is started successfully!"
+            echo "{{ emqx_description }} $REL_VSN is started successfully!"
             exit 0
         done
         echo "The broker failed to start within ${WAIT_FOR_ERLANG:-15} seconds,"
