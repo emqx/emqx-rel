@@ -1,0 +1,70 @@
+## Default values for emqx.
+## This is a YAML-formatted file.
+## Declare variables to be passed into your templates.
+
+## It is recommended to have odd number of nodes in a cluster, otherwise the emqx cluster cannot be automatically healed in case of net-split.
+replicaCount: 3 
+image:
+  repository: emqx/emqx
+  pullPolicy: IfNotPresent
+
+persistence:
+  enabled: false
+  size: 20Mi
+  ## If defined, volume.beta.kubernetes.io/storage-class: <storageClass>
+  ## Default: volume.alpha.kubernetes.io/storage-class: default
+  # storageClass: "-"
+  accessMode: ReadWriteOnce
+  ## Existing PersistentVolumeClaims
+  ## The value is evaluated as a template
+  ## So, for example, the name can depend on .Release or .Chart
+  # existingClaim: ""
+
+resources: {}
+  # limits:
+  #   cpu: 500m
+  #   memory: 512Mi
+  # requests:
+  #   cpu: 500m
+  #   memory: 512Mi
+
+## EMQX configuration item, see the documentation (https://github.com/emqx/emqx-docker#emq-x-configuration)
+emqxConfig:
+  EMQX_CLUSTER__K8S__APISERVER: "https://kubernetes.default.svc:443"
+  ## The address type is used to extract host from k8s service.
+  ## Value: ip | dns | hostname
+  ## Note：Hostname is only supported after v4.0-rc.2
+  EMQX_CLUSTER__K8S__ADDRESS_TYPE: "hostname"
+  EMQX_CLUSTER__K8S__SUFFIX: "svc.cluster.local"
+  ## if EMQX_CLUSTER__K8S__ADDRESS_TYPE eq dns
+  # EMQX_CLUSTER__K8S__SUFFIX: "pod.cluster.local"
+
+## EMQX Enterprise Edition requires manual creation of a Secret containing the licensed content. Write the name of Secret to the value of "emqxLicneseSecretName"
+## Example:
+##   kubectl create secret generic emqx-license-secret-name --from-file=/path/to/emqx.lic
+emqxLicneseSecretName:
+
+service:
+  type: ClusterIP
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+## TODO:
+ingress:
+  enabled: false
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  path: /
+  hosts:
+    - chart-example.local
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+
