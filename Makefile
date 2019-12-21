@@ -49,7 +49,7 @@ $(PROFILES:%=%): $(REBAR)
 ifneq ($(OS),Windows_NT)
 	@ln -snf _build/$(@)/lib ./_checkouts
 endif
-	@if [ $$(echo $(@) |grep edge) ];then EMQX_DESC="EMQ X Edge";else EMQX_DESC="EMQ X Broker"; fi;\
+	@if [ $$(echo $(@) |grep edge) ];then export EMQX_DESC="EMQ X Edge";else export EMQX_DESC="EMQ X Broker"; fi;\
 	$(REBAR) as $(@) release
 
 .PHONY: $(PROFILES:%=build-%)
@@ -106,7 +106,7 @@ endif
 .PHONY: $(PKG_PROFILES)
 $(PKG_PROFILES:%=%): $(REBAR)
 	ln -snf _build/$(@)/lib ./_checkouts
-	@if [ $$(echo $(@) |grep edge) ];then EMQX_DESC="EMQ X Edge";else EMQX_DESC="EMQ X Broker"; fi;\
+	@if [ $$(echo $(@) |grep edge) ];then export EMQX_DESC="EMQ X Edge";else export EMQX_DESC="EMQ X Broker"; fi;\
 	$(REBAR) as $(@) release
 	EMQX_REL=$$(pwd) EMQX_BUILD=$(@) EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN) make -C deploy/packages
 
