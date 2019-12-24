@@ -22,5 +22,5 @@ jobs:
     - name: install
       run: |
         /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-        homebrew install curl zip erlang
+        brew install curl zip erlang
         make emqx
