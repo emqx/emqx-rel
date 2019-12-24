@@ -9,7 +9,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
       with:
-        ref: ${{ GITHUB_REF }}
+        ref: "${{ GITHUB_REF }}"
     - name: install
     #   env:
     #     EMQX_DEPS_DEFAULT_VSN: $GITHUB_REF
@@ -28,13 +28,13 @@ jobs:
     #   with:
     #     ref: develop
     - name: install
-      env:
-        EMQX_DEPS_DEFAULT_VSN: ${{ GITHUB_REF }}
       run: |
         /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
         brew install curl zip erlang
         echo "/usr/local/Homebrew/bin:/usr/local/curl/bin:/usr/local/zip/bin:/usr/local/erlang/bin:$PATH" >> ~/.bashrc
     - name: build
+      env:
+        EMQX_DEPS_DEFAULT_VSN: "${{ GITHUB_REF }}"
       run: |
         make emqx
         ./_build/emqx/rel/emqx/bin/emqx start
