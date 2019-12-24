@@ -35,6 +35,7 @@ jobs:
         brew install curl zip erlang
         echo "/usr/local/Homebrew/bin:/usr/local/curl/bin:/usr/local/zip/bin:/usr/local/erlang/bin:$PATH" >> ~/.bashrc
     - name: build
+      run: |
         make emqx
         ./_build/emqx/rel/emqx/bin/emqx start
         ./_build/emqx/rel/emqx/bin/emqx stop
