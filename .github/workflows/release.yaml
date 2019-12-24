@@ -9,7 +9,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
       with:
-        ref: develop
+        ref: ${{ GITHUB_REF }}
     - name: install
     #   env:
     #     EMQX_DEPS_DEFAULT_VSN: $GITHUB_REF
@@ -25,11 +25,11 @@ jobs:
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v1
-      with:
-        ref: develop
+    #   with:
+    #     ref: develop
     - name: install
-    #   env:
-    #     EMQX_DEPS_DEFAULT_VSN: $GITHUB_REF
+      env:
+        EMQX_DEPS_DEFAULT_VSN: ${{ GITHUB_REF }}
       run: |
         /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
         brew install curl zip erlang
