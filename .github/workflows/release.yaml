@@ -9,23 +9,30 @@ jobs:
     steps:
     - uses: actions/checkout@v1
       with:
-        ref: $GITHUB_REF
-        fetch-depth: 1
+        ref: develop
     - name: install
+    #   env:
+    #     EMQX_DEPS_DEFAULT_VSN: $GITHUB_REF
       run: |
         set-executionpolicy remotesigned -s cu
         iex (new-object net.webclient).downloadstring('https://get.scoop.sh')
         scoop install curl 7zip erlang
         make emqx
+        ./_build/emqx/rel/emqx/bin/emqx start
+        ./_build/emqx/rel/emqx/bin/emqx stop
     
   mac:
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v1
+      with:
+        ref: develop
     - name: install
-      env:
-        EMQX_DEPS_DEFAULT_VSN: $GITHUB_REF
+    #   env:
+    #     EMQX_DEPS_DEFAULT_VSN: $GITHUB_REF
       run: |
         /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
         brew install curl zip erlang
         make emqx
+        ./_build/emqx/rel/emqx/bin/emqx start
+        ./_build/emqx/rel/emqx/bin/emqx stop
