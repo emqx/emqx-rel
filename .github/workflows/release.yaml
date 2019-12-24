@@ -33,6 +33,8 @@ jobs:
       run: |
         /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
         brew install curl zip erlang
+        echo "/usr/local/Homebrew/bin:/usr/local/curl/bin:/usr/local/zip/bin:/usr/local/erlang/bin:$PATH" >> ~/.bashrc
+    - name: build
         make emqx
         ./_build/emqx/rel/emqx/bin/emqx start
         ./_build/emqx/rel/emqx/bin/emqx stop
