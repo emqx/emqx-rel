@@ -1,6 +1,9 @@
 name: Release
 
 on: [push, pull_request]
+# on:
+#   release:
+#       types: [published]
 
 jobs:
   win:
@@ -8,15 +11,16 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
-      with:
-        ref: ${{ github.ref }}
+    - name: checkout
+      run: git checkout $(${{ github.ref }} | sed -r 's .*/.*/(.*) \1 g')
     - name: install
-    #   env:
-    #     EMQX_DEPS_DEFAULT_VSN: $GITHUB_REF
       run: |
         set-executionpolicy remotesigned -s cu
         iex (new-object net.webclient).downloadstring('https://get.scoop.sh')
         scoop install curl 7zip erlang
+        $env:path + ";" + $env:USERPROFILE + "\scoop\shims"
+    - name: build
+      run: |
         make emqx
         ./_build/emqx/rel/emqx/bin/emqx start
         ./_build/emqx/rel/emqx/bin/emqx stop
@@ -25,8 +29,6 @@ jobs:
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v1
-    #   with:
-    #     ref: develop
     - name: install
       run: |
         /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
