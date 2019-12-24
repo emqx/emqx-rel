@@ -22,8 +22,6 @@ jobs:
         scoop install curl 7zip erlang
         $env:path + ";" + $env:USERPROFILE + "\scoop\shims"
         make emqx
-        ./_build/emqx/rel/emqx/bin/emqx start
-        ./_build/emqx/rel/emqx/bin/emqx stop
     
   mac:
     runs-on: macos-latest
