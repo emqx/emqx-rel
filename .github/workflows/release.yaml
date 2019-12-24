@@ -30,11 +30,11 @@ jobs:
     - name: install
       run: |
         /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-        brew install curl zip erlang
-        echo "/usr/local/Homebrew/bin:/usr/local/curl/bin:/usr/local/zip/bin:/usr/local/erlang/bin:$PATH" >> ~/.bashrc
+        brew install curl zip gnu-sed erlang
+        echo "/usr/local/bin:$PATH" >> ~/.bashrc
     - name: build
       run: |
-        refs=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
+        refs=$(echo ${{ github.ref }} | gsed -r  "s .*/.*/(.*) \1 g")
         EMQX_DEPS_DEFAULT_VSN=$refs make emqx
         ./_build/emqx/rel/emqx/bin/emqx start
         ./_build/emqx/rel/emqx/bin/emqx stop
