@@ -8,12 +8,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
-    - name: install scoop
-      run: |
-        set-executionpolicy remotesigned -s cu
-        iex (new-object net.webclient).downloadstring('https://get.scoop.sh')
-    - name: install lib
-      run: scoop install curl 7zip erlang
+    - name: Setup Erlang
+    uses: gleam-lang/setup-erlang@v1.0.0
+    with:
+        # Version of OTP to install
+        otp-version: 22.1
     - name: build
       run: make emqx
     
@@ -21,9 +20,10 @@ jobs:
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v1
-    - name: install homebrew
-      run: /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-    - name: install lib
-      run: homebrew install curl zip erlang
+    - name: Setup Erlang
+    uses: gleam-lang/setup-erlang@v1.0.0
+    with:
+        # Version of OTP to install
+        otp-version: 22.1
     - name: build
       run: make emqx
