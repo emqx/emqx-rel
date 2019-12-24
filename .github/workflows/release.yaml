@@ -13,8 +13,7 @@ jobs:
         set-executionpolicy remotesigned -s cu
         iex (new-object net.webclient).downloadstring('https://get.scoop.sh')
         scoop install curl 7zip erlang
-    - name: build
-      run: make emqx
+        make emqx
     
   mac:
     runs-on: macos-latest
@@ -24,5 +23,4 @@ jobs:
       run: |
         /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
         homebrew install curl zip erlang
-    - name: build
-      run: make emqx
+        make emqx
