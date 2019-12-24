@@ -9,6 +9,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
       with:
+        ref: ${{ github.branch }}
         fetch-depth: 1
     - name: install
       run: |
@@ -22,6 +23,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
       with:
+        ref: ${{ github.branch }}
         fetch-depth: 1
     - name: install
       run: |
