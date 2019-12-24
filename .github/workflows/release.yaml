@@ -22,13 +22,13 @@ jobs:
         scoop install curl 7zip erlang
         $env:path + ";" + $env:USERPROFILE + "\scoop\shims"
         make emqx
+        ./_build/emqx/rel/emqx/bin/emqx start
+        ./_build/emqx/rel/emqx/bin/emqx stop
     
   mac:
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v1
-      with: 
-        ref: $(${{ github.ref }} | gsed -r  "s .*/.*/(.*) \1 g")
     - name: install
       run: |
         /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
