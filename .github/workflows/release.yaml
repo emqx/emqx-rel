@@ -22,10 +22,9 @@ jobs:
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v1
-      with:
-        ref: ${{ GITHUB_REF }}
-        fetch-depth: 1
     - name: install
+      env:
+        EMQX_DEPS_DEFAULT_VSN: $GITHUB_REF
       run: |
         /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
         brew install curl zip erlang
