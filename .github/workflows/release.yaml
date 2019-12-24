@@ -9,7 +9,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
       with:
-        ref: "${{ GITHUB_REF }}"
+        ref: ${{ github.ref }}
     - name: install
     #   env:
     #     EMQX_DEPS_DEFAULT_VSN: $GITHUB_REF
@@ -34,7 +34,7 @@ jobs:
         echo "/usr/local/Homebrew/bin:/usr/local/curl/bin:/usr/local/zip/bin:/usr/local/erlang/bin:$PATH" >> ~/.bashrc
     - name: build
       env:
-        EMQX_DEPS_DEFAULT_VSN: "${{ GITHUB_REF }}"
+        EMQX_DEPS_DEFAULT_VSN: ${{ github.ref }}
       run: |
         make emqx
         ./_build/emqx/rel/emqx/bin/emqx start
