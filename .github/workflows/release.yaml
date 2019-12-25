@@ -23,7 +23,9 @@ jobs:
         $env:path + ";" + $env:USERPROFILE + "\scoop\shims"
         make emqx
         cd _build/emqx/rel
-        zip -rq emqx-windows-develop.zip emqx
+        Compress-Archive -Path _build/emqx/rel/emqx -DestinationPath _build/emqx/rel/emqx-windows-develop.zip
+        ./emqx start
+        ./emqx stop
     - uses: actions/upload-artifact@v1
       with:
         name: emqx-windows-develop.zip
@@ -33,14 +35,25 @@ jobs:
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v1
+      with:
+        ref: develop
     - name: install
       run: |
         /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
         brew install curl zip gnu-sed erlang
         echo "/usr/local/bin:$PATH" >> ~/.bashrc
+    # - name: build
+    #   run: |
+    #     refs=$(echo ${{ github.ref }} | gsed -r  "s .*/.*/(.*) \1 g")
+    #     EMQX_DEPS_DEFAULT_VSN=$refs make emqx
+    #     ./_build/emqx/rel/emqx/bin/emqx start
+    #     ./_build/emqx/rel/emqx/bin/emqx stop
     - name: build
       run: |
-        refs=$(echo ${{ github.ref }} | gsed -r  "s .*/.*/(.*) \1 g")
-        EMQX_DEPS_DEFAULT_VSN=$refs make emqx
-        ./_build/emqx/rel/emqx/bin/emqx start
-        ./_build/emqx/rel/emqx/bin/emqx stop
+        make emqx
+        cd _build/emqx/rel
+        zip -rq emqx-macosx-develop.zip emqx
+    - uses: actions/upload-artifact@v1
+      with:
+        name: emqx-macosx-develop.zip
+        path: _build/emqx/rel/emqx-macosx-develop.zip
