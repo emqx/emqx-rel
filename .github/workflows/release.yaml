@@ -22,9 +22,12 @@ jobs:
         scoop install curl 7zip erlang
         $env:path + ";" + $env:USERPROFILE + "\scoop\shims"
         make emqx
-        cd _build/emqx/rel/emqx/bin
-        emqx start
-        emqx stop
+        cd _build/emqx/rel
+        zip -rq emqx-windows-develop.zip emqx
+    - uses: actions/upload-artifact@v1
+      with:
+        name: emqx-windows-develop.zip
+        path: _build/emqx/rel/emqx-windows-develop.zip
     
   mac:
     runs-on: macos-latest
