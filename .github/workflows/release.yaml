@@ -1,6 +1,9 @@
 name: Release
 
-on: [push, pull_request]
+on: 
+    push:
+        tags:
+            - v*
 # on:
 #   release:
 #       types: [published]
