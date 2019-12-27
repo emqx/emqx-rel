@@ -29,6 +29,11 @@ jobs:
             sudo docker exec emqx_auto_func_test_emqx_1 bash -xc "cd /tests; sed -i '/^set.*/d' run_emqx.sh; export EMQX_DEPS_DEFAULT_VSN=develop; ./run_emqx.sh emqx-ce.spec "
             sudo docker exec emqx_auto_func_test_python_1 bash -xc "cd /tests && python ./boot.py "
             sudo docker-compose -p emqx_auto_func_test down
+        - uses: actions/upload-artifact@v1
+          with:
+            if: failure()
+            name: logs
+            path: emqx-integration-test/docker-compose/files/logs
         - name: Run paho test
           run: |
             cd emqx-integration-test/paho-test
