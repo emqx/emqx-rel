@@ -39,5 +39,6 @@ jobs:
             path: emqx-integration-test/docker-compose/files/logs
         - name: Get test results
           run: |
+            rm -f emqx-integration-test/docker-compose/files/logs/index.html
             sudo docker exec emqx_auto_func_test_python_1 bash -xc "cd /tests && python ./boot.py "
             sudo docker-compose -p emqx_auto_func_test down
