@@ -12,14 +12,15 @@ emqx_prepare(){
 }
 
 emqx_build_to_zip(){
+    cd ${REL_PATH}
     pkg=${EMQX_NAME}-${SYSTEM}-${EMQX_DEPS_DEFAULT_VSN}.zip
-    make -C ${REL_PATH} ${EMQX_NAME}
-    cd _build/emqx*/rel/ && zip -rq $pkg emqx
-    mv $pkg ${PACKAGE_PATH}
+    make ${EMQX_NAME}
+    cd _build/emqx*/rel/ && zip -rq $pkg emqx && mv $pkg ${PACKAGE_PATH}
 }
 
 emqx_build_to_pkg(){
-    make -C ${REL_PATH} ${EMQX_NAME}-pkg
+    cd ${REL_PATH}
+    make ${EMQX_NAME}-pkg
 }
 
 emqx_test(){
