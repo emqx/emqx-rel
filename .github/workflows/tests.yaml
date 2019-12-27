@@ -26,5 +26,5 @@ jobs:
                 image: mongo:4.1
                 env:
                     MONGO_INITDB_DATABASE: mqtt
-                command: --bind_ip_all
+                args: --bind_ip_all
                 
