@@ -22,9 +22,9 @@ jobs:
           with:
             path: emqx-rel
         - name: Run paho test
-            run: |
-              cd emqx-integration-test/paho-test
-              EMQX_DEPS_DEFAULT_VSN=develop TARGET=emqx/emqx PAHO_BRANCH="develop-4.0" make -C "${WORKSPACE}/paho-test"
+          run: |
+            cd emqx-integration-test/paho-test
+            EMQX_DEPS_DEFAULT_VSN=develop TARGET=emqx/emqx PAHO_BRANCH="develop-4.0" make -C "${WORKSPACE}/paho-test"
         - name: Run all test cases
           if: always()
           run: |
