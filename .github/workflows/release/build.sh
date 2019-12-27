@@ -32,20 +32,20 @@ emqx_test(){
         case ${var##*.} in
             "zip")
                 zipname=`basename ${PACKAGE_PATH}/${EMQX_NAME}-${SYSTEM}-*.zip`
-                unzip -q ${PACKAGE_PATH}/$zipname -d ${PACKAGE_PATH}
-                sed -i "/zone.external.server_keepalive/c zone.external.server_keepalive = 60" ${PACKAGE_PATH}/emqx/etc/emqx.conf 
-                sed -i "/mqtt.max_topic_alias/c mqtt.max_topic_alias = 10" ${PACKAGE_PATH}/emqx/etc/emqx.conf
+                unzip -q ${PACKAGE_PATH}/$zipname -d ${PACKAGE_PATH}/${SYSTEM}/${EMQX_NAME}
+                sed -i "/zone.external.server_keepalive/c zone.external.server_keepalive = 60" ${PACKAGE_PATH}/${SYSTEM}/${EMQX_NAME}/emqx/etc/emqx.conf 
+                sed -i "/mqtt.max_topic_alias/c mqtt.max_topic_alias = 10" ${PACKAGE_PATH}/${SYSTEM}/${EMQX_NAME}/emqx/etc/emqx.conf
 
                 if [[ ! -z $(echo $EMQX_DEPS_DEFAULT_VSN | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?-(alpha|beta|rc)\.[0-9]") ]]; then
-                    if [[ ! -d ${PACKAGE_PATH}/emqx/lib/emqx-${EMQX_DEPS_DEFAULT_VSN#v} ]] || [[ ! -d ${PACKAGE_PATH}/emqx/releases/${EMQX_DEPS_DEFAULT_VSN} ]] ;then
+                    if [[ ! -d ${PACKAGE_PATH}/${SYSTEM}/${EMQX_NAME}/emqx/lib/emqx-${EMQX_DEPS_DEFAULT_VSN#v} ]] || [[ ! -d ${PACKAGE_PATH}/${SYSTEM}/${EMQX_NAME}/emqx/releases/${EMQX_DEPS_DEFAULT_VSN} ]] ;then
                         echo "emqx zip version error"
                         exit 1
                     fi
                 fi
 
-                ${PACKAGE_PATH}/emqx/bin/emqx start
+                ${PACKAGE_PATH}/${SYSTEM}/${EMQX_NAME}/emqx/bin/emqx start
                 IDLE_TIME=0
-                while [[ -z "$(${PACKAGE_PATH}/emqx/bin/emqx_ctl status |grep 'is running'|awk '{print $1}')" ]]
+                while [[ -z "$(${PACKAGE_PATH}/${SYSTEM}/${EMQX_NAME}/emqx/bin/emqx_ctl status |grep 'is running'|awk '{print $1}')" ]]
                 do
                     if [[ $IDLE_TIME -gt 10 ]]
                     then
@@ -57,9 +57,9 @@ emqx_test(){
                 done
                 echo "running ${packagename} start"
                 pytest -v /paho-mqtt-testing/interoperability/test_client/V5/test_connect.py::test_basic
-                ${PACKAGE_PATH}/emqx/bin/emqx stop
+                ${PACKAGE_PATH}/${SYSTEM}/${EMQX_NAME}/emqx/bin/emqx stop
                 echo "running ${packagename} start"
-                rm -rf ${PACKAGE_PATH}/emqx
+                rm -rf ${PACKAGE_PATH}/${SYSTEM}/${EMQX_NAME}/emqx
             ;;
             "deb")
                  if [ $SYSTEM == 'debian7' ];then
