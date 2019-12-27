@@ -7,53 +7,53 @@ name: Release
 on: push
 
 jobs:
-  # win:
-  #   runs-on: windows-latest
+  win:
+    runs-on: windows-latest
 
-  #   steps:
-  #   - uses: actions/checkout@v1
-  #   - name: checkout
-  #     run: git checkout $("${{ github.ref }}" | sed -r 's .*/.*/(.*) \1 g')
-  #   - name: install
-  #     run: |
-  #       set-executionpolicy remotesigned -s cu
-  #       iex (new-object net.webclient).downloadstring('https://get.scoop.sh')
-  #       scoop install sudo curl 7zip aws erlang
-  #       $env:path + ";" + $env:USERPROFILE + "\scoop\shims"
-  #       make emqx
-  #       Compress-Archive -Path _build/emqx/rel/emqx -DestinationPath _build/emqx/rel/emqx-windows-develop.zip
-  #       sudo ./_build/emqx/rel/emqx/bin/emqx start
-  #       sudo ./_build/emqx/rel/emqx/bin/emqx stop
-  #   - uses: actions/upload-artifact@v1
-  #     with:
-  #       name: emqx-windows
-  #       path: _build/emqx/rel/emqx
+    steps:
+    - uses: actions/checkout@v1
+    - name: checkout
+      run: git checkout $("${{ github.ref }}" | sed -r 's .*/.*/(.*) \1 g')
+    - name: install
+      run: |
+        set-executionpolicy remotesigned -s cu
+        iex (new-object net.webclient).downloadstring('https://get.scoop.sh')
+        scoop install sudo curl 7zip aws erlang
+        $env:path + ";" + $env:USERPROFILE + "\scoop\shims"
+        make emqx
+        Compress-Archive -Path _build/emqx/rel/emqx -DestinationPath _build/emqx/rel/emqx-windows-develop.zip
+        sudo ./_build/emqx/rel/emqx/bin/emqx start
+        sudo ./_build/emqx/rel/emqx/bin/emqx stop
+    - uses: actions/upload-artifact@v1
+      with:
+        name: emqx-windows
+        path: _build/emqx/rel/emqx
     
-  # mac:
-  #   runs-on: macos-latest
+  mac:
+    runs-on: macos-latest
 
-  #   steps:
-  #   - uses: actions/checkout@v1
-  #   - name: prepare
-  #     run: |
-  #       /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-  #       brew install curl zip unzip gnu-sed erlang
-  #       echo "/usr/local/bin:$PATH" >> ~/.bashrc
-  #   - name: instsall aws
-  #     run: |
-  #       curl "https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-macos.zip" -o "awscliv2.zip"
-  #       unzip awscliv2.zip
-  #       sudo ./aws/install
-  #   - name: build
-  #     run: |
-  #       refs=$(echo ${{ github.ref }} | gsed -r  "s .*/.*/(.*) \1 g")
-  #       EMQX_DEPS_DEFAULT_VSN=$refs make emqx
-  #       ./_build/emqx/rel/emqx/bin/emqx start
-  #       ./_build/emqx/rel/emqx/bin/emqx stop
-  #   - uses: actions/upload-artifact@v1
-  #     with:
-  #       name: emqx-macosx
-  #       path: _build/emqx/rel/emqx
+    steps:
+    - uses: actions/checkout@v1
+    - name: prepare
+      run: |
+        /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+        brew install curl zip unzip gnu-sed erlang
+        echo "/usr/local/bin:$PATH" >> ~/.bashrc
+    - name: instsall aws
+      run: |
+        curl "https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-macos.zip" -o "awscliv2.zip"
+        unzip awscliv2.zip
+        sudo ./aws/install
+    - name: build
+      run: |
+        refs=$(echo ${{ github.ref }} | gsed -r  "s .*/.*/(.*) \1 g")
+        EMQX_DEPS_DEFAULT_VSN=$refs make emqx
+        ./_build/emqx/rel/emqx/bin/emqx start
+        ./_build/emqx/rel/emqx/bin/emqx stop
+    - uses: actions/upload-artifact@v1
+      with:
+        name: emqx-macosx
+        path: _build/emqx/rel/emqx
 
   linux:
     runs-on: ubuntu-latest
@@ -71,9 +71,9 @@ jobs:
           - opensuse
           - centos7 
           - centos6
-          # - raspbian10
-          # - raspbian9
-          # - raspbian8
+          - raspbian10
+          - raspbian9
+          - raspbian8
   
     steps:
     - uses: actions/checkout@v1
