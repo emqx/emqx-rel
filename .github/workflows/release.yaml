@@ -57,6 +57,7 @@ jobs:
 
   linux:
     runs-on: ubuntu-latest
+
     strategy:
       matrix:
         os: 
@@ -80,7 +81,7 @@ jobs:
         EMQX_DEPS_DEFAULT_VSN: develop
         ERL_OTP: erl22.1
       run:
-        sudo docker run -i --name ${{ matrix.os }}-build -e EMQX_DEPS_DEFAULT_VSN=$EMQX_DEPS_DEFAULT_VSN -e SYSTEM=${{ matrix.os }} -v $(pwd):/emqx_rel emqx/build-env:$ERL_OTP-${{ matrix.os }} sh -c "cd /emqx_rel/.github/workflows/release; if [[ -z $(echo $SYSTEM | grep -o raspbian) ]];then export EMQX_NAME=emqx; ./build.sh; fi; export EMQX_NAME=emqx-edge; ./build.sh"
+        sudo docker run -i --name ${{ matrix.os }}-build -e EMQX_DEPS_DEFAULT_VSN=$EMQX_DEPS_DEFAULT_VSN -e SYSTEM=${{ matrix.os }} -v $(pwd):/emqx_rel emqx/build-env:$ERL_OTP-${{ matrix.os }} sh -c "cd /emqx_rel/.github/workflows/release; if [ -z $(echo $SYSTEM | grep -o raspbian) ];then export EMQX_NAME=emqx; ./build.sh; fi; export EMQX_NAME=emqx-edge; ./build.sh"
     - uses: actions/upload-artifact@v1
       with:
         name: emqx-${{ matrix.os }}
