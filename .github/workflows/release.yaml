@@ -75,21 +75,29 @@ jobs:
           # - raspbian8
   
     steps:
+    - uses: actions/checkout@v2
+      with:
+        repository: emqx/emqx-packages-docker
+        token: ${{ secrets.AccessToken }} 
+        path: emqx-packages-docker
     - uses: actions/checkout@v1
     - name: build
       env:
         EMQX_DEPS_DEFAULT_VSN: develop
         ERL_OTP: erl22.1
       run: |
-        if [ ${{ matrix.os }} == 'raspbian8' ];then sudo docker pull emqx/build-env@sha256:ed02c6eb379d963c9b696f5703d6e0fc3ad0c5ab1f872e5702246bad9167f824; sudo docker tag emqx/build-env@sha256:ed02c6eb379d963c9b696f5703d6e0fc3ad0c5ab1f872e5702246bad9167f824 emqx/build-env:raspbian8; fi
-        if [ ${{ matrix.os }} == 'raspbian9' ];then sudo docker pull emqx/build-env@sha256:f8200d7b98f6af457300e7edc74537b529cc81b77c37d1c37434fe5822b23263; sudo docker tag emqx/build-env@sha256:f8200d7b98f6af457300e7edc74537b529cc81b77c37d1c37434fe5822b23263 emqx/build-env:raspbian9; fi
-        if [ ${{ matrix.os }} == 'raspbian10' ];then sudo docker pull emqx/build-env@sha256:af59d0ae396d22536d84cab763b828318ef721f6f1cd693ecf0a9df8046e9f19; sudo docker tag emqx/build-env@sha256:af59d0ae396d22536d84cab763b828318ef721f6f1cd693ecf0a9df8046e9f19 emqx/build-env:raspbian10; fi
+        mkdir -p emqx-packages-docker/tmp
+        cd emqx-packages-docker/tmp &&
+          curl -L -o qemu-x86_64-static.tar.gz https://github.com/multiarch/qemu-user-static/releases/download/v4.0.0/qemu-x86_64-static.tar.gz && tar xzf qemu-x86_64-static.tar.gz &&
+          curl -L -o qemu-aarch64-static.tar.gz https://github.com/multiarch/qemu-user-static/releases/download/v4.0.0/qemu-aarch64-static.tar.gz && tar xzf qemu-aarch64-static.tar.gz &&
+        cd -
+        sudo docker build --no-cache -t build-env:$ERL_OTP-${{ matrix.os }} --build-arg OTP_VERSION=$ERL_OTP -f emqx-packages-docker/${{ matrix.os }}/Dockerfile .
         sudo docker run -i \
           --name ${{ matrix.os }}-build \
           -e EMQX_DEPS_DEFAULT_VSN=$EMQX_DEPS_DEFAULT_VSN \
           -e SYSTEM=${{ matrix.os }} \
           -v $(pwd):/emqx-rel \
-          emqx/build-env:$ERL_OTP-${{ matrix.os }} \
+          build-env:$ERL_OTP-${{ matrix.os }} \
           sh -c "cd /emqx-rel/.github/workflows/release; if [ -z $(echo $SYSTEM | grep -o raspbian) ];then export EMQX_NAME=emqx; ./build.sh; fi; export EMQX_NAME=emqx-edge; ./build.sh"
     - uses: actions/upload-artifact@v1
       with:
