@@ -60,6 +60,7 @@ jobs:
 
     strategy:
       matrix:
+        emqx_name: [emqx, emqx-edge]
         os: 
           - ubuntu18.04 
           - ubuntu16.04 
@@ -78,11 +79,12 @@ jobs:
     - uses: actions/checkout@v1
     - name: build
       env:
-        EMQX_NAME: emqx
+        EMQX_NAME: ${{ matrix.emqx_name }}
         EMQX_DEPS_DEFAULT_VSN: develop
         ERL_OTP: erl22.1
       run:
-        sudo docker run -i --name ${{ matrix.os }}-build -e EMQX_DEPS_DEFAULT_VSN=$EMQX_DEPS_DEFAULT_VSN -e SYSTEM=${{ matrix.os }} -v $(pwd):/emqx-rel emqx/build-env:$ERL_OTP-${{ matrix.os }} sh -c "cd /emqx-rel/.github/workflows/release; if [ -z $(echo $SYSTEM | grep -o raspbian) ];then export EMQX_NAME=emqx; ./build.sh; fi; export EMQX_NAME=emqx-edge; ./build.sh"
+        # sudo docker run -i --name ${{ matrix.os }}-build -e EMQX_DEPS_DEFAULT_VSN=$EMQX_DEPS_DEFAULT_VSN -e SYSTEM=${{ matrix.os }} -v $(pwd):/emqx-rel emqx/build-env:$ERL_OTP-${{ matrix.os }} sh -c "cd /emqx-rel/.github/workflows/release; if [ -z $(echo $SYSTEM | grep -o raspbian) ];then export EMQX_NAME=emqx; ./build.sh; fi; export EMQX_NAME=emqx-edge; ./build.sh"
+        sudo docker run -i --name $EMQX_NAME-${{ matrix.os }}-build -e EMQX_NAME=$EMQX_NAME -e EMQX_DEPS_DEFAULT_VSN=$EMQX_DEPS_DEFAULT_VSN -e SYSTEM=${{ matrix.os }} -v $(pwd):/emqx-rel emqx/build-env:$ERL_OTP-${{ matrix.os }} sh -c "/emqx-rel/.github/workflows/release/build.sh"
     - uses: actions/upload-artifact@v1
       with:
         name: emqx-${{ matrix.os }}
