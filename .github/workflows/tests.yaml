@@ -22,7 +22,9 @@ jobs:
           with:
             path: emqx-rel
         - name: Run all test cases
+          if: failure()
           run: |
+            exit 1
             cd emqx-integration-test/docker-compose
             sudo docker-compose -p emqx_auto_func_test up -d --build
             sudo docker ps -a
