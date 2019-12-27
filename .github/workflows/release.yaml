@@ -80,7 +80,9 @@ jobs:
         repository: emqx/emqx-packages-docker
         token: ${{ secrets.AccessToken }} 
         path: emqx-packages-docker
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
+      with:
+        path: emqx-rel
     - name: build
       env:
         EMQX_DEPS_DEFAULT_VSN: develop
@@ -96,7 +98,7 @@ jobs:
           --name ${{ matrix.os }}-build \
           -e EMQX_DEPS_DEFAULT_VSN=$EMQX_DEPS_DEFAULT_VSN \
           -e SYSTEM=${{ matrix.os }} \
-          -v $(pwd):/emqx-rel \
+          -v $(pwd)/emqx-rel:/emqx-rel \
           build-env:$ERL_OTP-${{ matrix.os }} \
           sh -c "cd /emqx-rel/.github/workflows/release; if [ -z $(echo $SYSTEM | grep -o raspbian) ];then export EMQX_NAME=emqx; ./build.sh; fi; export EMQX_NAME=emqx-edge; ./build.sh"
     - uses: actions/upload-artifact@v1
