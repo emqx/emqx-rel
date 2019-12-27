@@ -5,6 +5,8 @@ export REL_PATH=${REL_PATH:-"../../.."}
 export PACKAGE_PATH="${REL_PATH}/_packages/${EMQX_NAME}"
 
 emqx_prepare(){
+    mkdir -p ${PACKAGE_PATH}
+
     if [ ! -d "/paho-mqtt-testing" ]; then
         git clone -b develop-4.0 https://github.com/emqx/paho.mqtt.testing.git /paho-mqtt-testing
     fi
