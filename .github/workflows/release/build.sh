@@ -1,7 +1,7 @@
 #!/bin/sh
 set -ex
 export EMQX_NAME=${EMQX_NAME:-"emqx"}
-export REL_PATH=${REL_PATH:-"../../.."}
+export REL_PATH=${REL_PATH:-"/emqx-rel"}
 export PACKAGE_PATH="${REL_PATH}/_packages/${EMQX_NAME}"
 
 emqx_prepare(){
