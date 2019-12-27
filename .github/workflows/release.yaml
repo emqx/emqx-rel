@@ -69,4 +69,4 @@ jobs:
         EMQX_DEPS_DEFAULT_VSN: develop
         ERL_OTP: erl22.1
       run:
-        sudo docker run -i --name $EMQX_NAME-${{ matrix.os }} -e EMQX_DEPS_DEFAULT_VSN=$EMQX_DEPS_DEFAULT_VSN -v $(pwd):/emqx_rel emqx/build-env:$ERL_OTP-${{ matrix.os }} sh -c "make -C /emqx-rel"
+        sudo docker run -i --name $EMQX_NAME-${{ matrix.os }} -e EMQX_DEPS_DEFAULT_VSN=$EMQX_DEPS_DEFAULT_VSN -v $(pwd):/emqx_rel emqx/build-env:$ERL_OTP-${{ matrix.os }} sh -c "make -C /emqx_rel"
