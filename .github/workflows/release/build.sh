@@ -17,7 +17,7 @@ emqx_build_to_zip(){
     cd ${REL_PATH}
     pkg=${EMQX_NAME}-${SYSTEM}-${EMQX_DEPS_DEFAULT_VSN}.zip
     make ${EMQX_NAME}
-    cd _build/emqx*/rel/ && zip -rq $pkg emqx && mv $pkg ${PACKAGE_PATH}
+    cd _build/${EMQX_NAME}/rel/ && zip -rq $pkg emqx && mv $pkg ${PACKAGE_PATH}
 }
 
 emqx_build_to_pkg(){
