@@ -21,13 +21,14 @@ jobs:
         - uses: actions/checkout@v2
           with:
             path: emqx-rel
-        - name: Run paho test
-          run: |
-            cd emqx-integration-test/paho-test
-            EMQX_DEPS_DEFAULT_VSN=develop TARGET=emqx/emqx PAHO_BRANCH="develop-4.0" make 
+        # - name: Run paho test
+        #   run: |
+        #     cd emqx-integration-test/paho-test
+        #     EMQX_DEPS_DEFAULT_VSN=develop TARGET=emqx/emqx PAHO_BRANCH="develop-4.0" make 
         - name: Run all test cases
           if: always()
           run: |
+            exit 1
             cd emqx-integration-test/docker-compose
             sudo docker-compose -p emqx_auto_func_test up -d --build
             sudo docker ps -a
