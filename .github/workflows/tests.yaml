@@ -23,7 +23,7 @@ jobs:
             path: emqx-rel
         - name: Run all test cases
           run: |
-            cd ${{ env.GITHUB_WORKSPACE }}/emqx-integration-test
+            cd ${{ environment.GITHUB_WORKSPACE }}/emqx-integration-test
             sudo docker-compose -p emqx_auto_func_test up -d --build
             sudo docker ps -a
             sudo docker exec emqx_auto_func_test_emqx_1 bash -xc "cd /tests sed -i '/^set.*/d' run_emqx.sh export EMQX_DEPS_DEFAULT_VSN=develop ./run_emqx.sh emqx-ce.spec "
