@@ -23,7 +23,7 @@ jobs:
             path: emqx-rel
         - name: Run all test cases
           run: |
-            version=develop
+            version="develop"
             cd emqx-integration-test
             sudo docker-compose -p emqx_auto_func_test up -d --build
             sudo docker ps -a
