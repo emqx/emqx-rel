@@ -24,14 +24,12 @@ jobs:
         - name: Run all test cases
           if: failure()
           run: |
-            exit 0
             cd emqx-integration-test/docker-compose
             sudo docker-compose -p emqx_auto_func_test up -d --build
             sudo docker ps -a
             sudo docker exec emqx_auto_func_test_emqx_1 bash -xc "cd /tests; sed -i '/^set.*/d' run_emqx.sh; export EMQX_DEPS_DEFAULT_VSN=develop; ./run_emqx.sh emqx-ce.spec "
             sudo docker exec emqx_auto_func_test_python_1 bash -xc "cd /tests && python ./boot.py "
         - uses: actions/upload-artifact@v1
-          if: failure()
           with:
             name: logs
             path: emqx-integration-test/docker-compose/files/logs
