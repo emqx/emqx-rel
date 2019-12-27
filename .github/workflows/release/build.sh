@@ -156,3 +156,8 @@ running_test(){
         service emqx stop
     fi
 }
+
+emqx_prepare
+emqx_build_to_zip
+emqx_build_to_pkg
+emqx_test
