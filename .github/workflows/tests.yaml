@@ -14,12 +14,12 @@ jobs:
             steps:
             - uses: actions/checkout@v1
             - name: Run tests
-                run: |
-                    make ct
-                    make cover
+              run: |
+                  make ct
+                  make cover
             - uses: actions/upload-artifact@v1
-                with:
-                    path: _build/emqx+test/logs
+              with:
+                  path: _build/emqx+test/logs
         
         services:
             mongo:
