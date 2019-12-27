@@ -70,9 +70,9 @@ jobs:
           - opensuse
           - centos7 
           - centos6
-          - raspbian10
-          - raspbian9
-          - raspbian8
+          # - raspbian10
+          # - raspbian9
+          # - raspbian8
   
     steps:
     - uses: actions/checkout@v1
