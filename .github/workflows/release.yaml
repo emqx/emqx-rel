@@ -30,10 +30,9 @@ jobs:
     
   mac:
     runs-on: macos-latest
+
     steps:
     - uses: actions/checkout@v1
-      with:
-        ref: develop
     - name: prepare
       run: |
         /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
@@ -54,3 +53,21 @@ jobs:
       with:
         name: emqx-macosx
         path: _build/emqx/rel/emqx
+
+  linux:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu18.04,ubuntu16.04]
+  
+    steps:
+    - uses: actions/checkout@v1
+    - name: pull lib
+      run: make deps-all
+    - name: build
+      env:
+        EMQX_NAME: emqx
+        EMQX_DEPS_DEFAULT_VSN: develop
+        ERL_OTP: erl22.1
+      run:
+        sudo docker run -d --name ${{ env.EMQX_NAME }}-${{ matrix.os }} -v $(pwd):/emqx_rel emqx/build-env:${{ env.ERL_OTP }}-${{ matrix.os }} sh -c "make -C /emqx-rel"

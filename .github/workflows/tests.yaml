@@ -28,3 +28,8 @@ jobs:
             sudo docker ps -a
             sudo docker exec emqx_auto_func_test_emqx_1 bash -xc "cd /tests sed -i '/^set.*/d' run_emqx.sh export EMQX_DEPS_DEFAULT_VSN=develop ./run_emqx.sh emqx-ce.spec "
             sudo docker exec emqx_auto_func_test_python_1 bash -xc "cd /tests && python ./boot.py "
+            sudo docker-compose -p emqx_auto_func_test down
+        - name: Run paho test
+          run: |
+            cd emqx-integration-test/paho-test
+            EMQX_DEPS_DEFAULT_VSN=develop TARGET=emqx/emqx PAHO_BRANCH="develop-4.0" make -C "${WORKSPACE}/paho-test"
