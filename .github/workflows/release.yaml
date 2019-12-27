@@ -1,10 +1,9 @@
 name: Release
 
-# on: 
-#     push:
-#         tags:
-#             - v*
-on: push
+on: 
+    push:
+        tags:
+            - v*
 
 jobs:
   win:
@@ -12,10 +11,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
-      with:
-        ref: develop
-    # - name: checkout
-    #   run: git checkout $("${{ github.ref }}" | sed -r 's .*/.*/(.*) \1 g')
+    - name: checkout
+      run: git checkout $("${{ github.ref }}" | sed -r 's .*/.*/(.*) \1 g')
     - name: install
       run: |
         set-executionpolicy remotesigned -s cu
@@ -28,8 +25,8 @@ jobs:
         sudo ./_build/emqx/rel/emqx/bin/emqx stop
     - uses: actions/upload-artifact@v1
       with:
-        name: emqx-windows-develop.zip
-        path: _build/emqx/rel/emqx-windows-develop.zip
+        name: emqx-windows
+        path: _build/emqx/rel/emqx
     
   mac:
     runs-on: macos-latest
@@ -47,18 +44,13 @@ jobs:
         curl "https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-macos.zip" -o "awscliv2.zip"
         unzip awscliv2.zip
         sudo ./aws/install
-    # - name: build
-    #   run: |
-    #     refs=$(echo ${{ github.ref }} | gsed -r  "s .*/.*/(.*) \1 g")
-    #     EMQX_DEPS_DEFAULT_VSN=$refs make emqx
-    #     ./_build/emqx/rel/emqx/bin/emqx start
-    #     ./_build/emqx/rel/emqx/bin/emqx stop
     - name: build
       run: |
-        EMQX_DEPS_DEFAULT_VSN=develop make emqx
-        cd _build/emqx/rel
-        zip -rq emqx-macosx-develop.zip emqx
+        refs=$(echo ${{ github.ref }} | gsed -r  "s .*/.*/(.*) \1 g")
+        EMQX_DEPS_DEFAULT_VSN=$refs make emqx
+        ./_build/emqx/rel/emqx/bin/emqx start
+        ./_build/emqx/rel/emqx/bin/emqx stop
     - uses: actions/upload-artifact@v1
       with:
-        name: emqx-macosx-develop.zip
-        path: _build/emqx/rel/emqx-macosx-develop.zip
+        name: emqx-macosx
+        path: _build/emqx/rel/emqx
