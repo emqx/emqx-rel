@@ -56,7 +56,7 @@ jobs:
         path: _build/emqx/rel/emqx
 
   linux:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     strategy:
       matrix:
@@ -83,19 +83,19 @@ jobs:
     - uses: actions/checkout@v2
       with:
         path: emqx-rel
-    - name: build docker image
-      env:
-        EMQX_DEPS_DEFAULT_VSN: develop
-        ERL_OTP: erl22.1
-      run: |
-        mkdir -p emqx-packages-docker/tmp
-        cd emqx-packages-docker/tmp &&
-          curl -L -o qemu-x86_64-static.tar.gz https://github.com/multiarch/qemu-user-static/releases/download/v4.0.0/qemu-x86_64-static.tar.gz && tar xzf qemu-x86_64-static.tar.gz &&
-          curl -L -o qemu-aarch64-static.tar.gz https://github.com/multiarch/qemu-user-static/releases/download/v4.0.0/qemu-aarch64-static.tar.gz && tar xzf qemu-aarch64-static.tar.gz &&
-        cd -
-        cd  emqx-packages-docker &&
-          sudo docker build --no-cache -t build-env:$ERL_OTP-${{ matrix.os }} --build-arg OTP_VERSION=$ERL_OTP -f ${{ matrix.os }}/Dockerfile .
-        cd -
+    # - name: build docker image
+    #   env:
+    #     EMQX_DEPS_DEFAULT_VSN: develop
+    #     ERL_OTP: erl22.1
+    #   run: |
+    #     mkdir -p emqx-packages-docker/tmp
+    #     cd emqx-packages-docker/tmp &&
+    #       curl -L -o qemu-x86_64-static.tar.gz https://github.com/multiarch/qemu-user-static/releases/download/v4.0.0/qemu-x86_64-static.tar.gz && tar xzf qemu-x86_64-static.tar.gz &&
+    #       curl -L -o qemu-aarch64-static.tar.gz https://github.com/multiarch/qemu-user-static/releases/download/v4.0.0/qemu-aarch64-static.tar.gz && tar xzf qemu-aarch64-static.tar.gz &&
+    #     cd -
+    #     cd  emqx-packages-docker &&
+    #       sudo docker build --no-cache -t build-env:$ERL_OTP-${{ matrix.os }} --build-arg OTP_VERSION=$ERL_OTP -f ${{ matrix.os }}/Dockerfile .
+    #     cd -
     - name: build emqx
       env:
         EMQX_DEPS_DEFAULT_VSN: develop
