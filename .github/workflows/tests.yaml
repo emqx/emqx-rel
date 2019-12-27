@@ -1,4 +1,4 @@
-name: Test
+name: Run all test cases
 
 on: [push, pull_request]
 
@@ -7,24 +7,26 @@ jobs:
     run_test_case:
 
         runs-on: ubuntu-latest
-      
-        container:
-            image: erlang:22.1
-      
+
         steps:
-        - uses: actions/checkout@v1
-        - name: Run tests
-          run: |
-              make ct
-              make cover
-        - uses: actions/upload-artifact@v1
+        - name: Install docker-compose
+          run: | 
+            sudo curl -L "https://github.com/docker/compose/releases/download/1.25.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+            sudo chmod +x /usr/local/bin/docker-compose
+        - uses: actions/checkout@v2
           with:
-              path: _build/emqx+test/logs
-        
-        services:
-            mongo:
-                image: mongo:4.1
-                env:
-                    MONGO_INITDB_DATABASE: mqtt
-                args: --bind_ip_all
+            repository: emqx/emqx-integration-test
+            path: emqx-integration-test
+        - uses: actions/checkout@v2
+          with:
+            path: emqx-rel
+        - name: Run all test cases
+          run: |
+            cd emqx-integration-test
+            version=develop
+            sudo docker-compose -p emqx_auto_func_test up -d --build
+            sudo docker ps -a
+            sudo docker exec emqx_auto_func_test_emqx_1 bash -xc "cd /tests sed -i '/^set.*/d' run_emqx.sh export EMQX_DEPS_DEFAULT_VSN=${version} ./run_emqx.sh emqx-ce.spec "
+            sudo docker exec emqx_auto_func_test_python_1 bash -xc "cd /tests && python ./boot.py "
+
                 
