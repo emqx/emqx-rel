@@ -63,12 +63,15 @@ jobs:
   
     steps:
     - uses: actions/checkout@v1
-    - name: pull lib
-      run: make deps-all
     - name: build
       env:
         EMQX_NAME: emqx
         EMQX_DEPS_DEFAULT_VSN: develop
         ERL_OTP: erl22.1
       run:
-        sudo docker run -d --name ${{ env.EMQX_NAME }}-${{ matrix.os }} -v $(pwd):/emqx_rel emqx/build-env:${{ env.ERL_OTP }}-${{ matrix.os }} sh -c "make -C /emqx-rel"
+        sudo docker run -d \
+          --name ${{ env.EMQX_NAME }}-${{ matrix.os }} \
+          -e EMQX_DEPS_DEFAULT_VSN=${{ env.EMQX_DEPS_DEFAULT_VSN }} \
+          -v $(pwd):/emqx_rel \
+          emqx/build-env:${{ env.ERL_OTP }}-${{ matrix.os }} \
+          sh -c "make -C /emqx-rel"
