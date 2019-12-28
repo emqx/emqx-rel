@@ -133,7 +133,7 @@ jobs:
         QEMU_ARCH: ${{ matrix.arch[1] }}
         EMQX_DEPS_DEFAULT_VSN: $(echo ${{ github.ref }} | gsed -r  "s .*/.*/(.*) \1 g")
       run: |
-        sudo make -C deploy/docker prepare
+        sudo docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
         sudo TARGET=emqx/emqx make -C deploy/docker 
         sudo TARGET=emqx/emqx make -C deploy/docker save
         sudo TARGET=emqx/emqx-edge make -C deploy/docker 
