@@ -81,7 +81,7 @@ jobs:
         ERL_OTP: erl22.1
       run: |
         sudo docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-        sudo docker run -i --name ${{ matrix.os }}-build -e EMQX_DEPS_DEFAULT_VSN=develop -e SYSTEM=${{ matrix.os }} -v $(pwd):/emqx-rel emqx/build-env:$ERL_OTP-${{ matrix.os }} sh -c "cd /emqx-rel/.github/workflows/release; if [ ! -z $(echo $SYSTEM | grep -o raspbian) ];then EMQX_NAME=emqx ./build.sh; fi; EMQX_NAME=emqx-edge ./build.sh"
+        sudo docker run -i --name ${{ matrix.os }}-build -e EMQX_DEPS_DEFAULT_VSN=v4.0-rc.3 -e SYSTEM=${{ matrix.os }} -v $(pwd):/emqx-rel emqx/build-env:$ERL_OTP-${{ matrix.os }} sh -c "cd /emqx-rel/.github/workflows/release; if [ ! -z $(echo $SYSTEM | grep -o raspbian) ];then EMQX_NAME=emqx ./build.sh; fi; EMQX_NAME=emqx-edge ./build.sh"
     - uses: actions/upload-artifact@v1
       with:
         name: emqx-${{ matrix.os }}
@@ -131,8 +131,8 @@ jobs:
       env:
         ARCH: ${{ matrix.arch[0] }}
         QEMU_ARCH: ${{ matrix.arch[1] }}
-        EMQX_DEPS_DEFAULT_VSN: $(echo ${{ github.ref }} | gsed -r  "s .*/.*/(.*) \1 g")
       run: |
+        export EMQX_DEPS_DEFAULT_VSN=$(echo ${{ github.ref }} | gsed -r  "s .*/.*/(.*) \1 g")
         sudo docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
         sudo TARGET=emqx/emqx make -C deploy/docker 
         sudo TARGET=emqx/emqx make -C deploy/docker save
