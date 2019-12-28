@@ -124,12 +124,7 @@ jobs:
           sudo TARGET=emqx/emqx EMQX_DEPS_DEFAULT_VSN=$EMQX_DEPS_DEFAULT_VSN PAHO_BRANCH="develop-4.0" make -C emqx-integration-test/paho-test cluster_test; \
           sudo TARGET=emqx/emqx-edge EMQX_DEPS_DEFAULT_VSN=$EMQX_DEPS_DEFAULT_VSN PAHO_BRANCH="develop-4.0" make -C emqx-integration-test/paho-test cluster_test; \
         fi
-    #- name: docker cluster test
-    #  if: matrix.arch[0]==amd64
-    #  run: |
-    #    sudo TARGET=emqx/emqx EMQX_DEPS_DEFAULT_VSN=$(echo ${{ github.ref }} | gsed -r  "s .*/.*/(.*) \1 g") PAHO_BRANCH="develop-4.0" make -C emqx-integration-test/paho-test cluster_test
-    #    sudo TARGET=emqx/emqx-edge EMQX_DEPS_DEFAULT_VSN=$(echo ${{ github.ref }} | gsed -r  "s .*/.*/(.*) \1 g") PAHO_BRANCH="develop-4.0" make -C emqx-integration-test/paho-test cluster_test
     - uses: actions/upload-artifact@v1
       with:
         name: emqx-docker-${{ matrix.arch[0] }}
-        path: _packages
+        path: emqx-rel/_packages
