@@ -143,6 +143,8 @@ jobs:
       with: 
         fetch-depth: 0
         path: emqx-rel
+    - name: fetch all history for all tags and branches
+      run: git fetch --prune --unshallow
     - uses: actions/checkout@v2
       with:
         repository: emqx/emqx-integration-test
