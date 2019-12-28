@@ -55,70 +55,90 @@ jobs:
   #       name: emqx-macosx
   #       path: _build/emqx/rel/emqx
 
-  # linux:
-  #   runs-on: ubuntu-latest
-
-  #   strategy:
-  #     matrix:
-  #       os: 
-  #         - ubuntu18.04 
-  #         - ubuntu16.04 
-  #         - ubuntu14.04 
-  #         - debian10
-  #         - debian9 
-  #         - debian8 
-  #         - opensuse
-  #         - centos7 
-  #         - centos6
-  
-  #   steps:
-  #   - uses: actions/checkout@v1
-  #   - name: build emqx
-  #     env:
-  #       ERL_OTP: erl22.1
-  #     run: 
-  #       sudo docker run -i --name ${{ matrix.os }}-build -e EMQX_DEPS_DEFAULT_VSN=$(echo ${{ github.ref }} | gsed -r  "s .*/.*/(.*) \1 g") -e SYSTEM=${{ matrix.os }} -v $(pwd):/emqx-rel emqx/build-env:$ERL_OTP-${{ matrix.os }} sh -c "cd /emqx-rel/.github/workflows/release; if [ ! -z $(echo $SYSTEM | grep -o raspbian) ];then EMQX_NAME=emqx ./build.sh; fi; EMQX_NAME=emqx-edge ./build.sh"
-  #   - uses: actions/upload-artifact@v1
-  #     with:
-  #       name: emqx-${{ matrix.os }}
-  #       path: _packages
-
-  raspbian:
-    # runs-on: self-hosted
+  linux:
     runs-on: ubuntu-latest
 
     strategy:
       matrix:
         os: 
+          - ubuntu18.04 
+          - ubuntu16.04 
+          - ubuntu14.04 
+          - debian10
+          - debian9 
+          - debian8 
+          - opensuse
+          - centos7 
+          - centos6
           - raspbian10
           - raspbian9
           - raspbian8
-    
+  
     steps:
     - uses: actions/checkout@v1
-    - name: build emqx
+    - name: build emqx packages
       env:
         ERL_OTP: erl22.1
       run: |
-        if [ ${{ matrix.os }} == 'raspbian8' ]; then sudo docker pull emqx/build-env@sha256:ed02c6eb379d963c9b696f5703d6e0fc3ad0c5ab1f872e5702246bad9167f824; sudo docker tag emqx/build-env@sha256:ed02c6eb379d963c9b696f5703d6e0fc3ad0c5ab1f872e5702246bad9167f824 emqx/build-env:raspbian8; fi
-        if [ ${{ matrix.os }} == 'raspbian9' ]; then sudo docker pull emqx/build-env@sha256:f8200d7b98f6af457300e7edc74537b529cc81b77c37d1c37434fe5822b23263; sudo docker tag emqx/build-env@sha256:f8200d7b98f6af457300e7edc74537b529cc81b77c37d1c37434fe5822b23263 emqx/build-env:raspbian9; fi
-        if [ ${{ matrix.os }} == 'raspbian10' ];then sudo docker pull emqx/build-env@sha256:af59d0ae396d22536d84cab763b828318ef721f6f1cd693ecf0a9df8046e9f19; sudo docker tag emqx/build-env@sha256:af59d0ae396d22536d84cab763b828318ef721f6f1cd693ecf0a9df8046e9f19 emqx/build-env:raspbian10; fi
         sudo docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-        sudo docker run -i --name ${{ matrix.os }}-build -e EMQX_DEPS_DEFAULT_VSN=$(echo ${{ github.ref }} | gsed -r  "s .*/.*/(.*) \1 g") -e SYSTEM=${{ matrix.os }} -v $(pwd):/emqx-rel emqx/build-env:$ERL_OTP-${{ matrix.os }} sh -c "cd /emqx-rel/.github/workflows/release; EMQX_NAME=emqx-edge ./build.sh"
+        sudo docker run -i --name ${{ matrix.os }}-build -e EMQX_DEPS_DEFAULT_VSN=develop -e SYSTEM=${{ matrix.os }} -v $(pwd):/emqx-rel emqx/build-env:$ERL_OTP-${{ matrix.os }} sh -c "cd /emqx-rel/.github/workflows/release; if [ ! -z $(echo $SYSTEM | grep -o raspbian) ];then EMQX_NAME=emqx ./build.sh; fi; EMQX_NAME=emqx-edge ./build.sh"
     - uses: actions/upload-artifact@v1
       with:
         name: emqx-${{ matrix.os }}
         path: _packages
 
+  # raspbian:
+  #   runs-on: ubuntu-latest
+
+  #   strategy:
+  #     matrix:
+  #       os: 
+  #         - raspbian10
+  #         - raspbian9
+  #         - raspbian8
+    
   #   steps:
-  #   - uses: actions/checkout@v2
-  #   - name: build emqx
+  #   - uses: actions/checkout@v1
+  #   - name: build emqx packages
   #     env:
-  #       EMQX_DEPS_DEFAULT_VSN: develop
   #       ERL_OTP: erl22.1
   #     run: |
-  #       sudo docker run -i --name ${{ matrix.os }}-build -e EMQX_DEPS_DEFAULT_VSN=$EMQX_DEPS_DEFAULT_VSN -e SYSTEM=${{ matrix.os }} -v $(pwd):/emqx-rel emqx/build-env:$ERL_OTP-${{ matrix.os }} sh -c "cd /emqx-rel/.github/workflows/release; if [ -z $(echo $SYSTEM | grep -o raspbian) ];then export EMQX_NAME=emqx; ./build.sh; fi; export EMQX_NAME=emqx-edge; ./build.sh"
+  #       if [ ${{ matrix.os }} == 'raspbian8' ]; then sudo docker pull emqx/build-env@sha256:ed02c6eb379d963c9b696f5703d6e0fc3ad0c5ab1f872e5702246bad9167f824; sudo docker tag emqx/build-env@sha256:ed02c6eb379d963c9b696f5703d6e0fc3ad0c5ab1f872e5702246bad9167f824 emqx/build-env:raspbian8; fi
+  #       if [ ${{ matrix.os }} == 'raspbian9' ]; then sudo docker pull emqx/build-env@sha256:f8200d7b98f6af457300e7edc74537b529cc81b77c37d1c37434fe5822b23263; sudo docker tag emqx/build-env@sha256:f8200d7b98f6af457300e7edc74537b529cc81b77c37d1c37434fe5822b23263 emqx/build-env:raspbian9; fi
+  #       if [ ${{ matrix.os }} == 'raspbian10' ];then sudo docker pull emqx/build-env@sha256:af59d0ae396d22536d84cab763b828318ef721f6f1cd693ecf0a9df8046e9f19; sudo docker tag emqx/build-env@sha256:af59d0ae396d22536d84cab763b828318ef721f6f1cd693ecf0a9df8046e9f19 emqx/build-env:raspbian10; fi
+  #       sudo docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+  #       sudo docker run -i --name ${{ matrix.os }}-build -e EMQX_DEPS_DEFAULT_VSN=$(echo ${{ github.ref }} | gsed -r  "s .*/.*/(.*) \1 g") -e SYSTEM=${{ matrix.os }} -v $(pwd):/emqx-rel emqx/build-env:$ERL_OTP-${{ matrix.os }} sh -c "cd /emqx-rel/.github/workflows/release; EMQX_NAME=emqx-edge ./build.sh"
   #   - uses: actions/upload-artifact@v1
   #     with:
   #       name: emqx-${{ matrix.os }}
   #       path: _packages
+
+  docker:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        arch:
+          - [amd64, x86_64]
+          - [arm64v8, aarch64]
+          - [arm32v7, arm]
+          - [i386, i386]
+          - [s390x, s390x]
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: build emqx docker image
+      env:
+        ARCH: ${{ matrix.arch[0] }}
+        QEMU_ARCH: ${{ matrix.arch[1] }}
+        EMQX_DEPS_DEFAULT_VSN: $(echo ${{ github.ref }} | gsed -r  "s .*/.*/(.*) \1 g")
+      run: |
+        docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+        make emqx-docker-build
+        make emqx-docker-save
+        make emqx-edge-docker-build
+        make emqx-edge-docker-save
+    - uses: actions/upload-artifact@v1
+      with:
+        name: emqx-docker-${{ matrix.arch[0] }}
+        path: _packages
