@@ -84,8 +84,8 @@ jobs:
   #       path: _packages
 
   raspbian:
-    # runs-on: self-hosted
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
+    # runs-on: ubuntu-latest
 
     strategy:
       matrix:
@@ -95,7 +95,7 @@ jobs:
           - raspbian8
     
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
     - name: build emqx
       env:
         ERL_OTP: erl22.1
