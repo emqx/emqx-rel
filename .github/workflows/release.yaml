@@ -72,8 +72,8 @@ jobs:
     - name: upload to aws s3
       run: |
         version=$(echo ${{ github.ref }} | gsed -r  "s .*/.*/(.*) \1 g")
-        aws s3 rm --quiet --recursive s3://packages.emqx.io/emqx/$version/emqx-macosx-$version.zip
-        aws s3 cp --quiet --recursive ./_build/emqx/rel/emqx-macosx-$version.zip s3://packages.emqx.io/emqx/$version
+        aws2 s3 rm --quiet --recursive s3://packages.emqx.io/emqx/$version/emqx-macosx-$version.zip
+        aws2 s3 cp --quiet --recursive ./_build/emqx/rel/emqx-macosx-$version.zip s3://packages.emqx.io/emqx/$version
     # - uses: actions/upload-artifact@v1
     #   with:
     #     name: emqx-macosx
@@ -117,14 +117,12 @@ jobs:
     - name: upload to aws s3
       run: |
         version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
-        aws s3 rm --quiet --recursive s3://packages.emqx.io/emqx/$version/emqx-${{ matrix.os }}*
-        aws s3 rm --quiet --recursive s3://packages.emqx.io/emqx-edge/$version/emqx-edge-${{ matrix.os }}*
-        aws s3 cp --quiet --recursive ./_packages/emqx/emqx-${{ matrix.os }}* s3://packages.emqx.io/emqx/$version
-        aws s3 cp --quiet --recursive ./_packages/emqx-edge/emqx-edge-${{ matrix.os }}* s3://packages.emqx.io/emqx-edge/$version
-    # - uses: actions/upload-artifact@v1
-    #   with:
-    #     name: emqx-${{ matrix.os }}
-    #     path: _packages
+        for var in emqx emqx-edge; do \
+          for package in $(ls _packages/$var); do \
+            aws2 s3 rm --quiet --recursive s3://packages.emqx.io/$var/$version/$package
+            aws2 s3 cp --quiet --recursive ./_packages/$var/$package s3://packages.emqx.io/$var/$version
+          done \
+        done
 
   docker:
     runs-on: ubuntu-latest
@@ -141,7 +139,6 @@ jobs:
     steps:
     - uses: actions/checkout@v2
       with: 
-        fetch-depth: 0
         path: emqx-rel
     - name: fetch all history for all tags and branches
       run: |
@@ -178,12 +175,10 @@ jobs:
         aws2 configure set default.region us-west-2
     - name: upload to aws s3
       run: |
-        version=$(echo ${{ github.ref }} | gsed -r  "s .*/.*/(.*) \1 g")
-        aws s3 rm --quiet --recursive s3://packages.emqx.io/emqx/$version/emqx-${{ matrix.arch[0] }}*
-        aws s3 rm --quiet --recursive s3://packages.emqx.io/emqx-edge/$version/emqx-edge-${{ matrix.arch[0] }}*
-        aws s3 cp --quiet --recursive ./_packages/emqx/emqx-${{ matrix.arch[0] }}* s3://packages.emqx.io/emqx/$version
-        aws s3 cp --quiet --recursive ./_packages/emqx-edge/emqx-edge-${{ matrix.arch[0] }}* s3://packages.emqx.io/emqx-edge/$version
-    # - uses: actions/upload-artifact@v1
-    #   with:
-    #     name: emqx-docker-${{ matrix.arch[0] }}
-    #     path: emqx-rel/_packages
+        version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
+        for var in emqx emqx-edge; do \
+          for package in $(ls _packages/$var); do \
+            aws2 s3 rm --quiet --recursive s3://packages.emqx.io/$var/$version/$package
+            aws2 s3 cp --quiet --recursive ./_packages/$var/$package s3://packages.emqx.io/$var/$version
+          done \
+        done
