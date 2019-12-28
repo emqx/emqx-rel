@@ -145,7 +145,7 @@ jobs:
         sudo EMQX_DEPS_DEFAULT_VSN=$(echo ${{ github.ref }} | gsed -r  "s .*/.*/(.*) \1 g") ARCH=${{ matrix.arch[0] }} QEMU_ARCH=${{ matrix.arch[1] }} TARGET=emqx/emqx-edge make -C emqx-rel/deploy/docker 
         sudo EMQX_DEPS_DEFAULT_VSN=$(echo ${{ github.ref }} | gsed -r  "s .*/.*/(.*) \1 g") ARCH=${{ matrix.arch[0] }} QEMU_ARCH=${{ matrix.arch[1] }} TARGET=emqx/emqx-edge make -C emqx-rel/deploy/docker save
     - name: docker cluster test
-      if: ${{ matrix.arch }} == [amd64, x86_64]
+      if: $matrix.arch[0] == amd64
       run: |
         sudo TARGET=emqx/emqx EMQX_DEPS_DEFAULT_VSN=$(echo ${{ github.ref }} | gsed -r  "s .*/.*/(.*) \1 g") PAHO_BRANCH="develop-4.0" make -C emqx-integration-test/paho-test cluster_test
         sudo TARGET=emqx/emqx-edge EMQX_DEPS_DEFAULT_VSN=$(echo ${{ github.ref }} | gsed -r  "s .*/.*/(.*) \1 g") PAHO_BRANCH="develop-4.0" make -C emqx-integration-test/paho-test cluster_test
