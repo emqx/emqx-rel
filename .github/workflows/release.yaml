@@ -117,7 +117,7 @@ jobs:
         ARCH: ${{ matrix.arch[0] }}
         QEMU_ARCH: ${{ matrix.arch[1] }}
       run: |
-        EMQX_DEPS_DEFAULT_VSN=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
+        EMQX_DEPS_DEFAULT_VSN=develop
         sudo docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
         sudo EMQX_DEPS_DEFAULT_VSN=$EMQX_DEPS_DEFAULT_VSN ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH TARGET=emqx/emqx make -C emqx-rel/deploy/docker 
         sudo EMQX_DEPS_DEFAULT_VSN=$EMQX_DEPS_DEFAULT_VSN ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH TARGET=emqx/emqx make -C emqx-rel/deploy/docker save
