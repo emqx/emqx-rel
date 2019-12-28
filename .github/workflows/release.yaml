@@ -127,7 +127,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
-      with: emqx-rel
+      with: 
+        path: emqx-rel
     - uses: actions/checkout@v2
       with:
         repository: emqx/emqx-integration-test
