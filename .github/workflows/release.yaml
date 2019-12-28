@@ -95,7 +95,7 @@ jobs:
           - raspbian8
     
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v1
     - name: build emqx
       env:
         ERL_OTP: erl22.1
