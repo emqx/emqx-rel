@@ -36,7 +36,6 @@ jobs:
         mv _build/emqx/rel/emqx-windows-$("${{ github.ref }}" | sed -r 's .*/.*/(.*) \1 g').zip _packages/emqx
         sudo ./_build/emqx/rel/emqx/bin/emqx start
         sudo ./_build/emqx/rel/emqx/bin/emqx stop
-        rm -rf ./_build/emqx/rel/emqx
         aws configure set aws_access_key_id ${{ secrets.AwsAccessKeyId }} 
         aws configure set aws_secret_access_key ${{ secrets.AwsSecretAccessKey }} 
         aws configure set default.region us-west-2
