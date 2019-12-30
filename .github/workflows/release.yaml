@@ -172,5 +172,5 @@ jobs:
     - name: upload to aws s3
       run: |
         version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
-        aws2 s3 cp --recursive ./_packages/emqx  s3://packages.emqx.io/emqx-ce/$version
-        aws2 s3 cp --recursive ./_packages/emqx-edge s3://packages.emqx.io/emqx-edge/$version
+        aws2 s3 cp --recursive emqx-rel/_packages/emqx  s3://packages.emqx.io/emqx-ce/$version
+        aws2 s3 cp --recursive emqx-rel/_packages/emqx-edge s3://packages.emqx.io/emqx-edge/$version
