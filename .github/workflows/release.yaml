@@ -30,13 +30,14 @@ jobs:
         iex (new-object net.webclient).downloadstring('https://get.scoop.sh')
         scoop install sudo curl 7zip aws erlang
         $env:path + ";" + $env:USERPROFILE + "\scoop\shims"
-        aws configure set aws_access_key_id ${{ secrets.AwsAccessKeyId }} 
-        aws configure set aws_secret_access_key ${{ secrets.AwsSecretAccessKey }} 
-        aws configure set default.region us-west-2
         make emqx
         Compress-Archive -Path _build/emqx/rel/emqx -DestinationPath _build/emqx/rel/emqx-windows-$("${{ github.ref }}" | sed -r 's .*/.*/(.*) \1 g').zip
         sudo ./_build/emqx/rel/emqx/bin/emqx start
         sudo ./_build/emqx/rel/emqx/bin/emqx stop
+        aws configure set aws_access_key_id ${{ secrets.AwsAccessKeyId }} 
+        aws configure set aws_secret_access_key ${{ secrets.AwsSecretAccessKey }} 
+        aws configure set default.region us-west-2
+        aws s3 cp _build/emqx/rel/emqx-windows-$("${{ github.ref }}" | sed -r 's .*/.*/(.*) \1 g').zip ./_build/emqx/rel s3://packages.emqx.io/emqx/$version
     - uses: actions/upload-artifact@v1
       with:
         name: emqx-windows
@@ -72,7 +73,7 @@ jobs:
     - name: upload to aws s3
       run: |
         version=$(echo ${{ github.ref }} | gsed -r  "s .*/.*/(.*) \1 g")
-        aws2 s3 cp  --recursive ./_packages/emqx s3://packages.emqx.io/emqx/$version
+        aws2 s3 cp --recursive ./_build/emqx/rel s3://packages.emqx.io/emqx/$version
 
   linux:
     runs-on: ubuntu-latest
@@ -112,8 +113,8 @@ jobs:
     - name: upload to aws s3
       run: |
         version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
-        aws2 s3 cp  --recursive ./_packages/emqx s3://packages.emqx.io/emqx/$version
-        aws2 s3 cp  --recursive ./_packages/emqx-edge s3://packages.emqx.io/emqx-edge/$version
+        aws2 s3 cp --recursive ./_packages/emqx s3://packages.emqx.io/emqx/$version
+        aws2 s3 cp --recursive ./_packages/emqx-edge s3://packages.emqx.io/emqx-edge/$version
   docker:
     runs-on: ubuntu-latest
 
@@ -167,5 +168,5 @@ jobs:
     - name: upload to aws s3
       run: |
         version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
-        aws2 s3 cp  --recursive ./_packages/emqx s3://packages.emqx.io/emqx/$version
-        aws2 s3 cp  --recursive ./_packages/emqx-edge s3://packages.emqx.io/emqx-edge/$version
+        aws2 s3 cp --recursive ./_packages/emqx s3://packages.emqx.io/emqx/$version
+        aws2 s3 cp --recursive ./_packages/emqx-edge s3://packages.emqx.io/emqx-edge/$version
