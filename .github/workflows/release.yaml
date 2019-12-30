@@ -72,13 +72,7 @@ jobs:
     - name: upload to aws s3
       run: |
         version=$(echo ${{ github.ref }} | gsed -r  "s .*/.*/(.*) \1 g")
-        version=develop
-        aws2 s3 rm s3://packages.emqx.io/emqx/$version/emqx-macosx-$version.zip
-        aws2 s3 cp ./_build/emqx/rel/emqx-macosx-$version.zip s3://packages.emqx.io/emqx/$version
-    # - uses: actions/upload-artifact@v1
-    #   with:
-    #     name: emqx-macosx
-    #     path: _build/emqx/rel/emqx
+        aws2 s3 cp  --recursive ./_packages/emqx s3://packages.emqx.io/emqx/$version
 
   linux:
     runs-on: ubuntu-latest
@@ -118,9 +112,8 @@ jobs:
     - name: upload to aws s3
       run: |
         version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
-        for package in $(ls _packages/emqx); do aws2 s3 rm s3://packages.emqx.io/emqx/$version/$package; aws2 s3 cp ./_packages/emqx/$package s3://packages.emqx.io/emqx/$version; done
-        for package in $(ls _packages/emqx-edge); do aws2 s3 rm s3://packages.emqx.io/emqx-edge/$version/$package; aws2 s3 cp ./_packages/emqx-edge/$package s3://packages.emqx.io/emqx/$version; done
-
+        aws2 s3 cp  --recursive ./_packages/emqx s3://packages.emqx.io/emqx/$version
+        aws2 s3 cp  --recursive ./_packages/emqx-edge s3://packages.emqx.io/emqx-edge/$version
   docker:
     runs-on: ubuntu-latest
 
@@ -163,7 +156,6 @@ jobs:
         EMQX_DEPS_DEFAULT_VSN=develop
         sudo TARGET=emqx/emqx EMQX_DEPS_DEFAULT_VSN=$EMQX_DEPS_DEFAULT_VSN PAHO_BRANCH="develop-4.0" make -C emqx-integration-test/paho-test cluster_test
         sudo TARGET=emqx/emqx-edge EMQX_DEPS_DEFAULT_VSN=$EMQX_DEPS_DEFAULT_VSN PAHO_BRANCH="develop-4.0" make -C emqx-integration-test/paho-test cluster_test
-
     - name: set aws
       run: |
         curl "https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
@@ -175,5 +167,5 @@ jobs:
     - name: upload to aws s3
       run: |
         version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
-        for package in $(ls _packages/emqx); do aws2 s3 rm s3://packages.emqx.io/emqx/$version/$package; aws2 s3 cp ./_packages/emqx/$package s3://packages.emqx.io/emqx/$version; done
-        for package in $(ls _packages/emqx-edge); do aws2 s3 rm s3://packages.emqx.io/emqx-edge/$version/$package; aws2 s3 cp ./_packages/emqx-edge/$package s3://packages.emqx.io/emqx/$version; done
+        aws2 s3 cp  --recursive ./_packages/emqx s3://packages.emqx.io/emqx/$version
+        aws2 s3 cp  --recursive ./_packages/emqx-edge s3://packages.emqx.io/emqx-edge/$version
