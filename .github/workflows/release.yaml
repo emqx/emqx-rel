@@ -118,6 +118,9 @@ jobs:
         version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
         aws2 s3 cp --recursive ./_packages/emqx  s3://packages.emqx.io/emqx-ce/$version
         aws2 s3 cp --recursive ./_packages/emqx-edge s3://packages.emqx.io/emqx-edge/$version
+
+  
+
   docker:
     runs-on: ubuntu-latest
 

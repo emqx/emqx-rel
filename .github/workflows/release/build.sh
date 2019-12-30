@@ -37,8 +37,8 @@ emqx_test(){
                 sed -i "/zone.external.server_keepalive/c zone.external.server_keepalive = 60" ${PACKAGE_PATH}/${SYSTEM}/${EMQX_NAME}/emqx/etc/emqx.conf 
                 sed -i "/mqtt.max_topic_alias/c mqtt.max_topic_alias = 10" ${PACKAGE_PATH}/${SYSTEM}/${EMQX_NAME}/emqx/etc/emqx.conf
 
-                if [[ ! -z $(echo $EMQX_DEPS_DEFAULT_VSN | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?-(alpha|beta|rc)\.[0-9]") ]]; then
-                    if [[ ! -d ${PACKAGE_PATH}/${SYSTEM}/${EMQX_NAME}/emqx/lib/emqx-${EMQX_DEPS_DEFAULT_VSN#v} ]] || [[ ! -d ${PACKAGE_PATH}/${SYSTEM}/${EMQX_NAME}/emqx/releases/${EMQX_DEPS_DEFAULT_VSN} ]] ;then
+                if [ ! -z $(echo $EMQX_DEPS_DEFAULT_VSN | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?-(alpha|beta|rc)\.[0-9]") ]; then
+                    if [ ! -d ${PACKAGE_PATH}/${SYSTEM}/${EMQX_NAME}/emqx/lib/emqx-${EMQX_DEPS_DEFAULT_VSN#v} ] || [ ! -d ${PACKAGE_PATH}/${SYSTEM}/${EMQX_NAME}/emqx/releases/${EMQX_DEPS_DEFAULT_VSN} ] ;then
                         echo "emqx zip version error"
                         exit 1
                     fi
@@ -46,9 +46,9 @@ emqx_test(){
 
                 ${PACKAGE_PATH}/${SYSTEM}/${EMQX_NAME}/emqx/bin/emqx start
                 IDLE_TIME=0
-                while [[ -z "$(${PACKAGE_PATH}/${SYSTEM}/${EMQX_NAME}/emqx/bin/emqx_ctl status |grep 'is running'|awk '{print $1}')" ]]
+                while [ -z "$(${PACKAGE_PATH}/${SYSTEM}/${EMQX_NAME}/emqx/bin/emqx_ctl status |grep 'is running'|awk '{print $1}')" ]
                 do
-                    if [[ $IDLE_TIME -gt 10 ]]
+                    if [ $IDLE_TIME -gt 10 ]
                     then
                         echo "emqx running error"
                         exit 1
@@ -87,7 +87,7 @@ emqx_test(){
                 fi
 
                 dpkg -P ${EMQX_NAME}
-                if [[ ! -z "$(dpkg -l |grep emqx)" ]]
+                if [ ! -z "$(dpkg -l |grep emqx)" ]
                 then
                     echo "package uninstall error"
                     exit 1
@@ -96,7 +96,7 @@ emqx_test(){
             "rpm")
                 packagename=`basename ${PACKAGE_PATH}/${EMQX_NAME}-${SYSTEM}-*.rpm`
                 rpm -ivh ${PACKAGE_PATH}/$packagename
-                if [[ $(rpm -q ${EMQX_NAME}) != emqx* ]];then
+                if [ $(rpm -q ${EMQX_NAME}) != emqx* ];then
                     echo "package install error"
                     exit 1
                 fi
@@ -106,7 +106,7 @@ emqx_test(){
                 echo "running ${packagename} stop"
                 
                 rpm -e ${EMQX_NAME}
-                if [[ $(rpm -q emqx) == emqx* ]];then
+                if [ $(rpm -q emqx) == emqx* ];then
                     echo "package uninstall error"
                     exit 1
                 fi  
@@ -117,8 +117,8 @@ emqx_test(){
 }
 
 running_test(){
-    if [[ ! -z $(echo $EMQX_DEPS_DEFAULT_VSN | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?-(alpha|beta|rc)\.[0-9]") ]]; then
-        if [[ ! -d /usr/lib/emqx/lib/emqx-${EMQX_DEPS_DEFAULT_VSN#v} ]] || [[ ! -d /usr/lib/emqx/releases/${EMQX_DEPS_DEFAULT_VSN} ]];then
+    if [ ! -z $(echo $EMQX_DEPS_DEFAULT_VSN | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?-(alpha|beta|rc)\.[0-9]") ]; then
+        if [ ! -d /usr/lib/emqx/lib/emqx-${EMQX_DEPS_DEFAULT_VSN#v} ] || [ ! -d /usr/lib/emqx/releases/${EMQX_DEPS_DEFAULT_VSN} ];then
             echo "emqx package version error"
             exit 1
         fi
@@ -129,9 +129,9 @@ running_test(){
 
     emqx start
     IDLE_TIME=0
-    while [[ -z "$(emqx_ctl status |grep 'is running'|awk '{print $1}')" ]]
+    while [ -z "$(emqx_ctl status |grep 'is running'|awk '{print $1}')" ]
     do
-        if [[ $IDLE_TIME -gt 10 ]]
+        if [ $IDLE_TIME -gt 10 ]
         then
             echo "emqx running error"
             exit 1
@@ -147,9 +147,9 @@ running_test(){
     || [ $(sed -n '/^ID=/p' /etc/os-release | sed -r 's/ID=(.*)/\1/g' | sed 's/"//g') = raspbian ];then
         service emqx start
         IDLE_TIME=0
-        while [[ -z "$(emqx_ctl status |grep 'is running'|awk '{print $1}')" ]]
+        while [ -z "$(emqx_ctl status |grep 'is running'|awk '{print $1}')" ]
         do
-            if [[ $IDLE_TIME -gt 10 ]]
+            if [ $IDLE_TIME -gt 10 ]
             then
                 echo "emqx service error"
                 exit 1
