@@ -105,7 +105,7 @@ jobs:
         ERL_OTP: erl22.1
       run: |
         sudo docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-        sudo docker run -i --name ${{ matrix.os }}-build -e EMQX_DEPS_DEFAULT_VSN=develop -e SYSTEM=${{ matrix.os }} -v $(pwd):/emqx-rel emqx/build-env:$ERL_OTP-${{ matrix.os }} sh -c "cd /emqx-rel/.github/workflows/release; if [ ! -z $(echo $SYSTEM | grep -o raspbian) ];then EMQX_NAME=emqx ./build.sh; fi; EMQX_NAME=emqx-edge ./build.sh"
+        sudo docker run -i --name ${{ matrix.os }}-build -e EMQX_DEPS_DEFAULT_VSN=develop -e SYSTEM=${{ matrix.os }} -v $(pwd):/emqx-rel emqx/build-env:$ERL_OTP-${{ matrix.os }} sh -c "cd /emqx-rel/.github/workflows/release; if [ -z $(echo $SYSTEM | grep -o raspbian) ];then EMQX_NAME=emqx ./build.sh; fi; EMQX_NAME=emqx-edge ./build.sh"
     - name: set aws
       run: |
         curl "https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
@@ -154,7 +154,6 @@ jobs:
         ARCH: ${{ matrix.arch[0] }}
         QEMU_ARCH: ${{ matrix.arch[1] }}
       run: |
-        EMQX_DEPS_DEFAULT_VSN=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
         EMQX_DEPS_DEFAULT_VSN=develop
         sudo docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
         sudo EMQX_DEPS_DEFAULT_VSN=$EMQX_DEPS_DEFAULT_VSN ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH TARGET=emqx/emqx make -C emqx-rel/deploy/docker 
