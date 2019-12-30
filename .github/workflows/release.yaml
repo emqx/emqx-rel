@@ -39,7 +39,6 @@ jobs:
         aws configure set aws_access_key_id ${{ secrets.AwsAccessKeyId }} 
         aws configure set aws_secret_access_key ${{ secrets.AwsSecretAccessKey }} 
         aws configure set default.region us-west-2
-        aws s3 mkdir -p s3://packages.emqx.io/emqx-ce/$version
         aws2 s3 cp --recursive ./_packages/emqx  s3://packages.emqx.io/emqx-ce/$version
     - uses: actions/upload-artifact@v1
       with:
