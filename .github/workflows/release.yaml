@@ -31,7 +31,9 @@ jobs:
         scoop install sudo curl 7zip aws erlang
         $env:path + ";" + $env:USERPROFILE + "\scoop\shims"
         make emqx
+        mkdir -p _packages/emqx
         Compress-Archive -Path _build/emqx/rel/emqx -DestinationPath _build/emqx/rel/emqx-windows-$("${{ github.ref }}" | sed -r 's .*/.*/(.*) \1 g').zip
+        mv _build/emqx/rel/emqx-windows-$("${{ github.ref }}" | sed -r 's .*/.*/(.*) \1 g').zip _packages/emqx
         sudo ./_build/emqx/rel/emqx/bin/emqx start
         sudo ./_build/emqx/rel/emqx/bin/emqx stop
         rm -rf ./_build/emqx/rel/emqx
@@ -39,7 +41,7 @@ jobs:
         aws configure set aws_secret_access_key ${{ secrets.AwsSecretAccessKey }} 
         aws configure set default.region us-west-2
         aws s3 mkdir -p s3://packages.emqx.io/emqx-ce/$version
-        aws s3 cp --recursive ./_build/emqx/rel  s3://packages.emqx.io/emqx-ce/$version
+        aws2 s3 cp --recursive ./_packages/emqx  s3://packages.emqx.io/emqx-ce/$version
     - uses: actions/upload-artifact@v1
       with:
         name: emqx-windows
@@ -60,10 +62,10 @@ jobs:
         version=$(echo ${{ github.ref }} | gsed -r  "s .*/.*/(.*) \1 g")
         version=develop
         EMQX_DEPS_DEFAULT_VSN=$version make emqx
-        cd ./_build/emqx/rel
-        zip -rq emqx-macosx-$version.zip emqx
-        ./emqx/bin/emqx start
-        ./emqx/bin/emqx stop
+        mkdir -p _packages/emqx
+        cd ./_build/emqx/rel && zip -rq emqx-macosx-$version.zip emqx && cd - && mv ./_build/emqx/rel/emqx-macosx-$version.zip _packages/emqx
+        ./_build/emqx/rel/emqx/bin/emqx start
+        ./_build/emqx/rel/emqx/bin/emqx stop
     - name: set aws
       run: |
         curl "https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-macos.zip" -o "awscliv2.zip"
@@ -75,7 +77,7 @@ jobs:
     - name: upload to aws s3
       run: |
         version=$(echo ${{ github.ref }} | gsed -r  "s .*/.*/(.*) \1 g")
-        aws2 s3 cp --recursive ./_build/emqx/rel  s3://packages.emqx.io/emqx-ce/$version
+        aws2 s3 cp --recursive ./_packages/emqx  s3://packages.emqx.io/emqx-ce/$version
 
   linux:
     runs-on: ubuntu-latest
