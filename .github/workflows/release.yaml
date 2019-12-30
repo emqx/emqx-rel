@@ -24,7 +24,7 @@ jobs:
     - name: checkout
       # run: git checkout $("${{ github.ref }}" | sed -r 's .*/.*/(.*) \1 g')
       run: git checkout develop 
-    - name: install
+    - name: build
       run: |
         set-executionpolicy remotesigned -s cu
         iex (new-object net.webclient).downloadstring('https://get.scoop.sh')
@@ -39,7 +39,7 @@ jobs:
         aws configure set aws_access_key_id ${{ secrets.AwsAccessKeyId }} 
         aws configure set aws_secret_access_key ${{ secrets.AwsSecretAccessKey }} 
         aws configure set default.region us-west-2
-        aws s3 cp --recursive ./_packages/emqx  s3://packages.emqx.io/emqx-ce/$version
+        aws s3 cp --recursive ./_packages/emqx  s3://packages.emqx.io/emqx-ce/$("${{ github.ref }}" | sed -r 's .*/.*/(.*) \1 g')
     - uses: actions/upload-artifact@v1
       with:
         name: emqx-windows
@@ -117,8 +117,6 @@ jobs:
         version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
         aws2 s3 cp --recursive ./_packages/emqx  s3://packages.emqx.io/emqx-ce/$version
         aws2 s3 cp --recursive ./_packages/emqx-edge s3://packages.emqx.io/emqx-edge/$version
-
-  
 
   docker:
     runs-on: ubuntu-latest
