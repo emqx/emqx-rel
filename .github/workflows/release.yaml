@@ -72,6 +72,7 @@ jobs:
     - name: upload to aws s3
       run: |
         version=$(echo ${{ github.ref }} | gsed -r  "s .*/.*/(.*) \1 g")
+        version=develop
         aws2 s3 rm --quiet --recursive s3://packages.emqx.io/emqx/$version/emqx-macosx-$version.zip
         aws2 s3 cp --quiet --recursive ./_build/emqx/rel/emqx-macosx-$version.zip s3://packages.emqx.io/emqx/$version
     # - uses: actions/upload-artifact@v1
@@ -117,12 +118,8 @@ jobs:
     - name: upload to aws s3
       run: |
         version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
-        for var in emqx emqx-edge; do \
-          for package in $(ls _packages/$var); do \
-            aws2 s3 rm --quiet --recursive s3://packages.emqx.io/$var/$version/$package
-            aws2 s3 cp --quiet --recursive ./_packages/$var/$package s3://packages.emqx.io/$var/$version
-          done \
-        done
+        for package in $(ls _packages/emqx); do aws2 s3 rm --quiet --recursive s3://packages.emqx.io/emqx/$version/$package; aws2 s3 cp --quiet --recursive ./_packages/emqx/$package s3://packages.emqx.io/emqx/$version; done
+        for package in $(ls _packages/emqx-edge); do aws2 s3 rm --quiet --recursive s3://packages.emqx.io/emqx-edge/$version/$package; aws2 s3 cp --quiet --recursive ./_packages/emqx-edge/$package s3://packages.emqx.io/emqx/$version; done
 
   docker:
     runs-on: ubuntu-latest
@@ -157,13 +154,11 @@ jobs:
         EMQX_DEPS_DEFAULT_VSN=develop
         sudo docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
         sudo EMQX_DEPS_DEFAULT_VSN=$EMQX_DEPS_DEFAULT_VSN ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH TARGET=emqx/emqx make -C emqx-rel/deploy/docker 
+        if [ $ARCH==amd64 ]; then sudo TARGET=emqx/emqx EMQX_DEPS_DEFAULT_VSN=$EMQX_DEPS_DEFAULT_VSN PAHO_BRANCH="develop-4.0" make -C emqx-integration-test/paho-test cluster_test; fi
         sudo EMQX_DEPS_DEFAULT_VSN=$EMQX_DEPS_DEFAULT_VSN ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH TARGET=emqx/emqx make -C emqx-rel/deploy/docker save
         sudo EMQX_DEPS_DEFAULT_VSN=$EMQX_DEPS_DEFAULT_VSN ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH TARGET=emqx/emqx-edge make -C emqx-rel/deploy/docker 
+        if [ $ARCH==amd64 ]; then sudo TARGET=emqx/emqx-edge EMQX_DEPS_DEFAULT_VSN=$EMQX_DEPS_DEFAULT_VSN PAHO_BRANCH="develop-4.0" make -C emqx-integration-test/paho-test cluster_test; fi
         sudo EMQX_DEPS_DEFAULT_VSN=$EMQX_DEPS_DEFAULT_VSN ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH TARGET=emqx/emqx-edge make -C emqx-rel/deploy/docker save
-        if [ $ARCH==amd64 ]; then \
-          sudo TARGET=emqx/emqx EMQX_DEPS_DEFAULT_VSN=$EMQX_DEPS_DEFAULT_VSN PAHO_BRANCH="develop-4.0" make -C emqx-integration-test/paho-test cluster_test; \
-          sudo TARGET=emqx/emqx-edge EMQX_DEPS_DEFAULT_VSN=$EMQX_DEPS_DEFAULT_VSN PAHO_BRANCH="develop-4.0" make -C emqx-integration-test/paho-test cluster_test; \
-        fi
     - name: set aws
       run: |
         curl "https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
@@ -175,9 +170,5 @@ jobs:
     - name: upload to aws s3
       run: |
         version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
-        for var in emqx emqx-edge; do \
-          for package in $(ls _packages/$var); do \
-            aws2 s3 rm --quiet --recursive s3://packages.emqx.io/$var/$version/$package
-            aws2 s3 cp --quiet --recursive ./_packages/$var/$package s3://packages.emqx.io/$var/$version
-          done \
-        done
+        for package in $(ls _packages/emqx); do aws2 s3 rm --quiet --recursive s3://packages.emqx.io/emqx/$version/$package; aws2 s3 cp --quiet --recursive ./_packages/emqx/$package s3://packages.emqx.io/emqx/$version; done
+        for package in $(ls _packages/emqx-edge); do aws2 s3 rm --quiet --recursive s3://packages.emqx.io/emqx-edge/$version/$package; aws2 s3 cp --quiet --recursive ./_packages/emqx-edge/$package s3://packages.emqx.io/emqx/$version; done
