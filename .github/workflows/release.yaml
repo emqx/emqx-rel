@@ -40,10 +40,10 @@ jobs:
         aws configure set aws_secret_access_key ${{ secrets.AwsSecretAccessKey }} 
         aws configure set default.region us-west-2
         aws s3 cp --recursive ./_packages/emqx  s3://packages.emqx.io/emqx-ce/$("${{ github.ref }}" | sed -r 's .*/.*/(.*) \1 g')
-    - uses: actions/upload-artifact@v1
-      with:
-        name: emqx-windows
-        path: _build/emqx/rel/emqx
+    # - uses: actions/upload-artifact@v1
+    #   with:
+    #     name: emqx-windows
+    #     path: _build/emqx/rel/emqx
     
   mac:
     runs-on: macos-latest
@@ -102,7 +102,7 @@ jobs:
       env:
         ERL_OTP: erl22.1
       run: |
-        sudo docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+        sudo docker run --rm --privileged multiarch/qemu-user-static:register --reset
         sudo docker run -i --name ${{ matrix.os }}-build -e EMQX_DEPS_DEFAULT_VSN=develop -e SYSTEM=${{ matrix.os }} -v $(pwd):/emqx-rel emqx/build-env:$ERL_OTP-${{ matrix.os }} sh -c "cd /emqx-rel/.github/workflows/release; if [ -z $(echo $SYSTEM | grep -o raspbian) ];then EMQX_NAME=emqx ./build.sh; fi; EMQX_NAME=emqx-edge ./build.sh"
     - name: set aws
       run: |
