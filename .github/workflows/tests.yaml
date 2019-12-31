@@ -1,6 +1,7 @@
 name: Run all test cases
 
 on: 
+  repository_dispatch
   push:
     branch:
       - develop
