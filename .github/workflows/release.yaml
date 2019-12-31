@@ -1,7 +1,6 @@
 name: Release
 
 on:
-  repository_dispatch:
   push:
     branch:
       - develop
@@ -9,6 +8,7 @@ on:
       - release-*
     tags:
       - v*
+  repository_dispatch:
 # on: push
 
 jobs:
