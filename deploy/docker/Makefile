@@ -18,9 +18,9 @@ all: build tag
 .PHONY: prepare
 prepare:
 	## Prepare the machine before any code installation scripts
-	@echo "PREPARE: Setting up dependencies."
-	@apt update -y
-	@apt install --only-upgrade docker-ce -y
+	# @echo "PREPARE: Setting up dependencies."
+	# @apt update -y
+	# @apt install --only-upgrade docker-ce -y
 	
 	## Update docker configuration to enable docker manifest command
 	@echo "PREPARE: Updating docker configuration"
