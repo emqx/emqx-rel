@@ -1,19 +1,19 @@
 name: Release
 
-# on: 
-#   push:
-#     branch:
-#       - develop
-#       - master
-#       - release-*
-#     tags:
-#       - v*
-#   pull_request:
-#     branch:
-#       - develop
-#       - master
-#       - release-*
-on: push
+on:
+  push:
+    branch:
+      - develop
+      - master
+      - release-*
+    tags:
+      - v*
+  pull_request:
+    branch:
+      - develop
+      - master
+      - release-*
+# on: push
 
 jobs:
   win:
@@ -22,8 +22,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: checkout
-      # run: git checkout $("${{ github.ref }}" | sed -r 's .*/.*/(.*) \1 g')
-      run: git checkout develop 
+      run: git checkout $("${{ github.ref }}" | sed -r 's .*/.*/(.*) \1 g')
     - name: build
       run: |
         set-executionpolicy remotesigned -s cu
@@ -40,10 +39,10 @@ jobs:
         aws configure set aws_secret_access_key ${{ secrets.AwsSecretAccessKey }} 
         aws configure set default.region us-west-2
         aws s3 cp --recursive ./_packages/emqx  s3://packages.emqx.io/emqx-ce/$("${{ github.ref }}" | sed -r 's .*/.*/(.*) \1 g')
-    # - uses: actions/upload-artifact@v1
-    #   with:
-    #     name: emqx-windows
-    #     path: _build/emqx/rel/emqx
+    - uses: actions/upload-artifact@v1
+      with:
+        name: emqx-windows
+        path: _build/emqx/rel/emq
     
   mac:
     runs-on: macos-latest
@@ -58,7 +57,6 @@ jobs:
     - name: build
       run: |
         version=$(echo ${{ github.ref }} | gsed -r  "s .*/.*/(.*) \1 g")
-        version=develop
         EMQX_DEPS_DEFAULT_VSN=$version make emqx
         mkdir -p _packages/emqx
         cd ./_build/emqx/rel && zip -rq emqx-macosx-$version.zip emqx && cd - && mv ./_build/emqx/rel/emqx-macosx-$version.zip _packages/emqx
@@ -103,7 +101,7 @@ jobs:
         ERL_OTP: erl22.1
       run: |
         sudo docker run --rm --privileged multiarch/qemu-user-static:register --reset
-        sudo docker run -i --name ${{ matrix.os }}-build -e EMQX_DEPS_DEFAULT_VSN=develop -e SYSTEM=${{ matrix.os }} -v $(pwd):/emqx-rel emqx/build-env:$ERL_OTP-${{ matrix.os }} sh -c "cd /emqx-rel/.github/workflows/release; if [ -z $(echo $SYSTEM | grep -o raspbian) ];then EMQX_NAME=emqx ./build.sh; fi; EMQX_NAME=emqx-edge ./build.sh"
+        sudo docker run -i --name ${{ matrix.os }}-build -e EMQX_DEPS_DEFAULT_VSN=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g") -e SYSTEM=${{ matrix.os }} -v $(pwd):/emqx-rel emqx/build-env:$ERL_OTP-${{ matrix.os }} sh -c "cd /emqx-rel/.github/workflows/release; if [ -z $(echo $SYSTEM | grep -o raspbian) ];then EMQX_NAME=emqx ./build.sh; fi; EMQX_NAME=emqx-edge ./build.sh"
     - name: set aws
       run: |
         curl "https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
@@ -148,7 +146,7 @@ jobs:
         ARCH: ${{ matrix.arch[0] }}
         QEMU_ARCH: ${{ matrix.arch[1] }}
       run: |
-        EMQX_DEPS_DEFAULT_VSN=develop
+        EMQX_DEPS_DEFAULT_VSN=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
         sudo docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
         sudo EMQX_DEPS_DEFAULT_VSN=$EMQX_DEPS_DEFAULT_VSN ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH TARGET=emqx/emqx make -C emqx-rel/deploy/docker 
         sudo EMQX_DEPS_DEFAULT_VSN=$EMQX_DEPS_DEFAULT_VSN ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH TARGET=emqx/emqx make -C emqx-rel/deploy/docker save
@@ -157,7 +155,7 @@ jobs:
     - name: docker test
       if: matrix.arch[0] == 'amd64'
       run: |
-        EMQX_DEPS_DEFAULT_VSN=develop
+        EMQX_DEPS_DEFAULT_VSN=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
         sudo TARGET=emqx/emqx EMQX_DEPS_DEFAULT_VSN=$EMQX_DEPS_DEFAULT_VSN PAHO_BRANCH="develop-4.0" make -C emqx-integration-test/paho-test cluster_test
         sudo TARGET=emqx/emqx-edge EMQX_DEPS_DEFAULT_VSN=$EMQX_DEPS_DEFAULT_VSN PAHO_BRANCH="develop-4.0" make -C emqx-integration-test/paho-test cluster_test
     - name: set aws
@@ -173,3 +171,53 @@ jobs:
         version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
         aws2 s3 cp --recursive emqx-rel/_packages/emqx  s3://packages.emqx.io/emqx-ce/$version
         aws2 s3 cp --recursive emqx-rel/_packages/emqx-edge s3://packages.emqx.io/emqx-edge/$version
+
+  upload:
+    runs-on: ubuntu-latest
+
+    needs: [win, mac, linux, docker]
+
+    steps:
+    - name: set aws
+      run: |
+        curl "https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+        unzip awscliv2.zip
+        sudo ./aws/install
+        aws2 configure set aws_access_key_id ${{ secrets.AwsAccessKeyId }}
+        aws2 configure set aws_secret_access_key ${{ secrets.AwsSecretAccessKey }}
+        aws2 configure set default.region us-west-2
+    - name: get packages
+      run: |
+        version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
+        mkdir -p packages
+        aws2 s3 cp --recursive s3://packages.emqx.io/emqx/$version ./packages
+        aws2 s3 cp --recursive s3://packages.emqx.io/emqx-edge/$version ./packages
+    - name: sha256
+      run: |
+        for var in $(ls packages |grep -v sha256 ); do sha256 packages/$var > $var.sha256
+    - uses: actions/checkout@v2
+      with:
+        path: emqx-rel
+    - name: update to github and emqx.io
+      if: github.event_name == "tags"
+      run: |
+        version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
+        for var in $(ls ./packages); do ./emqx-rel/.github/workflows/release/upload-github-release-asset.sh owner=emqx repo=emqx tag=$version filename=$var github_api_token=${{ secrets.AccessToken }} ; done
+        curl -w %{http_code} --insecure -H ${{ secrets.EmqxHeader }} https://admin.emqx.io/api/v1/github_release_callback?tag=$version
+    - name: push docker image to docker hub
+      if: github.event_name == "tags"
+      run: |
+        version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
+        cd ./packages && for var in $(ls |grep docker |grep -v sha256); do unzip $var; sudo docker load < ${var%.*}; rm -f ${var%.*}; done && cd -
+        echo ${{ secrets.DockerHubPassword }} |sudo docker login -u ${{ secrets.DockerHubUser }} --password-stdin
+        sudo make -C emqx-rel/deploy/docker prepare
+        sudo EMQX_DEPS_DEFAULT_VSN=$version make -C emqx-rel emqx-docker-push
+        sudo EMQX_DEPS_DEFAULT_VSN=$version make -C emqx-rel emqx-edge-docker-push
+    - name: update repo.emqx.io
+      if: github.event_name == "tags"
+      run: |
+        crumb=$(curl ${JENKINS_URL}/crumbIssuer/api/json --user ${{ secrets.JenkinsUser }}:${{ secrets.JenkinsPassword }})
+        crumb=${crumb#*"crumb\":\""}
+        crumb=${crumb%%\"*}
+        parameter="[{'name':'REPOPATH', 'value':'/repos'}, {'name':'version', 'value':$version}, {'name':'emqx_ce', 'value':true}, {'name':'emqx_ee', 'value':false}]"
+        curl -X POST ${JENKINS_URL}/job/05_EMQX_Upload_Repos/build --header "Jenkins-Crumb:${crumb}" --user ${{ secrets.JenkinsUser }}:${{ secrets.JenkinsPassword }}  --data-urlencode json="{'parameter': ${parameter}}"     
