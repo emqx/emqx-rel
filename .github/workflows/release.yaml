@@ -35,11 +35,7 @@ jobs:
         aws configure set aws_secret_access_key ${{ secrets.AwsSecretAccessKey }} 
         aws configure set default.region us-west-2
         aws s3 cp --recursive ./_packages/emqx  s3://packages.emqx.io/emqx-ce/$("${{ github.ref }}" | sed -r 's .*/.*/(.*) \1 g')
-    - uses: actions/upload-artifact@v1
-      with:
-        name: emqx-windows
-        path: _build/emqx/rel/emq
-    
+
   mac:
     runs-on: macos-latest
 
@@ -167,7 +163,8 @@ jobs:
         version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
         aws2 s3 cp --recursive emqx-rel/_packages/emqx  s3://packages.emqx.io/emqx-ce/$version
         aws2 s3 cp --recursive emqx-rel/_packages/emqx-edge s3://packages.emqx.io/emqx-edge/$version
-
+        aws2 cloudfront create-invalidation --distribution-id E3TYD0WSP4S14P --paths "/emqx-ce/$version/*"
+        aws2 cloudfront create-invalidation --distribution-id E3TYD0WSP4S14P --paths "/emqx-edge/$version/*"
   upload:
     runs-on: ubuntu-latest
 
@@ -195,13 +192,13 @@ jobs:
       with:
         path: emqx-rel
     - name: update to github and emqx.io
-      if: github.event_name == 'repository_dispatch'
+      if: github.ref == 'refs/tags/v*'
       run: |
         version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
         for var in $(ls ./packages); do ./emqx-rel/.github/workflows/release/upload-github-release-asset.sh owner=emqx repo=emqx tag=$version filename=$var github_api_token=${{ secrets.AccessToken }} ; done
         curl -w %{http_code} --insecure -H ${{ secrets.EmqxHeader }} https://admin.emqx.io/api/v1/github_release_callback?tag=$version
     - name: push docker image to docker hub
-      if: github.event_name == 'repository_dispatch'
+      if: github.ref == 'refs/tags/v*'
       run: |
         version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
         cd ./packages && for var in $(ls |grep docker |grep -v sha256); do unzip $var; sudo docker load < ${var%.*}; rm -f ${var%.*}; done && cd -
@@ -210,7 +207,7 @@ jobs:
         sudo EMQX_DEPS_DEFAULT_VSN=$version make -C emqx-rel emqx-docker-push
         sudo EMQX_DEPS_DEFAULT_VSN=$version make -C emqx-rel emqx-edge-docker-push
     - name: update repo.emqx.io
-      if: github.event_name == 'repository_dispatch'
+      if: github.ref == 'refs/tags/v*'
       run: |
         crumb=$(curl ${JENKINS_URL}/crumbIssuer/api/json --user ${{ secrets.JenkinsUser }}:${{ secrets.JenkinsPassword }})
         crumb=${crumb#*"crumb\":\""}
