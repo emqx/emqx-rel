@@ -96,8 +96,8 @@ jobs:
       run: |
         sudo docker run --rm --privileged multiarch/qemu-user-static:register --reset
         sudo docker run -i --name ${{ matrix.os }}-build -e EMQX_DEPS_DEFAULT_VSN=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g") -e SYSTEM=${{ matrix.os }} -v $(pwd):/emqx-rel emqx/build-env:$ERL_OTP-${{ matrix.os }} sh -c "cd /emqx-rel/.github/workflows/release; if [ -z $(echo $SYSTEM | grep -o raspbian) ];then EMQX_NAME=emqx ./build.sh; fi; EMQX_NAME=emqx-edge ./build.sh"
-        for var in $(ls _packages/emqx ); do sudo sh -c "sha256sum _packages/emqx/$var > _packages/emqx/$var.sha256"; done
-        for var in $(ls _packages/emqx-edge ); do sudo sh -c "sha256sum _packages/emqx-edge/$var > _packages/emqx-edge/$var.sha256"; done
+        for var in $(ls _packages/emqx/emqx-${{ matrix.os }}-* ); do sudo sh -c "sha256sum _packages/emqx/$var > _packages/emqx/$var.sha256"; done
+        for var in $(ls _packages/emqx-edge/emqx-edge-${{ matrix.os }}-* ); do sudo sh -c "sha256sum _packages/emqx-edge/$var > _packages/emqx-edge/$var.sha256"; done
     - name: set aws
       run: |
         curl "https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
