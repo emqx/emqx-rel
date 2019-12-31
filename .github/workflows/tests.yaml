@@ -9,13 +9,7 @@ on:
       - release-*
     tags:
       - v*
-  pull_request:
-    branch:
-      - develop
-      - master
-      - release-*
-
-# on: [push, pull_request]
+# on: [push]
 
 jobs:
 

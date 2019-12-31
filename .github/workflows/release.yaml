@@ -9,11 +9,6 @@ on:
       - release-*
     tags:
       - v*
-  pull_request:
-    branch:
-      - develop
-      - master
-      - release-*
 # on: push
 
 jobs:
