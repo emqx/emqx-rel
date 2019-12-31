@@ -6,10 +6,10 @@ on:
       - develop
       - master
       - release-*
+      - workflow
     tags:
       - v*
   repository_dispatch:
-# on: push
 
 jobs:
   win:
@@ -27,14 +27,16 @@ jobs:
         $env:path + ";" + $env:USERPROFILE + "\scoop\shims"
         make emqx
         mkdir -p _packages/emqx
-        Compress-Archive -Path _build/emqx/rel/emqx -DestinationPath _build/emqx/rel/emqx-windows-$("${{ github.ref }}" | sed -r 's .*/.*/(.*) \1 g').zip
-        mv _build/emqx/rel/emqx-windows-$("${{ github.ref }}" | sed -r 's .*/.*/(.*) \1 g').zip _packages/emqx
+        $pkg_name = "emqx-windows-$("${{ github.ref }}" | sed -r 's .*/.*/(.*) \1 g').zip"
+        Compress-Archive -Path _build/emqx/rel/emqx -DestinationPath _build/emqx/rel/$pkg_name
+        mv _build/emqx/rel/$pkg_name _packages/emqx
         sudo ./_build/emqx/rel/emqx/bin/emqx start
         sudo ./_build/emqx/rel/emqx/bin/emqx stop
+        Get-FileHash -Path "_packages/emqx/$pkg_name" | Format-List | sed -n '4p' | awk '{print $3}' > _packages/emqx/$pkg_name.sha256
         aws configure set aws_access_key_id ${{ secrets.AwsAccessKeyId }} 
         aws configure set aws_secret_access_key ${{ secrets.AwsSecretAccessKey }} 
         aws configure set default.region us-west-2
-        aws s3 cp --recursive ./_packages/emqx  s3://packages.emqx.io/emqx-ce/$("${{ github.ref }}" | sed -r 's .*/.*/(.*) \1 g')
+        aws s3 cp --recursive ./_packages/emqx  s3://packages.emqx.io/emqx-ce/$pkg_name
 
   mac:
     runs-on: macos-latest
@@ -54,6 +56,7 @@ jobs:
         cd ./_build/emqx/rel && zip -rq emqx-macosx-$version.zip emqx && cd - && mv ./_build/emqx/rel/emqx-macosx-$version.zip _packages/emqx
         ./_build/emqx/rel/emqx/bin/emqx start
         ./_build/emqx/rel/emqx/bin/emqx stop
+        openssl dgst -sha256 ./_packages/emqx/emqx-macosx-$version.zip | awk '{print $2}' > ./_packages/emqx/emqx-macosx-$version.zip.sha256
     - name: set aws
       run: |
         curl "https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-macos.zip" -o "awscliv2.zip"
@@ -94,6 +97,8 @@ jobs:
       run: |
         sudo docker run --rm --privileged multiarch/qemu-user-static:register --reset
         sudo docker run -i --name ${{ matrix.os }}-build -e EMQX_DEPS_DEFAULT_VSN=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g") -e SYSTEM=${{ matrix.os }} -v $(pwd):/emqx-rel emqx/build-env:$ERL_OTP-${{ matrix.os }} sh -c "cd /emqx-rel/.github/workflows/release; if [ -z $(echo $SYSTEM | grep -o raspbian) ];then EMQX_NAME=emqx ./build.sh; fi; EMQX_NAME=emqx-edge ./build.sh"
+        for var in $(ls _packages/emqx ); do sha256 _packages/emqx/$var > _packages/emqx/$var.sha256; done
+        for var in $(ls _packages/emqx-edge ); do sha256 _packages/emqx-edge/$var > _packages/emqx-edge/$var.sha256; done
     - name: set aws
       run: |
         curl "https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
@@ -142,8 +147,10 @@ jobs:
         sudo docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
         sudo EMQX_DEPS_DEFAULT_VSN=$EMQX_DEPS_DEFAULT_VSN ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH TARGET=emqx/emqx make -C emqx-rel/deploy/docker 
         sudo EMQX_DEPS_DEFAULT_VSN=$EMQX_DEPS_DEFAULT_VSN ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH TARGET=emqx/emqx make -C emqx-rel/deploy/docker save
+        for var in $(ls emqx-rel/_packages/emqx ); do sha256 emqx-rel/_packages/emqx/$var > emqx-rel/_packages/emqx/$var.sha256; done
         sudo EMQX_DEPS_DEFAULT_VSN=$EMQX_DEPS_DEFAULT_VSN ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH TARGET=emqx/emqx-edge make -C emqx-rel/deploy/docker 
         sudo EMQX_DEPS_DEFAULT_VSN=$EMQX_DEPS_DEFAULT_VSN ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH TARGET=emqx/emqx-edge make -C emqx-rel/deploy/docker save
+        for var in $(ls emqx-rel/_packages/emqx-edge ); do sha256 emqx-rel/_packages/emqx-edge/$var > emqx-rel/_packages/emqx-edge/$var.sha256; done
     - name: docker test
       if: matrix.arch[0] == 'amd64'
       run: |
@@ -163,8 +170,7 @@ jobs:
         version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
         aws2 s3 cp --recursive emqx-rel/_packages/emqx  s3://packages.emqx.io/emqx-ce/$version
         aws2 s3 cp --recursive emqx-rel/_packages/emqx-edge s3://packages.emqx.io/emqx-edge/$version
-        aws2 cloudfront create-invalidation --distribution-id E3TYD0WSP4S14P --paths "/emqx-ce/$version/*"
-        aws2 cloudfront create-invalidation --distribution-id E3TYD0WSP4S14P --paths "/emqx-edge/$version/*"
+
   upload:
     runs-on: ubuntu-latest
 
@@ -185,9 +191,9 @@ jobs:
         mkdir -p packages
         aws2 s3 cp --recursive s3://packages.emqx.io/emqx/$version ./packages
         aws2 s3 cp --recursive s3://packages.emqx.io/emqx-edge/$version ./packages
-    - name: sha256
-      run: |
-        for var in $(ls packages |grep -v sha256 ); do sha256 packages/$var > $var.sha256
+        for var in $(ls packages | grep -v sha256 ); do sha256sum -c <(grep $var $var.sha256sum) ;done
+        aws2 cloudfront create-invalidation --distribution-id E3TYD0WSP4S14P --paths "/emqx-ce/$version/*"
+        aws2 cloudfront create-invalidation --distribution-id E3TYD0WSP4S14P --paths "/emqx-edge/$version/*"
     - uses: actions/checkout@v2
       with:
         path: emqx-rel
