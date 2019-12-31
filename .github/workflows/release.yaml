@@ -1,7 +1,7 @@
 name: Release
 
 on:
-  repository_dispatch
+  repository_dispatch:
   push:
     branch:
       - develop
