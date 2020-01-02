@@ -206,7 +206,7 @@ jobs:
         if [ ! -z $(echo $version | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?") ]; then
           cd packages 
           for var in $(ls); do 
-            ../emqx-rel/.github/workflows/release/upload-github-release-asset.sh owner=emqx repo=emqx tag=$version filename=$var github_api_token="${{ secrets.AccessToken }}"
+            ../emqx-rel/.github/workflows/release/upload-github-release-asset.sh owner=emqx repo=emqx tag=$version filename=$var github_api_token="${{secrets.AccessToken}}"
           done
           aws2 cloudfront create-invalidation --distribution-id E3TYD0WSP4S14P --paths "/emqx-ce/$version/*,/emqx-edge/$version/*"
           curl -w %{http_code} --insecure -H ${{ secrets.EmqxHeader }} https://admin.emqx.io/api/v1/github_release_callback?tag=$version
