@@ -193,7 +193,7 @@ jobs:
         version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
         version=v4.0-rc.4
         mkdir -p packages
-        aws2 s3 cp --recursive s3://packages.emqx.io/emqx/$version ./packages
+        aws2 s3 cp --recursive s3://packages.emqx.io/emqx-ce/$version ./packages
         aws2 s3 cp --recursive s3://packages.emqx.io/emqx-edge/$version ./packages
         cd packages && for var in $(ls | grep -v sha256 ); do sha256sum -c <(grep $var $var.sha256) ;done
     - uses: actions/checkout@v2
