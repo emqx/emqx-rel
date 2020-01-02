@@ -220,7 +220,7 @@ jobs:
     - name: update repo.emqx.io
       run: |
         version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
-        if [ ! -z $(echo $version | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?")]; then
+        if [ ! -z $(echo $version | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?") ]; then
           crumb=$(curl ${JENKINS_URL}/crumbIssuer/api/json --user ${{ secrets.JenkinsUser }}:${{ secrets.JenkinsPassword }})
           crumb=${crumb#*"crumb\":\""}
           crumb=${crumb%%\"*}
