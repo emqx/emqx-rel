@@ -200,7 +200,6 @@ jobs:
       with:
         path: emqx-rel
     # - name: update to github and emqx.io
-    #   # if: github.ref == 'refs/tags/v*'
     #   run: |
     #     version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
     #     if [ ! -z $(echo $version | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?")]; then
@@ -209,7 +208,6 @@ jobs:
     #       curl -w %{http_code} --insecure -H ${{ secrets.EmqxHeader }} https://admin.emqx.io/api/v1/github_release_callback?tag=$version;
     #     fi
     # - name: push docker image to docker hub
-    #   if: github.ref == 'refs/tags/v*'
     #   run: |
     #     version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
     #     if [ ! -z $(echo $version | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?")]; then
@@ -220,11 +218,12 @@ jobs:
     #       sudo EMQX_DEPS_DEFAULT_VSN=$version make -C emqx-rel emqx-edge-docker-push;
     #     fi
     - name: update repo.emqx.io
-      if: github.ref == 'refs/tags/v*'
       run: |
         version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
-        crumb=$(curl ${JENKINS_URL}/crumbIssuer/api/json --user ${{ secrets.JenkinsUser }}:${{ secrets.JenkinsPassword }});
-        crumb=${crumb#*"crumb\":\""};
-        crumb=${crumb%%\"*};
-        parameter="[{'name':'REPOPATH', 'value':'/repos'}, {'name':'version', 'value':$version}, {'name':'emqx_ce', 'value':true}, {'name':'emqx_ee', 'value':false}]";
-        curl -X POST ${JENKINS_URL}/job/05_EMQX_Upload_Repos/build --header "Jenkins-Crumb:${crumb}" --user ${{ secrets.JenkinsUser }}:${{ secrets.JenkinsPassword }}  --data-urlencode json="{'parameter': ${parameter}}";
+        if [ ! -z $(echo $version | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?")]; then
+          crumb=$(curl ${JENKINS_URL}/crumbIssuer/api/json --user ${{ secrets.JenkinsUser }}:${{ secrets.JenkinsPassword }})
+          crumb=${crumb#*"crumb\":\""}
+          crumb=${crumb%%\"*}
+          parameter="[{'name':'REPOPATH', 'value':'/repos'}, {'name':'version', 'value':$version}, {'name':'emqx_ce', 'value':true}, {'name':'emqx_ee', 'value':false}]"
+          curl -X POST ${JENKINS_URL}/job/05_EMQX_Upload_Repos/build --header "Jenkins-Crumb:${crumb}" --user ${{ secrets.JenkinsUser }}:${{ secrets.JenkinsPassword }}  --data-urlencode json="{'parameter': ${parameter}}"
+        fi
