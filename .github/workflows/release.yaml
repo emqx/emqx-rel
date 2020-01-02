@@ -216,9 +216,9 @@ jobs:
         version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
         version=v4.0-rc.4
         if [ ! -z $(echo $version | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?") ]; then
+          sudo make -C emqx-rel/deploy/docker prepare
           cd ./packages && for var in $(ls |grep docker |grep -v sha256); do unzip $var; sudo docker load < ${var%.*}; rm -f ${var%.*}; done && cd -
           echo ${{ secrets.DockerHubPassword }} |sudo docker login -u ${{ secrets.DockerHubUser }} --password-stdin
-          sudo make -C emqx-rel/deploy/docker prepare
           sudo EMQX_DEPS_DEFAULT_VSN=$version make -C emqx-rel emqx-docker-push
           sudo EMQX_DEPS_DEFAULT_VSN=$version make -C emqx-rel emqx-edge-docker-push
         fi
