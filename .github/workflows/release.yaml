@@ -192,7 +192,7 @@ jobs:
         mkdir -p packages
         aws2 s3 cp --recursive s3://packages.emqx.io/emqx/$version ./packages
         aws2 s3 cp --recursive s3://packages.emqx.io/emqx-edge/$version ./packages
-        for var in $(ls packages | grep -v sha256 ); do sha256sum -c <(grep $var $var.sha256sum) ;done
+        for var in $(ls packages | grep -v sha256 ); do sha256sum -c <(grep $var $var.sha256) ;done
         aws2 cloudfront create-invalidation --distribution-id E3TYD0WSP4S14P --paths "/emqx-ce/$version/*"
         aws2 cloudfront create-invalidation --distribution-id E3TYD0WSP4S14P --paths "/emqx-edge/$version/*"
     - uses: actions/checkout@v2
