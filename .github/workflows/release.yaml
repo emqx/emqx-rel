@@ -19,7 +19,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: checkout
-      run: git checkout $("${{ github.ref }}" | sed -r 's .*/.*/(.*) \1 g')
+      # run: git checkout $("${{ github.ref }}" | sed -r 's .*/.*/(.*) \1 g')
       run: git checkout develop
     - name: build
       run: |
