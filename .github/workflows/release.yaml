@@ -19,6 +19,7 @@ jobs:
     - uses: actions/checkout@v1
     - name: checkout
       run: git checkout $("${{ github.ref }}" | sed -r 's .*/.*/(.*) \1 g')
+      run: git checkout develop
     - name: build
       run: |
         set-executionpolicy remotesigned -s cu
@@ -38,139 +39,139 @@ jobs:
         aws configure set default.region us-west-2
         aws s3 cp --recursive ./_packages/emqx  s3://packages.emqx.io/emqx-ce/$pkg_name
 
-  mac:
-    runs-on: macos-latest
+  # mac:
+  #   runs-on: macos-latest
 
-    steps:
-    - uses: actions/checkout@v1
-    - name: prepare
-      run: |
-        /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-        brew install curl zip unzip gnu-sed erlang
-        echo "/usr/local/bin:$PATH" >> ~/.bashrc
-    - name: build
-      run: |
-        version=$(echo ${{ github.ref }} | gsed -r  "s .*/.*/(.*) \1 g")
-        EMQX_DEPS_DEFAULT_VSN=$version make emqx
-        mkdir -p _packages/emqx
-        cd ./_build/emqx/rel && zip -rq emqx-macosx-$version.zip emqx && cd - && mv ./_build/emqx/rel/emqx-macosx-$version.zip _packages/emqx
-        ./_build/emqx/rel/emqx/bin/emqx start
-        ./_build/emqx/rel/emqx/bin/emqx stop
-        openssl dgst -sha256 ./_packages/emqx/emqx-macosx-$version.zip | awk '{print $2}' > ./_packages/emqx/emqx-macosx-$version.zip.sha256
-    - name: set aws
-      run: |
-        curl "https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-macos.zip" -o "awscliv2.zip"
-        unzip awscliv2.zip
-        sudo ./aws/install
-        aws2 configure set aws_access_key_id ${{ secrets.AwsAccessKeyId }} 
-        aws2 configure set aws_secret_access_key ${{ secrets.AwsSecretAccessKey }} 
-        aws2 configure set default.region us-west-2
-    - name: upload to aws s3
-      run: |
-        version=$(echo ${{ github.ref }} | gsed -r  "s .*/.*/(.*) \1 g")
-        aws2 s3 cp --recursive ./_packages/emqx  s3://packages.emqx.io/emqx-ce/$version
+  #   steps:
+  #   - uses: actions/checkout@v1
+  #   - name: prepare
+  #     run: |
+  #       /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+  #       brew install curl zip unzip gnu-sed erlang
+  #       echo "/usr/local/bin:$PATH" >> ~/.bashrc
+  #   - name: build
+  #     run: |
+  #       version=$(echo ${{ github.ref }} | gsed -r  "s .*/.*/(.*) \1 g")
+  #       EMQX_DEPS_DEFAULT_VSN=$version make emqx
+  #       mkdir -p _packages/emqx
+  #       cd ./_build/emqx/rel && zip -rq emqx-macosx-$version.zip emqx && cd - && mv ./_build/emqx/rel/emqx-macosx-$version.zip _packages/emqx
+  #       ./_build/emqx/rel/emqx/bin/emqx start
+  #       ./_build/emqx/rel/emqx/bin/emqx stop
+  #       openssl dgst -sha256 ./_packages/emqx/emqx-macosx-$version.zip | awk '{print $2}' > ./_packages/emqx/emqx-macosx-$version.zip.sha256
+  #   - name: set aws
+  #     run: |
+  #       curl "https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-macos.zip" -o "awscliv2.zip"
+  #       unzip awscliv2.zip
+  #       sudo ./aws/install
+  #       aws2 configure set aws_access_key_id ${{ secrets.AwsAccessKeyId }} 
+  #       aws2 configure set aws_secret_access_key ${{ secrets.AwsSecretAccessKey }} 
+  #       aws2 configure set default.region us-west-2
+  #   - name: upload to aws s3
+  #     run: |
+  #       version=$(echo ${{ github.ref }} | gsed -r  "s .*/.*/(.*) \1 g")
+  #       aws2 s3 cp --recursive ./_packages/emqx  s3://packages.emqx.io/emqx-ce/$version
 
-  linux:
-    runs-on: ubuntu-latest
+  # linux:
+  #   runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        os: 
-          - ubuntu18.04 
-          - ubuntu16.04 
-          - ubuntu14.04 
-          - debian10
-          - debian9 
-          - debian8 
-          - opensuse
-          - centos7 
-          - centos6
-          - raspbian10
-          - raspbian9
-          - raspbian8
+  #   strategy:
+  #     matrix:
+  #       os: 
+  #         - ubuntu18.04 
+  #         - ubuntu16.04 
+  #         - ubuntu14.04 
+  #         - debian10
+  #         - debian9 
+  #         - debian8 
+  #         - opensuse
+  #         - centos7 
+  #         - centos6
+  #         - raspbian10
+  #         - raspbian9
+  #         - raspbian8
   
-    steps:
-    - uses: actions/checkout@v1
-    - name: build emqx packages
-      env:
-        ERL_OTP: erl22.1
-      run: |
-        version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
-        sudo docker run --rm --privileged multiarch/qemu-user-static:register --reset
-        sudo docker run -i --name ${{ matrix.os }}-build -e EMQX_DEPS_DEFAULT_VSN=$version -e SYSTEM=${{ matrix.os }} -v $(pwd):/emqx-rel emqx/build-env:$ERL_OTP-${{ matrix.os }} sh -c "cd /emqx-rel/.github/workflows/release; if [ -z $(echo $SYSTEM | grep -o raspbian) ];then EMQX_NAME=emqx ./build.sh; fi; EMQX_NAME=emqx-edge ./build.sh"
-        cd _packages/emqx && for var in $(ls emqx-${{ matrix.os }}-* ); do sudo sh -c "sha256sum $var > $var.sha256"; done && cd -
-        cd _packages/emqx-edge/&& for var in $(ls emqx-edge-${{ matrix.os }}-* ); do sudo sh -c "sha256sum $var > $var.sha256"; done && cd -
-    - name: set aws
-      run: |
-        curl "https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-        unzip awscliv2.zip
-        sudo ./aws/install
-        aws2 configure set aws_access_key_id ${{ secrets.AwsAccessKeyId }} 
-        aws2 configure set aws_secret_access_key ${{ secrets.AwsSecretAccessKey }} 
-        aws2 configure set default.region us-west-2
-    - name: upload to aws s3
-      run: |
-        version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
-        aws2 s3 cp --recursive ./_packages/emqx  s3://packages.emqx.io/emqx-ce/$version
-        aws2 s3 cp --recursive ./_packages/emqx-edge s3://packages.emqx.io/emqx-edge/$version
+  #   steps:
+  #   - uses: actions/checkout@v1
+  #   - name: build emqx packages
+  #     env:
+  #       ERL_OTP: erl22.1
+  #     run: |
+  #       version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
+  #       sudo docker run --rm --privileged multiarch/qemu-user-static:register --reset
+  #       sudo docker run -i --name ${{ matrix.os }}-build -e EMQX_DEPS_DEFAULT_VSN=$version -e SYSTEM=${{ matrix.os }} -v $(pwd):/emqx-rel emqx/build-env:$ERL_OTP-${{ matrix.os }} sh -c "cd /emqx-rel/.github/workflows/release; if [ -z $(echo $SYSTEM | grep -o raspbian) ];then EMQX_NAME=emqx ./build.sh; fi; EMQX_NAME=emqx-edge ./build.sh"
+  #       cd _packages/emqx && for var in $(ls emqx-${{ matrix.os }}-* ); do sudo sh -c "sha256sum $var > $var.sha256"; done && cd -
+  #       cd _packages/emqx-edge/&& for var in $(ls emqx-edge-${{ matrix.os }}-* ); do sudo sh -c "sha256sum $var > $var.sha256"; done && cd -
+  #   - name: set aws
+  #     run: |
+  #       curl "https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+  #       unzip awscliv2.zip
+  #       sudo ./aws/install
+  #       aws2 configure set aws_access_key_id ${{ secrets.AwsAccessKeyId }} 
+  #       aws2 configure set aws_secret_access_key ${{ secrets.AwsSecretAccessKey }} 
+  #       aws2 configure set default.region us-west-2
+  #   - name: upload to aws s3
+  #     run: |
+  #       version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
+  #       aws2 s3 cp --recursive ./_packages/emqx  s3://packages.emqx.io/emqx-ce/$version
+  #       aws2 s3 cp --recursive ./_packages/emqx-edge s3://packages.emqx.io/emqx-edge/$version
 
-  docker:
-    runs-on: ubuntu-latest
+  # docker:
+  #   runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        arch:
-          - [amd64, x86_64]
-          - [arm64v8, aarch64]
-          - [arm32v7, arm]
-          - [i386, i386]
-          - [s390x, s390x]
+  #   strategy:
+  #     matrix:
+  #       arch:
+  #         - [amd64, x86_64]
+  #         - [arm64v8, aarch64]
+  #         - [arm32v7, arm]
+  #         - [i386, i386]
+  #         - [s390x, s390x]
 
-    steps:
-    - uses: actions/checkout@v2
-      with: 
-        path: emqx-rel
-    - name: fetch all history for all tags and branches
-      run: |
-        cd emqx-rel
-        git fetch --prune --unshallow
-    - uses: actions/checkout@v2
-      with:
-        repository: emqx/emqx-integration-test
-        token: ${{ secrets.AccessToken }} 
-        path: emqx-integration-test
-    - name: build emqx docker image
-      env:
-        ARCH: ${{ matrix.arch[0] }}
-        QEMU_ARCH: ${{ matrix.arch[1] }}
-      run: |
-        version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
-        sudo docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-        sudo EMQX_DEPS_DEFAULT_VSN=$version ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH TARGET=emqx/emqx make -C emqx-rel/deploy/docker 
-        sudo EMQX_DEPS_DEFAULT_VSN=$version ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH TARGET=emqx/emqx make -C emqx-rel/deploy/docker save
-        cd emqx-rel/_packages/emqx && for var in $(ls emqx-docker-* ); do sudo sh -c "sha256sum $var > $var.sha256"; done && cd -
-        sudo EMQX_DEPS_DEFAULT_VSN=$version ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH TARGET=emqx/emqx-edge make -C emqx-rel/deploy/docker 
-        sudo EMQX_DEPS_DEFAULT_VSN=$version ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH TARGET=emqx/emqx-edge make -C emqx-rel/deploy/docker save
-        cd emqx-rel/_packages/emqx-edge && for var in $(ls emqx-edge-docker-* ); do sudo sh -c "sha256sum $var > $var.sha256"; done && cd -
-    - name: docker test
-      if: matrix.arch[0] == 'amd64'
-      run: |
-        version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
-        sudo TARGET=emqx/emqx EMQX_DEPS_DEFAULT_VSN=$version PAHO_BRANCH="develop-4.0" make -C emqx-integration-test/paho-test cluster_test
-        sudo TARGET=emqx/emqx-edge EMQX_DEPS_DEFAULT_VSN=$version PAHO_BRANCH="develop-4.0" make -C emqx-integration-test/paho-test cluster_test
-    - name: set aws
-      run: |
-        curl "https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-        unzip awscliv2.zip
-        sudo ./aws/install
-        aws2 configure set aws_access_key_id ${{ secrets.AwsAccessKeyId }} 
-        aws2 configure set aws_secret_access_key ${{ secrets.AwsSecretAccessKey }} 
-        aws2 configure set default.region us-west-2
-    - name: upload to aws s3
-      run: |
-        version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
-        aws2 s3 cp --recursive emqx-rel/_packages/emqx  s3://packages.emqx.io/emqx-ce/$version
-        aws2 s3 cp --recursive emqx-rel/_packages/emqx-edge s3://packages.emqx.io/emqx-edge/$version
+  #   steps:
+  #   - uses: actions/checkout@v2
+  #     with: 
+  #       path: emqx-rel
+  #   - name: fetch all history for all tags and branches
+  #     run: |
+  #       cd emqx-rel
+  #       git fetch --prune --unshallow
+  #   - uses: actions/checkout@v2
+  #     with:
+  #       repository: emqx/emqx-integration-test
+  #       token: ${{ secrets.AccessToken }} 
+  #       path: emqx-integration-test
+  #   - name: build emqx docker image
+  #     env:
+  #       ARCH: ${{ matrix.arch[0] }}
+  #       QEMU_ARCH: ${{ matrix.arch[1] }}
+  #     run: |
+  #       version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
+  #       sudo docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+  #       sudo EMQX_DEPS_DEFAULT_VSN=$version ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH TARGET=emqx/emqx make -C emqx-rel/deploy/docker 
+  #       sudo EMQX_DEPS_DEFAULT_VSN=$version ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH TARGET=emqx/emqx make -C emqx-rel/deploy/docker save
+  #       cd emqx-rel/_packages/emqx && for var in $(ls emqx-docker-* ); do sudo sh -c "sha256sum $var > $var.sha256"; done && cd -
+  #       sudo EMQX_DEPS_DEFAULT_VSN=$version ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH TARGET=emqx/emqx-edge make -C emqx-rel/deploy/docker 
+  #       sudo EMQX_DEPS_DEFAULT_VSN=$version ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH TARGET=emqx/emqx-edge make -C emqx-rel/deploy/docker save
+  #       cd emqx-rel/_packages/emqx-edge && for var in $(ls emqx-edge-docker-* ); do sudo sh -c "sha256sum $var > $var.sha256"; done && cd -
+  #   - name: docker test
+  #     if: matrix.arch[0] == 'amd64'
+  #     run: |
+  #       version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
+  #       sudo TARGET=emqx/emqx EMQX_DEPS_DEFAULT_VSN=$version PAHO_BRANCH="develop-4.0" make -C emqx-integration-test/paho-test cluster_test
+  #       sudo TARGET=emqx/emqx-edge EMQX_DEPS_DEFAULT_VSN=$version PAHO_BRANCH="develop-4.0" make -C emqx-integration-test/paho-test cluster_test
+  #   - name: set aws
+  #     run: |
+  #       curl "https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+  #       unzip awscliv2.zip
+  #       sudo ./aws/install
+  #       aws2 configure set aws_access_key_id ${{ secrets.AwsAccessKeyId }} 
+  #       aws2 configure set aws_secret_access_key ${{ secrets.AwsSecretAccessKey }} 
+  #       aws2 configure set default.region us-west-2
+  #   - name: upload to aws s3
+  #     run: |
+  #       version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
+  #       aws2 s3 cp --recursive emqx-rel/_packages/emqx  s3://packages.emqx.io/emqx-ce/$version
+  #       aws2 s3 cp --recursive emqx-rel/_packages/emqx-edge s3://packages.emqx.io/emqx-edge/$version
 
   upload:
     runs-on: ubuntu-latest
