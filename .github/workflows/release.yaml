@@ -177,7 +177,8 @@ jobs:
   upload:
     runs-on: ubuntu-latest
 
-    needs: [win, mac, linux, docker]
+    # needs: [win, mac, linux, docker]
+    needs: [win]
 
     steps:
     - name: set aws
