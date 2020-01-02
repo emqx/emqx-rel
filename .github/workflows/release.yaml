@@ -231,5 +231,5 @@ jobs:
           crumb=${crumb#*"crumb\":\""}
           crumb=${crumb%%\"*}
           parameter="[{'name':'REPOPATH', 'value':'/repos'}, {'name':'version', 'value':$version}, {'name':'emqx_ce', 'value':true}, {'name':'emqx_ee', 'value':false}]"
-          curl -X POST ${{ secrets.JENKINS_URL }}/job/05_EMQX_Upload_Repos/build --header "Jenkins-Crumb:${crumb}" --user ${{ secrets.JenkinsUser }}:${{ secrets.JenkinsPassword }}  --data-urlencode json="{'parameter': ${parameter}}"
+          curl -X POST ${{ secrets.JenkinsUrl }}/job/05_EMQX_Upload_Repos/build --header "Jenkins-Crumb:${crumb}" --user ${{ secrets.JenkinsUser }}:${{ secrets.JenkinsPassword }}  --data-urlencode json="{'parameter': ${parameter}}"
         fi
