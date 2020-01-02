@@ -180,54 +180,55 @@ jobs:
     # needs: [win, mac, linux, docker]
 
     steps:
-    - name: set aws
-      run: |
-        curl "https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-        unzip awscliv2.zip
-        sudo ./aws/install
-        aws2 configure set aws_access_key_id ${{ secrets.AwsAccessKeyId }}
-        aws2 configure set aws_secret_access_key ${{ secrets.AwsSecretAccessKey }}
-        aws2 configure set default.region us-west-2
-    - name: get packages
-      run: |
-        version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
-        version=v4.0-rc.4
-        mkdir -p packages
-        aws2 s3 cp --recursive s3://packages.emqx.io/emqx-ce/$version ./packages
-        aws2 s3 cp --recursive s3://packages.emqx.io/emqx-edge/$version ./packages
-        cd packages && for var in $(ls | grep -v sha256 ); do sha256sum -c <(grep $var $var.sha256) ;done
-    - uses: actions/checkout@v2
-      with:
-        path: emqx-rel
-    - name: update to github and emqx.io
-      run: |
-        version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
-        version=v4.0-rc.4
-        if [ ! -z $(echo $version | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?") ]; then
-          cd packages 
-          for var in $(ls); do 
-            ../emqx-rel/.github/workflows/release/upload-github-release-asset.sh owner=emqx repo=emqx tag=$version filename=$var github_api_token=$(echo ${{ secrets.AccessToken }})
-          done
-          aws2 cloudfront create-invalidation --distribution-id E3TYD0WSP4S14P --paths "/emqx-ce/$version/*,/emqx-edge/$version/*"
-          curl -w %{http_code} --insecure -H ${{ secrets.EmqxHeader }} https://admin.emqx.io/api/v1/github_release_callback?tag=$version
-        fi
-    - name: push docker image to docker hub
-      run: |
-        version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
-        version=v4.0-rc.4
-        if [ ! -z $(echo $version | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?") ]; then
-          sudo make -C emqx-rel/deploy/docker prepare
-          cd ./packages && for var in $(ls |grep docker |grep -v sha256); do unzip $var; sudo docker load < ${var%.*}; rm -f ${var%.*}; done && cd -
-          echo ${{ secrets.DockerHubPassword }} |sudo docker login -u ${{ secrets.DockerHubUser }} --password-stdin
-          sudo EMQX_DEPS_DEFAULT_VSN=$version make -C emqx-rel emqx-docker-push
-          sudo EMQX_DEPS_DEFAULT_VSN=$version make -C emqx-rel emqx-edge-docker-push
-        fi
+    # - name: set aws
+    #   run: |
+    #     curl "https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+    #     unzip awscliv2.zip
+    #     sudo ./aws/install
+    #     aws2 configure set aws_access_key_id ${{ secrets.AwsAccessKeyId }}
+    #     aws2 configure set aws_secret_access_key ${{ secrets.AwsSecretAccessKey }}
+    #     aws2 configure set default.region us-west-2
+    # - name: get packages
+    #   run: |
+    #     version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
+    #     version=v4.0-rc.4
+    #     mkdir -p packages
+    #     aws2 s3 cp --recursive s3://packages.emqx.io/emqx-ce/$version ./packages
+    #     aws2 s3 cp --recursive s3://packages.emqx.io/emqx-edge/$version ./packages
+    #     cd packages && for var in $(ls | grep -v sha256 ); do sha256sum -c <(grep $var $var.sha256) ;done
+    # - uses: actions/checkout@v2
+    #   with:
+    #     path: emqx-rel
+    # - name: update to github and emqx.io
+    #   run: |
+    #     version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
+    #     version=v4.0-rc.4
+    #     if [ ! -z $(echo $version | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?") ]; then
+    #       cd packages 
+    #       for var in $(ls); do 
+    #         ../emqx-rel/.github/workflows/release/upload-github-release-asset.sh owner=emqx repo=emqx tag=$version filename=$var github_api_token=$(echo ${{ secrets.AccessToken }})
+    #       done
+    #       aws2 cloudfront create-invalidation --distribution-id E3TYD0WSP4S14P --paths "/emqx-ce/$version/*,/emqx-edge/$version/*"
+    #       curl -w %{http_code} --insecure -H ${{ secrets.EmqxHeader }} https://admin.emqx.io/api/v1/github_release_callback?tag=$version
+    #     fi
+    # - name: push docker image to docker hub
+    #   run: |
+    #     version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
+    #     version=v4.0-rc.4
+    #     if [ ! -z $(echo $version | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?") ]; then
+    #       sudo make -C emqx-rel/deploy/docker prepare
+    #       cd ./packages && for var in $(ls |grep docker |grep -v sha256); do unzip $var; sudo docker load < ${var%.*}; rm -f ${var%.*}; done && cd -
+    #       echo ${{ secrets.DockerHubPassword }} |sudo docker login -u ${{ secrets.DockerHubUser }} --password-stdin
+    #       sudo EMQX_DEPS_DEFAULT_VSN=$version make -C emqx-rel emqx-docker-push
+    #       sudo EMQX_DEPS_DEFAULT_VSN=$version make -C emqx-rel emqx-edge-docker-push
+    #     fi
     - name: update repo.emqx.io
       run: |
         version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
         version=v4.0-rc.4
         if [ ! -z $(echo $version | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?") ]; then
-          crumb=$(curl ${{ secrets.JenkinsUrl }}/crumbIssuer/api/json --user ${{ secrets.JenkinsUser }}:${{ secrets.JenkinsPassword }})
+          crumb=$(curl ${{ secrets.JenkinsUrl }}/crumbIssuer/api/json --user "${{ secrets.JenkinsUser }}:${{ secrets.JenkinsPassword }}")
+          echo $crumb
           crumb=${crumb#*"crumb\":\""}
           crumb=${crumb%%\"*}
           parameter="[{'name':'REPOPATH', 'value':'/repos'}, {'name':'version', 'value':$version}, {'name':'emqx_ce', 'value':true}, {'name':'emqx_ee', 'value':false}]"
