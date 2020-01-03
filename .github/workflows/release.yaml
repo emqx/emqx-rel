@@ -1,15 +1,15 @@
 name: Release
 
 on:
-  repository_dispatch:
   push:
-    branch:
+    branches:
       - develop
       - master
       - release-*
     tags:
       - v*
-# on: push
+  repository_dispatch:
+    types: [release]
 
 jobs:
   win:
@@ -27,19 +27,17 @@ jobs:
         $env:path + ";" + $env:USERPROFILE + "\scoop\shims"
         make emqx
         mkdir -p _packages/emqx
-        Compress-Archive -Path _build/emqx/rel/emqx -DestinationPath _build/emqx/rel/emqx-windows-$("${{ github.ref }}" | sed -r 's .*/.*/(.*) \1 g').zip
-        mv _build/emqx/rel/emqx-windows-$("${{ github.ref }}" | sed -r 's .*/.*/(.*) \1 g').zip _packages/emqx
+        $pkg_name = "emqx-windows-$("${{ github.ref }}" | sed -r 's .*/.*/(.*) \1 g').zip"
+        Compress-Archive -Path _build/emqx/rel/emqx -DestinationPath _build/emqx/rel/$pkg_name
+        mv _build/emqx/rel/$pkg_name _packages/emqx
         sudo ./_build/emqx/rel/emqx/bin/emqx start
         sudo ./_build/emqx/rel/emqx/bin/emqx stop
+        Get-FileHash -Path "_packages/emqx/$pkg_name" | Format-List | sed -n '4p' | awk '{print $3}' > _packages/emqx/$pkg_name.sha256
         aws configure set aws_access_key_id ${{ secrets.AwsAccessKeyId }} 
         aws configure set aws_secret_access_key ${{ secrets.AwsSecretAccessKey }} 
         aws configure set default.region us-west-2
-        aws s3 cp --recursive ./_packages/emqx  s3://packages.emqx.io/emqx-ce/$("${{ github.ref }}" | sed -r 's .*/.*/(.*) \1 g')
-    - uses: actions/upload-artifact@v1
-      with:
-        name: emqx-windows
-        path: _build/emqx/rel/emq
-    
+        aws s3 cp --recursive ./_packages/emqx  s3://packages.emqx.io/emqx-ce/$pkg_name
+
   mac:
     runs-on: macos-latest
 
@@ -58,6 +56,7 @@ jobs:
         cd ./_build/emqx/rel && zip -rq emqx-macosx-$version.zip emqx && cd - && mv ./_build/emqx/rel/emqx-macosx-$version.zip _packages/emqx
         ./_build/emqx/rel/emqx/bin/emqx start
         ./_build/emqx/rel/emqx/bin/emqx stop
+        openssl dgst -sha256 ./_packages/emqx/emqx-macosx-$version.zip | awk '{print $2}' > ./_packages/emqx/emqx-macosx-$version.zip.sha256
     - name: set aws
       run: |
         curl "https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-macos.zip" -o "awscliv2.zip"
@@ -96,8 +95,11 @@ jobs:
       env:
         ERL_OTP: erl22.1
       run: |
+        version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
         sudo docker run --rm --privileged multiarch/qemu-user-static:register --reset
-        sudo docker run -i --name ${{ matrix.os }}-build -e EMQX_DEPS_DEFAULT_VSN=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g") -e SYSTEM=${{ matrix.os }} -v $(pwd):/emqx-rel emqx/build-env:$ERL_OTP-${{ matrix.os }} sh -c "cd /emqx-rel/.github/workflows/release; if [ -z $(echo $SYSTEM | grep -o raspbian) ];then EMQX_NAME=emqx ./build.sh; fi; EMQX_NAME=emqx-edge ./build.sh"
+        sudo docker run -i --name ${{ matrix.os }}-build -e EMQX_DEPS_DEFAULT_VSN=$version -e SYSTEM=${{ matrix.os }} -v $(pwd):/emqx-rel emqx/build-env:$ERL_OTP-${{ matrix.os }} sh -c "cd /emqx-rel/.github/workflows/release; if [ -z $(echo $SYSTEM | grep -o raspbian) ];then EMQX_NAME=emqx ./build.sh; fi; EMQX_NAME=emqx-edge ./build.sh"
+        cd _packages/emqx && for var in $(ls emqx-${{ matrix.os }}-* ); do sudo sh -c "sha256sum $var > $var.sha256"; done && cd -
+        cd _packages/emqx-edge/&& for var in $(ls emqx-edge-${{ matrix.os }}-* ); do sudo sh -c "sha256sum $var > $var.sha256"; done && cd -
     - name: set aws
       run: |
         curl "https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
@@ -142,18 +144,20 @@ jobs:
         ARCH: ${{ matrix.arch[0] }}
         QEMU_ARCH: ${{ matrix.arch[1] }}
       run: |
-        EMQX_DEPS_DEFAULT_VSN=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
+        version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
         sudo docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-        sudo EMQX_DEPS_DEFAULT_VSN=$EMQX_DEPS_DEFAULT_VSN ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH TARGET=emqx/emqx make -C emqx-rel/deploy/docker 
-        sudo EMQX_DEPS_DEFAULT_VSN=$EMQX_DEPS_DEFAULT_VSN ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH TARGET=emqx/emqx make -C emqx-rel/deploy/docker save
-        sudo EMQX_DEPS_DEFAULT_VSN=$EMQX_DEPS_DEFAULT_VSN ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH TARGET=emqx/emqx-edge make -C emqx-rel/deploy/docker 
-        sudo EMQX_DEPS_DEFAULT_VSN=$EMQX_DEPS_DEFAULT_VSN ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH TARGET=emqx/emqx-edge make -C emqx-rel/deploy/docker save
+        sudo EMQX_DEPS_DEFAULT_VSN=$version ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH TARGET=emqx/emqx make -C emqx-rel/deploy/docker 
+        sudo EMQX_DEPS_DEFAULT_VSN=$version ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH TARGET=emqx/emqx make -C emqx-rel/deploy/docker save
+        cd emqx-rel/_packages/emqx && for var in $(ls emqx-docker-* ); do sudo sh -c "sha256sum $var > $var.sha256"; done && cd -
+        sudo EMQX_DEPS_DEFAULT_VSN=$version ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH TARGET=emqx/emqx-edge make -C emqx-rel/deploy/docker 
+        sudo EMQX_DEPS_DEFAULT_VSN=$version ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH TARGET=emqx/emqx-edge make -C emqx-rel/deploy/docker save
+        cd emqx-rel/_packages/emqx-edge && for var in $(ls emqx-edge-docker-* ); do sudo sh -c "sha256sum $var > $var.sha256"; done && cd -
     - name: docker test
       if: matrix.arch[0] == 'amd64'
       run: |
-        EMQX_DEPS_DEFAULT_VSN=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
-        sudo TARGET=emqx/emqx EMQX_DEPS_DEFAULT_VSN=$EMQX_DEPS_DEFAULT_VSN PAHO_BRANCH="develop-4.0" make -C emqx-integration-test/paho-test cluster_test
-        sudo TARGET=emqx/emqx-edge EMQX_DEPS_DEFAULT_VSN=$EMQX_DEPS_DEFAULT_VSN PAHO_BRANCH="develop-4.0" make -C emqx-integration-test/paho-test cluster_test
+        version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
+        sudo TARGET=emqx/emqx EMQX_DEPS_DEFAULT_VSN=$version PAHO_BRANCH="develop-4.0" make -C emqx-integration-test/paho-test cluster_test
+        sudo TARGET=emqx/emqx-edge EMQX_DEPS_DEFAULT_VSN=$version PAHO_BRANCH="develop-4.0" make -C emqx-integration-test/paho-test cluster_test
     - name: set aws
       run: |
         curl "https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
@@ -188,19 +192,21 @@ jobs:
         mkdir -p packages
         aws2 s3 cp --recursive s3://packages.emqx.io/emqx/$version ./packages
         aws2 s3 cp --recursive s3://packages.emqx.io/emqx-edge/$version ./packages
-    - name: sha256
-      run: |
-        for var in $(ls packages |grep -v sha256 ); do sha256 packages/$var > $var.sha256
+        for var in $(ls packages | grep -v sha256 ); do sha256sum -c <(grep $var $var.sha256) ;done
+        aws2 cloudfront create-invalidation --distribution-id E3TYD0WSP4S14P --paths "/emqx-ce/$version/*"
+        aws2 cloudfront create-invalidation --distribution-id E3TYD0WSP4S14P --paths "/emqx-edge/$version/*"
     - uses: actions/checkout@v2
       with:
         path: emqx-rel
     - name: update to github and emqx.io
+      # if: github.ref == 'refs/tags/v*'
       if: github.event_name == 'repository_dispatch'
       run: |
         version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
         for var in $(ls ./packages); do ./emqx-rel/.github/workflows/release/upload-github-release-asset.sh owner=emqx repo=emqx tag=$version filename=$var github_api_token=${{ secrets.AccessToken }} ; done
         curl -w %{http_code} --insecure -H ${{ secrets.EmqxHeader }} https://admin.emqx.io/api/v1/github_release_callback?tag=$version
     - name: push docker image to docker hub
+      # if: github.ref == 'refs/tags/v*'
       if: github.event_name == 'repository_dispatch'
       run: |
         version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
@@ -210,6 +216,7 @@ jobs:
         sudo EMQX_DEPS_DEFAULT_VSN=$version make -C emqx-rel emqx-docker-push
         sudo EMQX_DEPS_DEFAULT_VSN=$version make -C emqx-rel emqx-edge-docker-push
     - name: update repo.emqx.io
+      # if: github.ref == 'refs/tags/v*'
       if: github.event_name == 'repository_dispatch'
       run: |
         crumb=$(curl ${JENKINS_URL}/crumbIssuer/api/json --user ${{ secrets.JenkinsUser }}:${{ secrets.JenkinsPassword }})

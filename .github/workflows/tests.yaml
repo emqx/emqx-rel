@@ -1,14 +1,14 @@
 name: Run all test cases
 
 on: 
-  repository_dispatch:
   push:
-    branch:
+    branches:
       - develop
       - master
       - release-*
     tags:
       - v*
+  repository_dispatch:
 # on: [push]
 
 jobs:
