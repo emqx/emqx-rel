@@ -223,10 +223,10 @@ jobs:
           sudo EMQX_DEPS_DEFAULT_VSN=$version make -C emqx-rel emqx-edge-docker-push
         fi
 
-      - name: update repo.emqx.io
-        run: |
-          version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
-          version=v4.0-rc.4
-          if [ ! -z $(echo $version | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?") ]; then
-            curl -H "Authorization: token ${{ secrets.AccessToken }}" -H "Accept: application/vnd.github.everest-preview+json" -H "Content-Type: application/json" -X POST -d '{"event_type":"update_repos","client_payload":{"version": "${version}","emqx_ce":"true","emqx_ee":"false"}}' https://api.github.com/repos/emqx/emqx-packages-docker/dispatches
-          fi
+    - name: update repo.emqx.io
+      run: |
+        version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
+        version=v4.0-rc.4
+        if [ ! -z $(echo $version | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?") ]; then
+          curl -H "Authorization: token ${{ secrets.AccessToken }}" -H "Accept: application/vnd.github.everest-preview+json" -H "Content-Type: application/json" -X POST -d '{"event_type":"update_repos","client_payload":{"version": "${version}","emqx_ce":"true","emqx_ee":"false"}}' https://api.github.com/repos/emqx/emqx-packages-docker/dispatches
+        fi
