@@ -139,7 +139,7 @@ jobs:
   #   - uses: actions/checkout@v2
   #     with:
   #       repository: emqx/emqx-integration-test
-  #       token: ${{ secrets.AccessToken }} 
+  #       token: ${{ secrets.AccessToken }}
   #       path: emqx-integration-test
   #   - name: build emqx docker image
   #     env:
@@ -222,17 +222,25 @@ jobs:
     #       sudo EMQX_DEPS_DEFAULT_VSN=$version make -C emqx-rel emqx-docker-push
     #       sudo EMQX_DEPS_DEFAULT_VSN=$version make -C emqx-rel emqx-edge-docker-push
     #     fi
-    - name: update repo.emqx.io
-      run: |
-        version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
-        version=v4.0-rc.4
-        if [ ! -z $(echo $version | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?") ]; then
-          crumb=$(curl ${{ secrets.JenkinsUrl }}/crumbIssuer/api/json --user "${{ secrets.JenkinsUser }}:${{ secrets.JenkinsPassword }}")
-          echo $crumb
-          crumb=${crumb#*"crumb\":\""}
-          echo $crumb
-          crumb=${crumb%%\"*}
-          echo $crumb
-          parameter="[{'name':'REPOPATH', 'value':'/repos'}, {'name':'version', 'value':$version}, {'name':'emqx_ce', 'value':true}, {'name':'emqx_ee', 'value':false}]"
-          curl -X POST ${{ secrets.JenkinsUrl }}/job/05_EMQX_Upload_Repos/build --header "Jenkins-Crumb:$crumb" --user ${{ secrets.JenkinsUser }}:${{ secrets.JenkinsPassword }}  --data-urlencode json="{'parameter': ${parameter}}"
-        fi
+    # - name: update repo.emqx.io
+    #   run: |
+    #     version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
+    #     version=v4.0-rc.4
+    #     if [ ! -z $(echo $version | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?") ]; then
+    #       crumb=$(curl ${{ secrets.JenkinsUrl }}/crumbIssuer/api/json --user "${{ secrets.JenkinsUser }}:${{ secrets.JenkinsPassword }}")
+    #       echo $crumb
+    #       crumb=${crumb#*"crumb\":\""}
+    #       echo $crumb
+    #       crumb=${crumb%%\"*}
+    #       echo $crumb
+    #       parameter="[{'name':'REPOPATH', 'value':'/repos'}, {'name':'version', 'value':$version}, {'name':'emqx_ce', 'value':true}, {'name':'emqx_ee', 'value':false}]"
+    #       curl -X POST ${{ secrets.JenkinsUrl }}/job/05_EMQX_Upload_Repos/build --header "Jenkins-Crumb:$crumb" --user ${{ secrets.JenkinsUser }}:${{ secrets.JenkinsPassword }}  --data-urlencode json="{'parameter': ${parameter}}"
+    #     fi
+
+      - name: update repo.emqx.io
+        run: |
+          version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
+          version=v4.0-rc.4
+          if [ ! -z $(echo $version | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?") ]; then
+            curl -H "Authorization: token ${{ secrets.AccessToken }}" -H "Accept: application/vnd.github.everest-preview+json" -H "Content-Type: application/json" -X POST -d '{"event_type":"update_repos","client_payload":{"version": "${version}","emqx_ce":"true","emqx_ee":"false"}}' https://api.github.com/repos/emqx/emqx-packages-docker/dispatches
+          fi
