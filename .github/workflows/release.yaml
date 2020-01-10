@@ -32,6 +32,8 @@ jobs:
         mv _build/emqx/rel/$pkg_name _packages/emqx
         sudo ./_build/emqx/rel/emqx/bin/emqx start
         sudo ./_build/emqx/rel/emqx/bin/emqx stop
+        sudo ./_build/emqx/rel/emqx/bin/emqx install
+        sudo ./_build/emqx/rel/emqx/bin/emqx uninstall
         Get-FileHash -Path "_packages/emqx/$pkg_name" | Format-List | sed -n '4p' | awk '{print $3}' > _packages/emqx/$pkg_name.sha256
         aws configure set aws_access_key_id ${{ secrets.AwsAccessKeyId }} 
         aws configure set aws_secret_access_key ${{ secrets.AwsSecretAccessKey }} 
