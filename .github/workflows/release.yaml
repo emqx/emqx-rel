@@ -58,7 +58,7 @@ jobs:
         cd ./_build/emqx/rel && zip -rq emqx-macosx-$version.zip emqx && cd - && mv ./_build/emqx/rel/emqx-macosx-$version.zip _packages/emqx
         ./_build/emqx/rel/emqx/bin/emqx start
         ./_build/emqx/rel/emqx/bin/emqx stop
-        openssl dgst -sha256 ./_packages/emqx/emqx-macosx-$version.zip | awk '{print $2}' > ./_packages/emqx/emqx-macosx-$version.zip.sha256
+        echo "$(openssl dgst -sha256 ./_packages/emqx/emqx-macosx-$version.zip | awk '{print $2}') emqx-macosx-$version.zip" > ./_packages/emqx/emqx-macosx-$version.zip.sha256
     - name: set aws
       run: |
         curl "https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-macos.zip" -o "awscliv2.zip"
