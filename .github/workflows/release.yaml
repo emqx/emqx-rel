@@ -36,7 +36,7 @@ jobs:
         aws configure set aws_access_key_id ${{ secrets.AwsAccessKeyId }} 
         aws configure set aws_secret_access_key ${{ secrets.AwsSecretAccessKey }} 
         aws configure set default.region us-west-2
-        aws s3 cp --recursive ./_packages/emqx  s3://packages.emqx.io/emqx-ce/$("${{ github.ref }}" | sed -r 's .*/.*/(.*) \1 g')/$pkg_name
+        aws s3 cp --recursive ./_packages/emqx  s3://packages.emqx.io/emqx-ce/$("${{ github.ref }}" | sed -r 's .*/.*/(.*) \1 g')
 
   mac:
     runs-on: macos-latest
@@ -94,12 +94,13 @@ jobs:
     - name: build emqx packages
       env:
         ERL_OTP: erl22.1
+        SYSTEM: ${{ matrix.os }}
       run: |
         version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
         sudo docker run --rm --privileged multiarch/qemu-user-static:register --reset
-        sudo docker run -i --name ${{ matrix.os }}-build -e EMQX_DEPS_DEFAULT_VSN=$version -e SYSTEM=${{ matrix.os }} -v $(pwd):/emqx-rel emqx/build-env:$ERL_OTP-${{ matrix.os }} sh -c "cd /emqx-rel/.github/workflows/release; if [ -z $(echo $SYSTEM | grep -o raspbian) ];then EMQX_NAME=emqx ./build.sh; fi; EMQX_NAME=emqx-edge ./build.sh"
-        cd _packages/emqx && for var in $(ls emqx-${{ matrix.os }}-* ); do sudo sh -c "sha256sum $var > $var.sha256"; done && cd -
-        cd _packages/emqx-edge/&& for var in $(ls emqx-edge-${{ matrix.os }}-* ); do sudo sh -c "sha256sum $var > $var.sha256"; done && cd -
+        sudo docker run -i --name $SYSTEM-build -e EMQX_DEPS_DEFAULT_VSN=$version -e SYSTEM=$SYSTEM -v $(pwd):/emqx-rel emqx/build-env:$ERL_OTP-$SYSTEM sh -c "cd /emqx-rel/.github/workflows/release; if [ -z $(echo $SYSTEM | grep -o raspbian) ];then EMQX_NAME=emqx ./build.sh; fi; EMQX_NAME=emqx-edge ./build.sh"
+        cd _packages/emqx && for var in $(ls emqx-$SYSTEM-* ); do sudo sh -c "sha256sum $var > $var.sha256"; done && cd -
+        cd _packages/emqx-edge/&& for var in $(ls emqx-edge-$SYSTEM-* ); do sudo sh -c "sha256sum $var > $var.sha256"; done && cd -
     - name: set aws
       run: |
         curl "https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
