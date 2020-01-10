@@ -34,7 +34,7 @@ jobs:
         sudo ./_build/emqx/rel/emqx/bin/emqx stop
         sudo ./_build/emqx/rel/emqx/bin/emqx install
         sudo ./_build/emqx/rel/emqx/bin/emqx uninstall
-        Get-FileHash -Path "_packages/emqx/$pkg_name" | Format-List | sed -n '4p' | awk '{print $3}' > _packages/emqx/$pkg_name.sha256
+        Get-FileHash -Path "_packages/emqx/$pkg_name" | Format-List | grep 'Hash' | awk '{print $3}' > _packages/emqx/$pkg_name.sha256
         aws configure set aws_access_key_id ${{ secrets.AwsAccessKeyId }} 
         aws configure set aws_secret_access_key ${{ secrets.AwsSecretAccessKey }} 
         aws configure set default.region us-west-2
@@ -195,7 +195,7 @@ jobs:
         mkdir -p packages
         aws2 s3 cp --recursive s3://packages.emqx.io/emqx-ce/$version ./packages
         aws2 s3 cp --recursive s3://packages.emqx.io/emqx-edge/$version ./packages
-        cd packages && for var in $(ls | grep -v sha256 ); do sha256sum -c <(grep $var $var.sha256) ;done
+        cd packages && for var in $( ls |grep emqx |grep -v sha256); do sha256sum -c <(grep $var $var.sha256) || echo "$var check sha256 error" ;done
     - uses: actions/checkout@v2
       with:
         path: emqx-rel
