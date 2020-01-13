@@ -28,7 +28,7 @@ jobs:
             path: emqx-integration-test
         - name: Run all test cases
           run: |
-            if [ ${{ github.event_name}} == 'repository_dispatch' ]; then version=${{ github.event.client_payload.version }}; else version=$(echo ${{ github.ref }} | gsed -r  "s .*/.*/(.*) \1 g"); fi
+            if [ ${{ github.event_name}} == 'repository_dispatch' ]; then version=${{ github.event.client_payload.version }}; else version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g"); fi
             cd emqx-integration-test/docker-compose
             sudo docker-compose -p emqx_auto_func_test up -d --build
             sudo docker ps -a
@@ -42,6 +42,6 @@ jobs:
             path: emqx-integration-test/docker-compose/files/logs
         - name: Run paho test
           run: |
-            if [ ${{ github.event_name}} == 'repository_dispatch' ]; then version=${{ github.event.client_payload.version }}; else version=$(echo ${{ github.ref }} | gsed -r  "s .*/.*/(.*) \1 g"); fi
+            if [ ${{ github.event_name}} == 'repository_dispatch' ]; then version=${{ github.event.client_payload.version }}; else version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g"); fi
             cd emqx-integration-test/paho-test
             EMQX_DEPS_DEFAULT_VSN=$version TARGET=emqx/emqx PAHO_BRANCH="develop-4.0" make 
