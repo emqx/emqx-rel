@@ -5,11 +5,10 @@ on:
     branches:
       - develop
       - master
-      - release-*
     tags:
       - v*
   repository_dispatch:
-# on: [push]
+    types: [run_all_test_cases]
 
 jobs:
 
@@ -29,10 +28,11 @@ jobs:
             path: emqx-integration-test
         - name: Run all test cases
           run: |
+            if [ ${{ github.event_name}} == 'repository_dispatch' ]; then version=${{ github.event.client_payload.version }}; else version=$(echo ${{ github.ref }} | gsed -r  "s .*/.*/(.*) \1 g"); fi
             cd emqx-integration-test/docker-compose
             sudo docker-compose -p emqx_auto_func_test up -d --build
             sudo docker ps -a
-            sudo docker exec emqx_auto_func_test_emqx_1 bash -xc "cd /tests; sed -i '/^set.*/d' run_emqx.sh; export EMQX_DEPS_DEFAULT_VSN=$(echo ${{ github.ref }} | gsed -r  "s .*/.*/(.*) \1 g"); ./run_emqx.sh emqx-ce.spec "
+            sudo docker exec emqx_auto_func_test_emqx_1 bash -xc "cd /tests; sed -i '/^set.*/d' run_emqx.sh; export EMQX_DEPS_DEFAULT_VSN=$version; ./run_emqx.sh emqx-ce.spec "
             sudo docker exec emqx_auto_func_test_python_1 bash -xc "cd /tests && python ./boot.py "
             sudo docker-compose -p emqx_auto_func_test down
         - uses: actions/upload-artifact@v1
@@ -42,5 +42,6 @@ jobs:
             path: emqx-integration-test/docker-compose/files/logs
         - name: Run paho test
           run: |
+            if [ ${{ github.event_name}} == 'repository_dispatch' ]; then version=${{ github.event.client_payload.version }}; else version=$(echo ${{ github.ref }} | gsed -r  "s .*/.*/(.*) \1 g"); fi
             cd emqx-integration-test/paho-test
-            EMQX_DEPS_DEFAULT_VSN=develop TARGET=emqx/emqx PAHO_BRANCH="develop-4.0" make 
+            EMQX_DEPS_DEFAULT_VSN=$version TARGET=emqx/emqx PAHO_BRANCH="develop-4.0" make 

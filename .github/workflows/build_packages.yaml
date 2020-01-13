@@ -1,11 +1,10 @@
-name: Release
+name: Build packages
 
 on:
   push:
     branches:
       - develop
       - master
-      - release-*
     tags:
       - v*
   repository_dispatch:
@@ -34,7 +33,8 @@ jobs:
         sudo ./_build/emqx/rel/emqx/bin/emqx stop
         sudo ./_build/emqx/rel/emqx/bin/emqx install
         sudo ./_build/emqx/rel/emqx/bin/emqx uninstall
-        Get-FileHash -Path "_packages/emqx/$pkg_name" | Format-List | grep 'Hash' | awk '{print $3}' > _packages/emqx/$pkg_name.sha256
+        $sha_value = $(Get-FileHash -Path "_packages/emqx/$pkg_name" | Format-List | grep 'Hash' | awk '{print $3}')
+        echo "$sha_value $pkg_name" > _packages/emqx/$pkg_name.sha256
         aws configure set aws_access_key_id ${{ secrets.AwsAccessKeyId }} 
         aws configure set aws_secret_access_key ${{ secrets.AwsSecretAccessKey }} 
         aws configure set default.region us-west-2
@@ -100,7 +100,7 @@ jobs:
       run: |
         version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
         sudo docker run --rm --privileged multiarch/qemu-user-static:register --reset
-        sudo docker run -i --name $SYSTEM-build -e EMQX_DEPS_DEFAULT_VSN=$version -e SYSTEM=$SYSTEM -v $(pwd):/emqx-rel emqx/build-env:$ERL_OTP-$SYSTEM sh -c "cd /emqx-rel/.github/workflows/release; if [ -z $(echo $SYSTEM | grep -o raspbian) ];then EMQX_NAME=emqx ./build.sh; fi; EMQX_NAME=emqx-edge ./build.sh"
+        sudo docker run -i --name $SYSTEM-build -e EMQX_DEPS_DEFAULT_VSN=$version -e SYSTEM=$SYSTEM -v $(pwd):/emqx-rel emqx/build-env:$ERL_OTP-$SYSTEM sh -c "cd /emqx-rel/.github/workflows/script; if [ -z $(echo $SYSTEM | grep -o raspbian) ];then EMQX_NAME=emqx ./build.sh; fi; EMQX_NAME=emqx-edge ./build.sh"
         cd _packages/emqx && for var in $(ls emqx-$SYSTEM-* ); do sudo sh -c "sha256sum $var > $var.sha256"; done && cd -
         cd _packages/emqx-edge/&& for var in $(ls emqx-edge-$SYSTEM-* ); do sudo sh -c "sha256sum $var > $var.sha256"; done && cd -
     - name: set aws
@@ -195,7 +195,7 @@ jobs:
         mkdir -p packages
         aws2 s3 cp --recursive s3://packages.emqx.io/emqx-ce/$version ./packages
         aws2 s3 cp --recursive s3://packages.emqx.io/emqx-edge/$version ./packages
-        cd packages && for var in $( ls |grep emqx |grep -v sha256); do sha256sum -c <(grep $var $var.sha256) || echo "$var check sha256 error" ;done
+        cd packages && for var in $( ls |grep emqx |grep -v sha256); do sha256sum -c <(grep $var $var.sha256) || echo "$var check sha256 error" && exit 1 ;done
     - uses: actions/checkout@v2
       with:
         path: emqx-rel
@@ -205,7 +205,7 @@ jobs:
         if [ ! -z $(echo $version | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?") ]; then
           cd packages
           for var in $(ls); do
-            ../emqx-rel/.github/workflows/release/upload-github-release-asset.sh owner=emqx repo=emqx tag=$version filename=$var github_api_token=$(echo ${{ secrets.AccessToken }})
+            ../emqx-rel/.github/workflows/script/upload_github_release_asset.sh owner=emqx repo=emqx tag=$version filename=$var github_api_token=$(echo ${{ secrets.AccessToken }})
           done
           aws2 cloudfront create-invalidation --distribution-id E3TYD0WSP4S14P --paths "/emqx-ce/$version/*,/emqx-edge/$version/*"
           curl -w %{http_code} --insecure -H ${{ secrets.EmqxHeader }} https://admin.emqx.io/api/v1/github_release_callback?tag=$version
