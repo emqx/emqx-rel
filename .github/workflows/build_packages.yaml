@@ -198,7 +198,7 @@ jobs:
         aws2 s3 cp --recursive s3://packages.emqx.io/emqx-edge/$version ./packages
         cd packages && for var in $( ls |grep emqx |grep -v sha256); do 
           dos2unix $var.sha256
-          echo "$(cat $var.sha256) $var" | sha256sum -c || echo "$var check sha256 error" && exit 1 
+          echo "$(cat $var.sha256) $var" | sha256sum -c || exit 1
         done
     - uses: actions/checkout@v2
       with:
