@@ -25,7 +25,7 @@ jobs:
         mkdir -p _packages/emqx
         cd ./_build/emqx/rel && zip -rq emqx-macosx-$version.zip emqx && cd - && mv ./_build/emqx/rel/emqx-macosx-$version.zip _packages/emqx
         cd ./_build/emqx/rel/emqx && otool -L lib/crypto-*/priv/lib/crypto.so
-      - uses: actions/upload-artifact@v1
-        with:
-          name: emqx-macosx
-          path: _packages/emqx
+    - uses: actions/upload-artifact@v1
+      with:
+        name: emqx-macosx
+        path: _packages/emqx
