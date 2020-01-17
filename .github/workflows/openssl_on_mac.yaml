@@ -20,21 +20,13 @@ jobs:
     - name: build
       run: |
         version=$(echo ${{ github.ref }} | gsed -r  "s .*/.*/(.*) \1 g")
+        version=develop
         EMQX_DEPS_DEFAULT_VSN=$version make emqx
         mkdir -p _packages/emqx
         cd ./_build/emqx/rel && zip -rq emqx-macosx-$version.zip emqx && cd - && mv ./_build/emqx/rel/emqx-macosx-$version.zip _packages/emqx
         ./_build/emqx/rel/emqx/bin/emqx start
         ./_build/emqx/rel/emqx/bin/emqx stop
-        openssl dgst -sha256 ./_packages/emqx/emqx-macosx-$version.zip | awk '{print $2}'  > ./_packages/emqx/emqx-macosx-$version.zip.sha256
-    - name: set aws
-      run: |
-        curl "https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-macos.zip" -o "awscliv2.zip"
-        unzip awscliv2.zip
-        sudo ./aws/install
-        aws2 configure set aws_access_key_id ${{ secrets.AwsAccessKeyId }} 
-        aws2 configure set aws_secret_access_key ${{ secrets.AwsSecretAccessKey }} 
-        aws2 configure set default.region us-west-2
-    - name: upload to aws s3
-      run: |
-        version=$(echo ${{ github.ref }} | gsed -r  "s .*/.*/(.*) \1 g")
-        aws2 s3 cp --recursive ./_packages/emqx  s3://packages.emqx.io/emqx-ce/$version
+      - uses: actions/upload-artifact@v1
+        with:
+          name: emqx-macosx
+          path: _packages/emqx
