@@ -11,7 +11,7 @@ jobs:
     - name: prepare
       run: |
         /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-        brew install curl zip unzip gnu-sed erlang
+        brew install curl zip unzip gnu-sed erlang openssl@1.1
         echo "/usr/local/bin:$PATH" >> ~/.bashrc
     - name: openssl version
       run: |
