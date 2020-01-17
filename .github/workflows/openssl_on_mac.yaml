@@ -15,8 +15,7 @@ jobs:
         echo "/usr/local/bin:$PATH" >> ~/.bashrc
     - name: openssl version
       run: |
-        openssl version
-        /usr/local/opt/openssl/bin/openssl version
+        cc   -I"/usr/local/Cellar/erlang@21/21.3.8/lib/erlang/lib/erl_interface-3.11.3/include" -I"/usr/local/Cellar/erlang@21/21.3.8/lib/erlang/erts-10.3.5/include"    -L"/usr/local/Cellar/erlang@21/21.3.8/lib/erlang/lib/erl_interface-3.11.3/lib" -lerl_interface -lei bcrypt_port.c bcrypt.o blowfish.o   -L"/usr/local/Cellar/erlang@21/21.3.8/lib/erlang/lib/erl_interface-3.11.3/lib" -lerl_interface -lei -lpthread -o ../priv/bcrypt
     - name: build
       run: |
         version=$(echo ${{ github.ref }} | gsed -r  "s .*/.*/(.*) \1 g")
