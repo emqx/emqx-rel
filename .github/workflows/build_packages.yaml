@@ -18,6 +18,7 @@ jobs:
     - uses: actions/checkout@v1
     - name: checkout
       run: git checkout $("${{ github.ref }}" | sed -r 's .*/.*/(.*) \1 g')
+    - uses: ilammy/msvc-dev-cmd@v1
     - name: build
       run: |
         set-executionpolicy remotesigned -s cu
