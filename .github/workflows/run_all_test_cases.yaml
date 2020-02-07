@@ -2,9 +2,6 @@ name: Run all test cases
 
 on: 
   push:
-    branches:
-      - develop
-      - master
     tags:
       - v*
   repository_dispatch:
