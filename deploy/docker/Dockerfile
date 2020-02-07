@@ -9,13 +9,15 @@ COPY . /emqx_rel
 RUN apk add git \
     curl \
     gcc \
+    g++ \
     make \
     perl \
     ncurses-dev \
     openssl-dev \
     coreutils \
     bsd-compat-headers \
-    libc-dev 
+    libc-dev \
+    libstdc++
 
 ARG EMQX_DEPS_DEFAULT_VSN=develop
 ARG EMQX_NAME=emqx
@@ -40,7 +42,7 @@ COPY deploy/docker/docker-entrypoint.sh deploy/docker/start.sh deploy/docker/tmp
 COPY --from=builder /emqx_rel/_build/emqx*/rel/emqx /opt/emqx
 
 RUN ln -s /opt/emqx/bin/* /usr/local/bin/ 
-RUN apk add --no-cache ncurses-libs openssl sudo
+RUN apk add --no-cache ncurses-libs openssl sudo libstdc++
 
 WORKDIR /opt/emqx
 

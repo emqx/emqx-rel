@@ -4,40 +4,40 @@ on:
   push:
     branches:
       - develop
-      - master
     tags:
       - v*
   repository_dispatch:
     types: [build_packages]
 
 jobs:
-  win:
-    runs-on: windows-latest
+  # windows:
+  #   runs-on: windows-latest
 
-    steps:
-    - uses: actions/checkout@v1
-    - name: checkout
-      run: git checkout $("${{ github.ref }}" | sed -r 's .*/.*/(.*) \1 g')
-    - name: build
-      run: |
-        set-executionpolicy remotesigned -s cu
-        iex (new-object net.webclient).downloadstring('https://get.scoop.sh')
-        scoop install sudo curl 7zip aws erlang
-        $env:path + ";" + $env:USERPROFILE + "\scoop\shims"
-        make emqx
-        mkdir -p _packages/emqx
-        $pkg_name = "emqx-windows-$("${{ github.ref }}" | sed -r 's .*/.*/(.*) \1 g').zip"
-        Compress-Archive -Path _build/emqx/rel/emqx -DestinationPath _build/emqx/rel/$pkg_name
-        mv _build/emqx/rel/$pkg_name _packages/emqx
-        sudo ./_build/emqx/rel/emqx/bin/emqx start
-        sudo ./_build/emqx/rel/emqx/bin/emqx stop
-        sudo ./_build/emqx/rel/emqx/bin/emqx install
-        sudo ./_build/emqx/rel/emqx/bin/emqx uninstall
-        Get-FileHash -Path "_packages/emqx/$pkg_name" | Format-List | grep 'Hash' | awk '{print $3}'  > _packages/emqx/$pkg_name.sha256
-        aws configure set aws_access_key_id ${{ secrets.AwsAccessKeyId }} 
-        aws configure set aws_secret_access_key ${{ secrets.AwsSecretAccessKey }} 
-        aws configure set default.region us-west-2
-        aws s3 cp --recursive ./_packages/emqx  s3://packages.emqx.io/emqx-ce/$("${{ github.ref }}" | sed -r 's .*/.*/(.*) \1 g')
+  #   steps:
+  #   - uses: actions/checkout@v1
+  #   - name: checkout
+  #     run: git checkout $("${{ github.ref }}" | sed -r 's .*/.*/(.*) \1 g')
+  #   - uses: ilammy/msvc-dev-cmd@v1
+  #   - name: build
+  #     run: |
+  #       set-executionpolicy remotesigned -s cu
+  #       iex (new-object net.webclient).downloadstring('https://get.scoop.sh')
+  #       scoop install sudo curl 7zip aws erlang
+  #       $env:path + ";" + $env:USERPROFILE + "\scoop\shims"
+  #       make emqx
+  #       mkdir -p _packages/emqx
+  #       $pkg_name = "emqx-windows-$("${{ github.ref }}" | sed -r 's .*/.*/(.*) \1 g').zip"
+  #       Compress-Archive -Path _build/emqx/rel/emqx -DestinationPath _build/emqx/rel/$pkg_name
+  #       mv _build/emqx/rel/$pkg_name _packages/emqx
+  #       sudo ./_build/emqx/rel/emqx/bin/emqx start
+  #       sudo ./_build/emqx/rel/emqx/bin/emqx stop
+  #       sudo ./_build/emqx/rel/emqx/bin/emqx install
+  #       sudo ./_build/emqx/rel/emqx/bin/emqx uninstall
+  #       Get-FileHash -Path "_packages/emqx/$pkg_name" | Format-List | grep 'Hash' | awk '{print $3}'  > _packages/emqx/$pkg_name.sha256
+  #       aws configure set aws_access_key_id ${{ secrets.AwsAccessKeyId }}
+  #       aws configure set aws_secret_access_key ${{ secrets.AwsSecretAccessKey }}
+  #       aws configure set default.region us-west-2
+  #       aws s3 cp --recursive ./_packages/emqx  s3://packages.emqx.io/emqx-ce/$("${{ github.ref }}" | sed -r 's .*/.*/(.*) \1 g')
 
   # mac:
   #   runs-on: macos-latest
@@ -94,9 +94,9 @@ jobs:
         curl "https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
         unzip awscliv2.zip
         sudo ./aws/install
-        aws2 configure set aws_access_key_id ${{ secrets.AwsAccessKeyId }}
-        aws2 configure set aws_secret_access_key ${{ secrets.AwsSecretAccessKey }}
-        aws2 configure set default.region us-west-2
+        aws configure set aws_access_key_id ${{ secrets.AwsAccessKeyId }}
+        aws configure set aws_secret_access_key ${{ secrets.AwsSecretAccessKey }}
+        aws configure set default.region us-west-2
     - name: build emqx packages
       env:
         ERL_OTP: erl22.1
@@ -107,8 +107,8 @@ jobs:
         sudo docker run -i --name $SYSTEM-build -e EMQX_DEPS_DEFAULT_VSN=$version -e SYSTEM=$SYSTEM -v $(pwd):/emqx-rel emqx/build-env:$ERL_OTP-$SYSTEM sh -c "cd /emqx-rel/.github/workflows/script; if [ -z $(echo $SYSTEM | grep -o raspbian) ];then EMQX_NAME=emqx ./build.sh; fi; EMQX_NAME=emqx-edge ./build.sh"
         cd _packages/emqx && for var in $(ls emqx-$SYSTEM-* ); do sudo bash -c "echo $(sha256sum $var | awk '{print $1}') > $var.sha256"; done && cd -
         cd _packages/emqx-edge/&& for var in $(ls emqx-edge-$SYSTEM-* ); do sudo bash -c "echo $(sha256sum $var | awk '{print $1}') > $var.sha256"; done && cd -
-        [ -d _packages/emqx ] && aws2 s3 cp --recursive ./_packages/emqx  s3://packages.emqx.io/emqx-ce/$version
-        [ -d _packages/emqx-edge ] && aws2 s3 cp --recursive ./_packages/emqx-edge s3://packages.emqx.io/emqx-edge/$version
+        [ -d _packages/emqx ] && aws s3 cp --recursive ./_packages/emqx  s3://packages.emqx.io/emqx-ce/$version
+        [ -d _packages/emqx-edge ] && aws s3 cp --recursive ./_packages/emqx-edge s3://packages.emqx.io/emqx-edge/$version
 
   docker:
     runs-on: ubuntu-latest
@@ -128,9 +128,9 @@ jobs:
         curl "https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
         unzip awscliv2.zip
         sudo ./aws/install
-        aws2 configure set aws_access_key_id ${{ secrets.AwsAccessKeyId }}
-        aws2 configure set aws_secret_access_key ${{ secrets.AwsSecretAccessKey }}
-        aws2 configure set default.region us-west-2
+        aws configure set aws_access_key_id ${{ secrets.AwsAccessKeyId }}
+        aws configure set aws_secret_access_key ${{ secrets.AwsSecretAccessKey }}
+        aws configure set default.region us-west-2
     - uses: actions/checkout@v2
       with: 
         path: emqx-rel
@@ -153,11 +153,11 @@ jobs:
         sudo EMQX_DEPS_DEFAULT_VSN=$version TARGET=emqx/emqx ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH  make -C emqx-rel/deploy/docker
         sudo EMQX_DEPS_DEFAULT_VSN=$version TARGET=emqx/emqx ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH make -C emqx-rel/deploy/docker save
         cd emqx-rel/_packages/emqx && for var in $(ls emqx-docker-* ); do sudo bash -c "echo $(sha256sum $var | awk '{print $1}') > $var.sha256"; done && cd -
-        aws2 s3 cp --recursive emqx-rel/_packages/emqx  s3://packages.emqx.io/emqx-ce/$version
+        aws s3 cp --recursive emqx-rel/_packages/emqx  s3://packages.emqx.io/emqx-ce/$version
         sudo EMQX_DEPS_DEFAULT_VSN=$version TARGET=emqx/emqx-edge ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH  make -C emqx-rel/deploy/docker
         sudo EMQX_DEPS_DEFAULT_VSN=$version TARGET=emqx/emqx-edge ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH  make -C emqx-rel/deploy/docker save
         cd emqx-rel/_packages/emqx-edge && for var in $(ls emqx-edge-docker-* ); do sudo bash -c "echo $(sha256sum $var | awk '{print $1}') > $var.sha256"; done && cd -
-        aws2 s3 cp --recursive emqx-rel/_packages/emqx-edge s3://packages.emqx.io/emqx-edge/$version
+        aws s3 cp --recursive emqx-rel/_packages/emqx-edge s3://packages.emqx.io/emqx-edge/$version
     - name: docker test
       if: matrix.arch[0] == 'amd64'
       run: |
@@ -168,8 +168,8 @@ jobs:
   upload:
     runs-on: ubuntu-latest
 
-    # needs: [win, mac, linux, docker]
-    needs: [win, linux, docker]
+    # needs: [windows, mac, linux, docker]
+    needs: [linux, docker]
 
     steps:
     - name: set aws
@@ -177,17 +177,17 @@ jobs:
         curl "https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
         unzip awscliv2.zip
         sudo ./aws/install
-        aws2 configure set aws_access_key_id ${{ secrets.AwsAccessKeyId }}
-        aws2 configure set aws_secret_access_key ${{ secrets.AwsSecretAccessKey }}
-        aws2 configure set default.region us-west-2
+        aws configure set aws_access_key_id ${{ secrets.AwsAccessKeyId }}
+        aws configure set aws_secret_access_key ${{ secrets.AwsSecretAccessKey }}
+        aws configure set default.region us-west-2
     - name: install dos2unix
       run: sudo apt-get update && sudo apt install -y dos2unix
     - name: get packages
       run: |
         if [ ${{ github.event_name}} == 'repository_dispatch' ]; then version=${{ github.event.client_payload.version }}; else version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g"); fi
         mkdir -p packages
-        aws2 s3 cp --recursive s3://packages.emqx.io/emqx-ce/$version ./packages
-        aws2 s3 cp --recursive s3://packages.emqx.io/emqx-edge/$version ./packages
+        aws s3 cp --recursive s3://packages.emqx.io/emqx-ce/$version ./packages
+        aws s3 cp --recursive s3://packages.emqx.io/emqx-edge/$version ./packages
         cd packages && for var in $( ls |grep emqx |grep -v sha256); do 
           dos2unix $var.sha256
           echo "$(cat $var.sha256) $var" | sha256sum -c || exit 1
@@ -203,7 +203,7 @@ jobs:
           for var in $(ls); do
             ../emqx-rel/.github/workflows/script/upload_github_release_asset.sh owner=emqx repo=emqx tag=$version filename=$var github_api_token=$(echo ${{ secrets.AccessToken }})
           done
-          aws2 cloudfront create-invalidation --distribution-id E3TYD0WSP4S14P --paths "/emqx-ce/$version/*,/emqx-edge/$version/*"
+          aws cloudfront create-invalidation --distribution-id E3TYD0WSP4S14P --paths "/emqx-ce/$version/*,/emqx-edge/$version/*"
           curl -w %{http_code} --insecure -H ${{ secrets.EmqxHeader }} https://admin.emqx.io/api/v1/github_release_callback?tag=$version
         fi
     - name: push docker image to docker hub
