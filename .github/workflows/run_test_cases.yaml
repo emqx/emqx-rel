@@ -1,9 +1,7 @@
-name: Run all test cases
+name: Run test cases
 
 on: 
   push:
-    tags:
-      - v*
   repository_dispatch:
     types: [run_all_test_cases]
 
