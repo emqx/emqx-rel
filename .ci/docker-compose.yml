@@ -1,0 +1,86 @@
+version: '3'
+
+services:
+  emqx:
+    build: ./emqx-erlang
+    image: emqx-erlang:22.1
+    depends_on:
+      - mysql_server
+      - redis_server
+      - mongo_server
+      - pgsql_server
+      - ldap_server
+    networks:
+      - emqx-bridge
+    volumes:
+      - ../.:/emqx-rel
+    tty: true
+
+  mysql_server:
+    image: mysql:5.7
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: public 
+      MYSQL_DATABASE: mqtt
+    networks:
+      - emqx-bridge
+    command: --bind-address 0.0.0.0
+  
+  mysql_client:
+    image: mysql:5.7
+    networks:
+      - emqx-bridge
+    depends_on:
+      - mysql_server
+    volumes:
+      - ../_build/emqx/lib/emqx_auth_mysql/mqtt.sql:/emqx_auth_mysql_test.sql
+    command:
+      - /bin/bash
+      - -c
+      - |
+        service mysql start
+        echo "show tables;" | mysql -h mysql_server -u root -ppublic mqtt
+        while [[ $$? -ne 0 ]];do echo "show tables;" | mysql -h mysql_server -u root -ppublic mqtt; done
+        mysql -h mysql_server -u root -ppublic mqtt</emqx_auth_mysql_test.sql
+        echo "------------show tables------------"
+        echo "show tables;" | mysql -h mysql_server -u root -ppublic mqtt
+
+  redis_server:
+    build: ./emqx-redis
+    image: emqx-redis:5
+    restart: always
+    networks:
+      - emqx-bridge
+
+  mongo_server:
+    image: mongo:4.1
+    restart: always
+    environment:
+      MONGO_INITDB_DATABASE: mqtt
+    networks:
+      - emqx-bridge
+    command: --bind_ip_all
+
+  pgsql_server:
+    image: postgres:11 
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: public
+      POSTGRES_USER: root
+      POSTGRES_DB: mqtt
+    networks:
+      - emqx-bridge
+
+  ldap_server:
+    build: ./emqx-ldap
+    image: emqx-ldap:1.0
+    restart: always
+    networks:
+      - emqx-bridge
+ 
+networks:
+  emqx-bridge:
+    driver: bridge
+
+volumes:
+  logs-volumes:

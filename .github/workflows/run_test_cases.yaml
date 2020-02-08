@@ -1,0 +1,56 @@
+name: Run all test cases
+
+on: 
+  push:
+    tags:
+      - v*
+  repository_dispatch:
+    types: [run_all_test_cases]
+
+jobs:
+
+    run_test_case:
+
+        runs-on: ubuntu-latest
+
+        steps:
+        - uses: actions/checkout@v2
+        - name: Install docker-compose
+          run: | 
+            sudo curl -L "https://github.com/docker/compose/releases/download/1.25.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+            sudo chmod +x /usr/local/bin/docker-compose
+        - name: docker-compose up
+          run:  docker-compose -p emqx_auto_func_test -f .ci/docker-compose.yaml up -d --build
+        - name: get deps
+          run:  docker exec emqx_auto_func_test_emqx_1 bash -c "make -C /emqx-rel deps-emqx"
+        - name: set config files
+          run: |
+            cd _build/emqx/lib
+            for var in $(ls); do
+              if [ $line == "emqx_auth_mysql" ];then
+                sed -i "/auth.mysql.server/c auth.mysql.server = mysql_server:3306" ./$var/etc/emqx_auth_mysql.conf 
+                echo "auth.mysql.username = root" >> ./$var/etc/emqx_auth_mysql.conf
+                echo "auth.mysql.password = public" >> ./$var/etc/emqx_auth_mysql.conf
+              fi
+              if [ $line == "emqx_auth_redis" ];then
+                sed -i "/auth.redis.server/c auth.redis.server = redis_server:6379" ./$var/etc/emqx_auth_redis.conf
+              fi
+              if [ $line == "emqx_auth_mongo" ];then
+                sed -i "/auth.mongo.server/c auth.mongo.server = mongo_server:27017" ./$var/etc/emqx_auth_mongo.conf 
+              fi
+              if [ $line == "emqx_auth_pgsql" ];then
+                sed -i "/auth.pgsql.server/c auth.pgsql.server = pgsql_server:5432" ./$var/etc/emqx_auth_pgsql.conf 
+              fi
+              if [ $line == "emqx_auth_ldap" ];then
+                sed -i "/auth.ldap.servers/c auth.ldap.servers = ldap_server" ./$var/etc/emqx_auth_ldap.conf 
+              fi
+            done
+        - name: run all test cases
+          run: docker exec emqx_auto_func_test_emqx_1 bash -c "make -C /emqx-rel ct"
+        - uses: actions/upload-artifact@v1
+          if: always()
+          with:
+            name: logs
+            path: _build/emqx+test/logs
+            
+
