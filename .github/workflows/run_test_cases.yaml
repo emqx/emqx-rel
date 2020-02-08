@@ -22,7 +22,7 @@ jobs:
         - name: get deps
           run:  docker exec emqx_auto_func_test_emqx_1 bash -c "cd /emqx-rel && EMQX_DEPS_DEFAULT_VSN=develop make deps-emqx"
         - uses: actions/upload-artifact@v1
-          if: failed()
+          if: failure()
           with:
             name: rebar3.crashdump
             path: rebar3.crashdump
