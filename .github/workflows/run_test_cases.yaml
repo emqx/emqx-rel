@@ -18,9 +18,9 @@ jobs:
             sudo curl -L "https://github.com/docker/compose/releases/download/1.25.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
             sudo chmod +x /usr/local/bin/docker-compose
         - name: docker-compose up
-          run:  sudo docker-compose -p emqx_auto_func_test -f .ci/docker-compose.yaml up -d --build
+          run:  docker-compose -p emqx_auto_func_test -f .ci/docker-compose.yaml up -d --build
         - name: get deps
-          run:  sudo docker exec emqx_auto_func_test_emqx_1 bash -c "cd /emqx-rel && EMQX_DEPS_DEFAULT_VSN=develop make deps-emqx"
+          run:  docker exec emqx_auto_func_test_emqx_1 bash -c "cd /emqx-rel && EMQX_DEPS_DEFAULT_VSN=develop make deps-emqx"
         - uses: actions/upload-artifact@v1
           if: failure()
           with:
@@ -29,7 +29,8 @@ jobs:
         - name: set config files
           run: |
             cd _build/emqx/lib
-            sudo bash -c 'for var in $(ls); do
+            sudo chmod +w ./* -R
+            for var in $(ls); do
               if [ $line == "emqx_auth_mysql" ];then
                 sed -i "/auth.mysql.server/c auth.mysql.server = mysql_server:3306" ./$var/etc/emqx_auth_mysql.conf 
                 echo "auth.mysql.username = root" >> ./$var/etc/emqx_auth_mysql.conf
@@ -47,9 +48,9 @@ jobs:
               if [ $line == "emqx_auth_ldap" ];then
                 sed -i "/auth.ldap.servers/c auth.ldap.servers = ldap_server" ./$var/etc/emqx_auth_ldap.conf 
               fi
-            done'
+            done
         - name: run all test cases
-          run: sudo docker exec emqx_auto_func_test_emqx_1 bash -c "cd /emqx-rel && EMQX_DEPS_DEFAULT_VSN=develop make ct"
+          run: docker exec emqx_auto_func_test_emqx_1 bash -c "cd /emqx-rel && EMQX_DEPS_DEFAULT_VSN=develop make ct"
         - uses: actions/upload-artifact@v1
           if: always()
           with:
