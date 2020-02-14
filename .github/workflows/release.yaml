@@ -23,7 +23,8 @@ jobs:
       run: |
         set-executionpolicy remotesigned -s cu
         iex (new-object net.webclient).downloadstring('https://get.scoop.sh')
-        scoop install sudo curl 7zip aws erlang
+        scoop bucket add extras https://github.com/lukesampson/scoop-extras.git
+        scoop install sudo curl 7zip aws erlang visualc vcredist2019
         $env:path + ";" + $env:USERPROFILE + "\scoop\shims"
         make emqx
         mkdir -p _packages/emqx
