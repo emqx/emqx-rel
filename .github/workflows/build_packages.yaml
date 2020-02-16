@@ -18,7 +18,7 @@ jobs:
     - uses: ilammy/msvc-dev-cmd@v1
     - name: build
       run: |
-        if ( ${{ github.event_name }} eq 'repository_dispatch' ){ $version = ${{ github.event.client_payload.version }} else { $version = $("${{ github.ref }}" | sed -r 's .*/.*/(.*) \1 g') }
+        if ( "${{ github.event_name }}" eq "repository_dispatch" ){ $version = "${{ github.event.client_payload.version }}" } else { $version = $("${{ github.ref }}" | sed -r 's .*/.*/(.*) \1 g') }
         $env:EMQX_DEPS_DEFAULT_VSN = $version
         set-executionpolicy remotesigned -s cu
         iex (new-object net.webclient).downloadstring('https://get.scoop.sh')
