@@ -10,34 +10,41 @@ on:
     types: [build_packages]
 
 jobs:
-  # windows:
-  #   runs-on: windows-latest
+  windows:
+    runs-on: windows-latest
 
-  #   steps:
-  #   - uses: actions/checkout@v1
-  #   - name: checkout
-  #     run: git checkout $("${{ github.ref }}" | sed -r 's .*/.*/(.*) \1 g')
-  #   - uses: ilammy/msvc-dev-cmd@v1
-  #   - name: build
-  #     run: |
-  #       set-executionpolicy remotesigned -s cu
-  #       iex (new-object net.webclient).downloadstring('https://get.scoop.sh')
-  #       scoop install sudo curl 7zip aws erlang
-  #       $env:path + ";" + $env:USERPROFILE + "\scoop\shims"
-  #       make emqx
-  #       mkdir -p _packages/emqx
-  #       $pkg_name = "emqx-windows-$("${{ github.ref }}" | sed -r 's .*/.*/(.*) \1 g').zip"
-  #       Compress-Archive -Path _build/emqx/rel/emqx -DestinationPath _build/emqx/rel/$pkg_name
-  #       mv _build/emqx/rel/$pkg_name _packages/emqx
-  #       sudo ./_build/emqx/rel/emqx/bin/emqx start
-  #       sudo ./_build/emqx/rel/emqx/bin/emqx stop
-  #       sudo ./_build/emqx/rel/emqx/bin/emqx install
-  #       sudo ./_build/emqx/rel/emqx/bin/emqx uninstall
-  #       Get-FileHash -Path "_packages/emqx/$pkg_name" | Format-List | grep 'Hash' | awk '{print $3}'  > _packages/emqx/$pkg_name.sha256
-  #       aws configure set aws_access_key_id ${{ secrets.AwsAccessKeyId }}
-  #       aws configure set aws_secret_access_key ${{ secrets.AwsSecretAccessKey }}
-  #       aws configure set default.region us-west-2
-  #       aws s3 cp --recursive ./_packages/emqx  s3://packages.emqx.io/emqx-ce/$("${{ github.ref }}" | sed -r 's .*/.*/(.*) \1 g')
+    steps:
+    - uses: actions/checkout@v1
+    - uses: ilammy/msvc-dev-cmd@v1
+    - name: build
+      run: |
+        if ( "${{ github.event_name }}" -eq "repository_dispatch" ){ $version = "${{ github.event.client_payload.version }}" } else { $version = $("${{ github.ref }}" | sed -r 's .*/.*/(.*) \1 g') }
+        $env:EMQX_DEPS_DEFAULT_VSN = $version
+        set-executionpolicy remotesigned -s cu
+        iex (new-object net.webclient).downloadstring('https://get.scoop.sh')
+        scoop bucket add extras https://github.com/lukesampson/scoop-extras.git
+        scoop install sudo curl 7zip aws erlang vcredist2013
+        $env:path + ";" + $env:USERPROFILE + "\scoop\shims"
+        make deps-emqx
+        $rebar3 = $env:USERPROFILE + "\rebar3"
+        (New-Object System.Net.WebClient).DownloadFile('https://s3.amazonaws.com/rebar3/rebar3', $rebar3)
+        cd _build/emqx/lib/jiffy/
+        escript $rebar3 compile
+        cd ../../../../
+        make emqx
+        mkdir -p _packages/emqx
+        $pkg_name = "emqx-windows-$("${{ github.ref }}" | sed -r 's .*/.*/(.*) \1 g').zip"
+        Compress-Archive -Path _build/emqx/rel/emqx -DestinationPath _build/emqx/rel/$pkg_name
+        mv _build/emqx/rel/$pkg_name _packages/emqx
+        sudo ./_build/emqx/rel/emqx/bin/emqx start
+        sudo ./_build/emqx/rel/emqx/bin/emqx stop
+        sudo ./_build/emqx/rel/emqx/bin/emqx install
+        sudo ./_build/emqx/rel/emqx/bin/emqx uninstall
+        Get-FileHash -Path "_packages/emqx/$pkg_name" | Format-List | grep 'Hash' | awk '{print $3}'  > _packages/emqx/$pkg_name.sha256
+        aws configure set aws_access_key_id ${{ secrets.AwsAccessKeyId }}
+        aws configure set aws_secret_access_key ${{ secrets.AwsSecretAccessKey }}
+        aws configure set default.region us-west-2
+        aws s3 cp --recursive ./_packages/emqx  s3://packages.emqx.io/emqx-ce/$("${{ github.ref }}" | sed -r 's .*/.*/(.*) \1 g')
 
   # mac:
   #   runs-on: macos-latest
@@ -169,7 +176,7 @@ jobs:
     runs-on: ubuntu-latest
 
     # needs: [windows, mac, linux, docker]
-    needs: [linux, docker]
+    needs: [windows, linux, docker]
 
     steps:
     - name: set aws
