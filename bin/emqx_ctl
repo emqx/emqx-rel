@@ -11,6 +11,9 @@ RUNNER_ROOT_DIR="{{ runner_root_dir }}"
 ERTS_VSN="{{ erts_vsn }}"
 RUNNER_ETC_DIR="{{ runner_etc_dir }}"
 
+# Echo to stderr on errors
+echoerr() { echo "$@" 1>&2; }
+
 if [ -z "$WITH_EPMD" ]; then
     EPMD_ARG="-start_epmd false -epmd_module nodetool_epmd"
 else
