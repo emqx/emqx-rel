@@ -90,7 +90,7 @@ These environment variables will ignore for configuration file.
 
 #### EMQ X Configuration
 
-> NOTE: All EMQ X Configuration in [etc/emqx.conf](https://github.com/emqx/emqx/blob/emqx30/etc/emqx.conf) could config by environment. The following list is just an example, not a complete configuration.
+> NOTE: All EMQ X Configuration in [etc/emqx.conf](https://github.com/emqx/emqx/blob/master/etc/emqx.conf) could config by environment. The following list is just an example, not a complete configuration.
 
 | Options                    | Default            | Mapped                    | Description                           |
 | ---------------------------| ------------------ | ------------------------- | ------------------------------------- |
@@ -110,7 +110,7 @@ These environment variables will ignore for configuration file.
 | EMQX_LISTENER__API__MGMT    | 8080               | listener.api.mgmt         | MGMT API  port                        |
 | EMQX_MQTT__MAX_PACKET_SIZE  | 64KB               | mqtt.max_packet_size      | Max Packet Size Allowed               |
 
-The list is incomplete and may changed with [etc/emqx.conf](https://github.com/emqx/emqx/blob/emqx30/etc/emqx.conf) and plugin configuration files. But the mapping rule is similar.
+The list is incomplete and may changed with [etc/emqx.conf](https://github.com/emqx/emqx/blob/master/etc/emqx.conf) and plugin configuration files. But the mapping rule is similar.
 
 If set ``EMQX_NAME`` and ``EMQX_HOST``, and unset ``EMQX_NODE__NAME``, ``EMQX_NODE__NAME=$EMQX_NAME@$EMQX_HOST``.
 
@@ -201,7 +201,7 @@ docker run -d --name emqx -p 18083:18083 -p 1883:1883 -p 4369:4369 -p 6000-6100:
 
 ### Kernel Tuning
 
-Under linux host machine, the easiest way is [tuning host machine's kernel](http://emqttd-docs.readthedocs.io/en/latest/tune.html).
+Under linux host machine, the easiest way is [Tuning Guide](https://docs.emqx.io/broker/latest/en/tune.html).
 
 If you want tune linux kernel by docker, you must ensure your docker is latest version (>=1.12).
 
