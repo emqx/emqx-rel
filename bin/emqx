@@ -330,20 +330,21 @@ case "$1" in
                           "$(relx_start_command)"
 
         WAIT=${WAIT_FOR_ERLANG:-15}
-        while [ $WAIT -gt 0 ]; do
+        while [ $WAIT -gt 0 ] && ! relx_nodetool "ping" >/dev/null 2>&1; do
             WAIT=`expr $WAIT - 1`
             sleep 1
-            if ! relx_nodetool "ping" >/dev/null 2>&1; then
-                continue
-            fi
+        done
+        sleep 1
+        if relx_nodetool "ping" >/dev/null 2>&1; then
             echo "{{ emqx_description }} $REL_VSN is started successfully!"
             exit 0
-        done
-        echo "The broker failed to start within ${WAIT_FOR_ERLANG:-15} seconds,"
-        echo "see the output of './bin/emqx console' for more information."
-        echo "If you want to wait longer, set the environment variable"
-        echo "WAIT_FOR_ERLANG to the number of seconds to wait."
-        exit 1
+        else
+            echo "{{ emqx_description }} $REL_VSN failed to start within ${WAIT_FOR_ERLANG:-15} seconds,"
+            echo "see the output of '$0 console' for more information."
+            echo "If you want to wait longer, set the environment variable"
+            echo "WAIT_FOR_ERLANG to the number of seconds to wait."
+            exit 1
+        fi
         ;;
 
     stop)
