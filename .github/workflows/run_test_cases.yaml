@@ -23,7 +23,7 @@ jobs:
         - name: docker-compose up
           run:  docker-compose -p emqx_auto_func_test -f .ci/docker-compose.yaml up -d --build
         - name: get deps
-          run:  docker exec emqx_auto_func_test_emqx_1 bash -c "cd /emqx-rel && EMQX_DEPS_DEFAULT_VSN=develop make deps-emqx"
+          run:  docker exec emqx_auto_func_test_emqx_1 bash -c "cd /emqx-rel && make distclean && EMQX_DEPS_DEFAULT_VSN=develop make deps-emqx"
         - uses: actions/upload-artifact@v1
           if: failure()
           with:
@@ -34,30 +34,28 @@ jobs:
             cd _build/emqx/lib
             sudo chmod +w ./* -R
             for var in $(ls); do
-              if [ $line == "emqx_auth_mysql" ];then
+              if [ $var == "emqx_auth_mysql" ];then
                 sed -i "/auth.mysql.server/c auth.mysql.server = mysql_server:3306" ./$var/etc/emqx_auth_mysql.conf 
                 echo "auth.mysql.username = root" >> ./$var/etc/emqx_auth_mysql.conf
                 echo "auth.mysql.password = public" >> ./$var/etc/emqx_auth_mysql.conf
               fi
-              if [ $line == "emqx_auth_redis" ];then
+              if [ $var == "emqx_auth_redis" ];then
                 sed -i "/auth.redis.server/c auth.redis.server = redis_server:6379" ./$var/etc/emqx_auth_redis.conf
               fi
-              if [ $line == "emqx_auth_mongo" ];then
+              if [ $var == "emqx_auth_mongo" ];then
                 sed -i "/auth.mongo.server/c auth.mongo.server = mongo_server:27017" ./$var/etc/emqx_auth_mongo.conf 
               fi
-              if [ $line == "emqx_auth_pgsql" ];then
+              if [ $var == "emqx_auth_pgsql" ];then
                 sed -i "/auth.pgsql.server/c auth.pgsql.server = pgsql_server:5432" ./$var/etc/emqx_auth_pgsql.conf 
               fi
-              if [ $line == "emqx_auth_ldap" ];then
+              if [ $var == "emqx_auth_ldap" ];then
                 sed -i "/auth.ldap.servers/c auth.ldap.servers = ldap_server" ./$var/etc/emqx_auth_ldap.conf 
               fi
             done
         - name: run all test cases
-          run: docker exec emqx_auto_func_test_emqx_1 bash -c "cd /emqx-rel && EMQX_DEPS_DEFAULT_VSN=develop make ct"
+          run: docker exec emqx_auto_func_test_emqx_1 bash -c "cd /emqx-rel && EMQX_DEPS_DEFAULT_VSN=develop make ct -k -j 4"
         - uses: actions/upload-artifact@v1
           if: always()
           with:
             name: logs
             path: _build/emqx+test/logs
-            
-
