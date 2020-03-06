@@ -358,24 +358,17 @@ case "$1" in
         done
         ;;
 
-    restart)
-        #generate app.config and vm.args
-        generate_config
+    restart|reboot)
+        echo "{{ emqx_description }} $REL_VSN is stoped: $($0 stop)"
+        $0 start
 
-        ## Restart the VM without exiting the process
-        if ! relx_nodetool "restart" $CONFIG_ARGS; then
-            exit 1
-        fi
-        ;;
+        # #generate app.config and vm.args
+        # generate_config
 
-    reboot)
-        #generate app.config and vm.args
-        generate_config
-
-        ## Restart the VM completely (uses heart to restart it)
-        if ! relx_nodetool "reboot" $CONFIG_ARGS; then
-            exit 1
-        fi
+        # ## Restart the VM without exiting the process
+        # if ! relx_nodetool "restart" $CONFIG_ARGS; then
+        #     exit 1
+        # fi
         ;;
 
     pid)
