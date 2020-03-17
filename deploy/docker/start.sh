@@ -30,9 +30,11 @@ echo "['$(date -u +"%Y-%m-%dT%H:%M:%SZ")']:emqx start"
 #          and docker dispatching system can known and restart this container.
 NEW_LOG_NUM=2
 IDLE_TIME=0
+MGMT_CONF='/opt/emqx/etc/plugins/emqx_management.conf'
+MGMT_PORT=$(sed -n -r '/^management.listener.http[ \t]=[ \t].*$/p' $MGMT_CONF | sed -r 's/^management.listener.http = (.*)$/\1/g')
 while [[ $IDLE_TIME -lt 5 ]]; do
     IDLE_TIME=$((IDLE_TIME+1))
-    if [[ ! -z "$(curl http://localhost:8081/status |grep 'is running'|awk '{print $1}')" ]]; then
+    if curl http://localhost:${MGMT_PORT}/status >/dev/null 2>&1; then
         IDLE_TIME=0
         # Print the latest erlang.log
         if [[ -f /opt/emqx/log/erlang.log.${NEW_LOG_NUM} ]];then
