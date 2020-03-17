@@ -50,7 +50,7 @@ SED_REPLACE="sed -i "
 case $(sed --help 2>&1) in
     *GNU*) SED_REPLACE="sed -i ";;
     *BusyBox*) SED_REPLACE="sed -i ";;
-    *) SED_REPLACE="sed -i ''";;
+    *) SED_REPLACE="sed -i '' ";;
 esac
 
 # Get node pid
@@ -137,10 +137,15 @@ generate_config() {
         cp "$RUNNER_ETC_DIR/vm.args" "$TMP_ARG_FILE"
         echo "" >> "$TMP_ARG_FILE"
         sed '/^#/d' $CUTTLE_GEN_ARG_FILE | sed '/^$/d' | while IFS='' read -r ARG_LINE || [ -n "$ARG_LINE" ]; do
-            ARG_KEY=`echo "$ARG_LINE" | awk '{NF--; print}'`
-            ## if not found in vm.args, append a new line
-            if ! grep -q "^$ARG_KEY" "$TMP_ARG_FILE"; then
-                echo "$ARG_LINE" >> "$TMP_ARG_FILE"
+            ARG_KEY=`echo "$ARG_LINE" | awk '{$NF="";print}'`
+            ARG_VALUE=`echo "$ARG_LINE" | awk '{print $NF}'`
+            TMP_ARG_VALUE=`grep "^$ARG_KEY" "$TMP_ARG_FILE" | awk '{print $NF}'`
+            if [ "$ARG_VALUE" != "$TMP_ARG_VALUE" ] ; then
+                if [ ! -z $TMP_ARG_VALUE ]; then
+                    sh -c "$SED_REPLACE 's/^$ARG_KEY.*$/$ARG_LINE/' $TMP_ARG_FILE"
+                else
+                    echo "$ARG_LINE" >> "$TMP_ARG_FILE"
+                fi
             fi
         done
         mv -f "$TMP_ARG_FILE" "$CUTTLE_GEN_ARG_FILE"
@@ -153,14 +158,14 @@ generate_config() {
 }
 
 replace_env_in_conf() {
-    [ "x" = "x$EMQX_NODE_NAME" ]       || $SED_REPLACE "s/^[ \t]*node.name[ \t]*=.*$/node.name= $EMQX_NODE_NAME/" $APPCONF
-    [ "x" = "x$EMQX_NODE_COOKIE" ]     || $SED_REPLACE "s/^[ \t]*node.cookie[ \t]*=.*$/node.cookie= $EMQX_NODE_COOKIE/" $APPCONF
-    [ "x" = "x$EMQX_MAX_PORTS" ]       || $SED_REPLACE "s/^[ \t]*node.max_ports[ \t]*=.*$/node.max_ports = $EMQX_MAX_PORTS/" $APPCONF
-    [ "x" = "x$EMQX_MAX_PACKET_SIZE" ] || $SED_REPLACE "s/^[ \t]*mqtt.max_packet_size[ \t]*=.*$/mqtt.max_packet_size = $EMQX_MAX_PACKET_SIZE/" $APPCONF
-    [ "x" = "x$EMQX_TCP_PORT" ]        || $SED_REPLACE "s/^[ \t]*listener.tcp.external[ \t]*=.*$/listener.tcp.external = $EMQX_TCP_PORT/" $APPCONF
-    [ "x" = "x$EMQX_SSL_PORT" ]        || $SED_REPLACE "s/^[ \t]*listener.ssl.external[ \t]*=.*$/listener.ssl.external = $EMQX_SSL_PORT/" $APPCONF
-    [ "x" = "x$EMQX_WS_PORT" ]         || $SED_REPLACE "s/^[ \t]*listener.ws.external[ \t]*=.*$/listener.ws.external = $EMQX_WS_PORT/" $APPCONF
-    [ "x" = "x$EMQX_WSS_PORT" ]        || $SED_REPLACE "s/^[ \t]*listener.wss.external[ \t]*=.*$/listener.wss.external = $EMQX_WSS_PORT/" $APPCONF
+    [ "x" = "x$EMQX_NODE_NAME" ]       || sh -c "$SED_REPLACE 's/^[ \t]*node.name[ \t]*=.*$/node.name = $EMQX_NODE_NAME/' $APPCONF"
+    [ "x" = "x$EMQX_NODE_COOKIE" ]     || sh -c "$SED_REPLACE 's/^[ \t]*node.cookie[ \t]*=.*$/node.cookie = $EMQX_NODE_COOKIE/' $APPCONF"
+    [ "x" = "x$EMQX_MAX_PORTS" ]       || sh -c "$SED_REPLACE 's/^[ \t]*node.max_ports[ \t]*=.*$/node.max_ports = $EMQX_MAX_PORTS/' $APPCONF"
+    [ "x" = "x$EMQX_MAX_PACKET_SIZE" ] || sh -c "$SED_REPLACE 's/^[ \t]*mqtt.max_packet_size[ \t]*=.*$/mqtt.max_packet_size = $EMQX_MAX_PACKET_SIZE/' $APPCONF"
+    [ "x" = "x$EMQX_TCP_PORT" ]        || sh -c "$SED_REPLACE 's/^[ \t]*listener.tcp.external[ \t]*=.*$/listener.tcp.external = $EMQX_TCP_PORT/' $APPCONF"
+    [ "x" = "x$EMQX_SSL_PORT" ]        || sh -c "$SED_REPLACE 's/^[ \t]*listener.ssl.external[ \t]*=.*$/listener.ssl.external = $EMQX_SSL_PORT/' $APPCONF"
+    [ "x" = "x$EMQX_WS_PORT" ]         || sh -c "$SED_REPLACE 's/^[ \t]*listener.ws.external[ \t]*=.*$/listener.ws.external = $EMQX_WS_PORT/' $APPCONF"
+    [ "x" = "x$EMQX_WSS_PORT" ]        || sh -c "$SED_REPLACE 's/^[ \t]*listener.wss.external[ \t]*=.*$/listener.wss.external = $EMQX_WSS_PORT/' $APPCONF"
 }
 
 # Call bootstrapd for daemon commands like start/stop/console
