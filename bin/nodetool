@@ -268,7 +268,7 @@ mergeconf(EmqCfg, PluginsEtc, DestDir) ->
     AppConf = filename:join(DestDir, appconf()),
     case file:open(AppConf, [write]) of
         {ok, DestFd} ->
-            CfgFiles = [EmqCfg | cfgfiles(PluginsEtc)],
+            CfgFiles = [EmqCfg])],
             lists:foreach(fun(CfgFile) ->
                             {ok, CfgData} = file:read_file(CfgFile),
                             file:write(DestFd, CfgData),
