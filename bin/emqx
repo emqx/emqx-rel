@@ -44,7 +44,7 @@ echoerr() { echo "$@" 1>&2; }
 
 # By default, use cuttlefish to generate app.config and vm.args
 CUTTLEFISH="${USE_CUTTLEFISH:-yes}"
-CUTTLEFISH_COMMAND_PREFIX="$ERTS_PATH/escript $RUNNER_ROOT_DIR/bin/cuttlefish -s $REL_DIR/schema -d $RUNNER_DATA_DIR/configs"
+CUTTLEFISH_COMMAND_PREFIX="$ERTS_PATH/escript $RUNNER_ROOT_DIR/bin/cuttlefish -i $REL_DIR/schema/emqx.schema -d $RUNNER_DATA_DIR/configs"
 
 SED_REPLACE="sed -i "
 case $(sed --help 2>&1) in
@@ -127,7 +127,7 @@ generate_config() {
         # the vm, we need to pass it in twice.
         CONFIG_ARGS=" -config $RUNNER_ETC_DIR/app.config -args_file $RUNNER_ETC_DIR/vm.args -vm_args $RUNNER_ETC_DIR/vm.args "
     else
-        APPCONF=`relx_nodetool mergeconf $RUNNER_ETC_DIR/emqx.conf $RUNNER_ETC_DIR/plugins $RUNNER_DATA_DIR/configs`
+        APPCONF=`relx_nodetool mergeconf $RUNNER_ETC_DIR/emqx.conf $RUNNER_DATA_DIR/configs`
         replace_env_in_conf
         CONFIG_ARGS=`$CUTTLEFISH_COMMAND_PREFIX -c $APPCONF generate`
 
