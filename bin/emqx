@@ -350,24 +350,6 @@ case "$1" in
         echo "If you want to wait longer, set the environment variable"
         echo "WAIT_FOR_ERLANG to the number of seconds to wait."
         exit 1
-
-
-
-        # while [ $WAIT_TIME -gt 0 ] && ! relx_nodetool "ping" >/dev/null 2>&1; do
-        #     WAIT_TIME=`expr $WAIT_TIME - 1`
-        #     sleep 1
-        # done
-        # sleep 1
-        # if relx_nodetool "ping" >/dev/null 2>&1; then
-        #     echo "{{ emqx_description }} $REL_VSN is started successfully!"
-        #     exit 0
-        # else
-        #     echo "{{ emqx_description }} $REL_VSN failed to start within ${WAIT_FOR_ERLANG:-15} seconds,"
-        #     echo "see the output of '$0 console' for more information."
-        #     echo "If you want to wait longer, set the environment variable"
-        #     echo "WAIT_FOR_ERLANG to the number of seconds to wait."
-        #     exit 1
-        # fi
         ;;
 
     stop)
