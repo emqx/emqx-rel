@@ -20,7 +20,7 @@ main(Args) ->
             end
     end,
     ok = do_with_halt(Args, "mnesia_dir", fun create_mnesia_dir/2),
-    ok = do_with_halt(Args, "mergeconf", fun mergeconf/3),
+    ok = do_with_halt(Args, "mergeconf", fun mergeconf/2),
     ok = do_with_halt(Args, "chkconfig", fun("-config", X) -> chkconfig(X) end),
     ok = do_with_halt(Args, "chkconfig", fun chkconfig/1),
     Args1 = do_with_ret(Args, "-name",
@@ -66,8 +66,6 @@ main(Args) ->
             rpc:call(TargetNode, emqx_plugins, unload, [], 60000),
             io:format("~p\n", [rpc:call(TargetNode, init, stop, [], 60000)]);
         ["restart", "-config", ConfigFile | _RestArgs1] ->
-            io:format("~p\n", [rpc:call(TargetNode, emqx, restart, [ConfigFile], 60000)]);
-        ["reboot", "-config", ConfigFile | _RestArgs1] ->
             io:format("~p\n", [rpc:call(TargetNode, emqx, restart, [ConfigFile], 60000)]);
         ["rpc", Module, Function | RpcArgs] ->
             case rpc:call(TargetNode, list_to_atom(Module), list_to_atom(Function),
@@ -265,12 +263,12 @@ create_mnesia_dir(DataDir, NodeName) ->
     io:format("~s", [MnesiaDir]),
     halt(0).
 
-mergeconf(EmqCfg, PluginsEtc, DestDir) ->
+mergeconf(EmqCfg, DestDir) ->
     filelib:ensure_dir(DestDir),%% support brew on macosx
     AppConf = filename:join(DestDir, appconf()),
     case file:open(AppConf, [write]) of
         {ok, DestFd} ->
-            CfgFiles = [EmqCfg | cfgfiles(PluginsEtc)],
+            CfgFiles = [EmqCfg],
             lists:foreach(fun(CfgFile) ->
                             {ok, CfgData} = file:read_file(CfgFile),
                             file:write(DestFd, CfgData),
@@ -289,9 +287,6 @@ appconf() ->
     lists:flatten(
       io_lib:format(
         "app.~4..0w.~2..0w.~2..0w.~2..0w.~2..0w.~2..0w.conf", [Y, M, D, H, MM, S])).
-
-cfgfiles(Dir) ->
-    [filename:join(Dir, CfgFile) || CfgFile <- filelib:wildcard("*.conf", Dir)].
 
 chkconfig(File) ->
     case file:consult(File) of
