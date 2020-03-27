@@ -50,10 +50,6 @@ if [[ -z "$EMQX_WAIT_TIME" ]]; then
     export EMQX_WAIT_TIME=5
 fi
 
-if [[ -z "$EMQX_NODE__NAME" ]]; then
-    export EMQX_NODE__NAME="$EMQX_NAME@$EMQX_HOST"
-fi
-
 if [[ -z "$EMQX_NODE_NAME" ]]; then
     export EMQX_NODE_NAME="$EMQX_NAME@$EMQX_HOST"
 fi
