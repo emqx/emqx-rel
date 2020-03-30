@@ -47,6 +47,12 @@ spec:
         app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
       volumes:
+      - name: emqx-acl
+        configMap:
+          name: {{ include "emqx.fullname" . }}-acl
+          items:
+          - key: acl.conf
+            path: acl.conf
       {{- if not .Values.persistence.enabled }}
       - name: emqx-data
         emptyDir: {}
@@ -95,6 +101,9 @@ spec:
           volumeMounts:
           - name: emqx-data
             mountPath: "/opt/emqx/data/mnesia"
+          - name: emqx-acl
+            mountPath: "/opt/emqx/etc/acl.conf"
+            subPath: "acl.conf"
           {{ if .Values.emqxLicneseSecretName  }}
           - name: emqx-license
             mountPath: "/opt/emqx/etc/emqx.lic"

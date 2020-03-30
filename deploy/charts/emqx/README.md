@@ -46,4 +46,5 @@ The following table lists the configurable parameters of the emqx chart and thei
 | `tolerations` | Toleration labels for pod assignment |`[]`|
 | `affinity` | Map of node/pod affinities |`{}`|
 | `service.type`  | Emqx cluster service type. |ClusterIP|
-| `emqxConfig` | Emqx configuration item, see the [documentation](https://github.com/emqx/emqx-docker#emq-x-configuration) | |
+| `emqxConfig` | Emqx configuration item, see the [documentation](https://hub.docker.com/r/emqx/emqx) | |
+| `emqxAclConfig` | Emqx acl configuration item, see the [documentation](https://docs.emqx.io/broker/latest/en/advanced/acl-file.html) | |
