@@ -345,7 +345,7 @@ case "$1" in
                 echo "{{ emqx_description }} $REL_VSN is started successfully!"
                 exit 0
             fi
-        done || echo "{{ emqx_description }} $REL_VSN failed to start within ${WAIT_FOR_ERLANG:-15} seconds,"
+        done && echo "{{ emqx_description }} $REL_VSN failed to start within ${WAIT_FOR_ERLANG:-15} seconds,"
         echo "see the output of '$0 console' for more information."
         echo "If you want to wait longer, set the environment variable"
         echo "WAIT_FOR_ERLANG to the number of seconds to wait."
