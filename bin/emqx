@@ -55,11 +55,6 @@ if [ "$ES" -ne 0 ]; then
     exit $ES
 fi
 
-if [ ! -r "$RUNNER_ETC_DIR/emqx.conf" ] || [ ! -w "$RUNNER_ETC_DIR/emqx.conf" ]; then
-    echo "Please make sure you have read and write access to $RUNNER_ETC_DIR/emqx.conf"
-    exit 1
-fi
-
 if [ -z "$WITH_EPMD" ]; then
     EPMD_ARG="-start_epmd false -epmd_module ekka_epmd -proto_dist ekka"
 else
@@ -162,8 +157,8 @@ generate_config() {
         # the vm, we need to pass it in twice.
         CONFIG_ARGS=" -config $RUNNER_ETC_DIR/app.config -args_file $RUNNER_ETC_DIR/vm.args -vm_args $RUNNER_ETC_DIR/vm.args "
     else
-        replace_env_in_conf
         APPCONF=`relx_nodetool mergeconf $RUNNER_ETC_DIR/emqx.conf $RUNNER_DATA_DIR/configs`
+        replace_env_in_conf
         CONFIG_ARGS=`$CUTTLEFISH_COMMAND_PREFIX -c $APPCONF generate`
 
         ## Merge cuttlefish generated *.args into the vm.args
@@ -193,14 +188,14 @@ generate_config() {
 }
 
 replace_env_in_conf() {
-    [ "x" = "x$EMQX_NODE_NAME" ]       || sh -c "$SED_REPLACE 's/^[ \t]*node.name[ \t]*=.*$/node.name = $EMQX_NODE_NAME/' $RUNNER_ETC_DIR/emqx.conf"
-    [ "x" = "x$EMQX_NODE_COOKIE" ]     || sh -c "$SED_REPLACE 's/^[ \t]*node.cookie[ \t]*=.*$/node.cookie = $EMQX_NODE_COOKIE/' $RUNNER_ETC_DIR/emqx.conf"
-    [ "x" = "x$EMQX_MAX_PORTS" ]       || sh -c "$SED_REPLACE 's/^[ \t]*node.max_ports[ \t]*=.*$/node.max_ports = $EMQX_MAX_PORTS/' $RUNNER_ETC_DIR/emqx.conf"
-    [ "x" = "x$EMQX_MAX_PACKET_SIZE" ] || sh -c "$SED_REPLACE 's/^[ \t]*mqtt.max_packet_size[ \t]*=.*$/mqtt.max_packet_size = $EMQX_MAX_PACKET_SIZE/' $RUNNER_ETC_DIR/emqx.conf"
-    [ "x" = "x$EMQX_TCP_PORT" ]        || sh -c "$SED_REPLACE 's/^[ \t]*listener.tcp.external[ \t]*=.*$/listener.tcp.external = $EMQX_TCP_PORT/' $RUNNER_ETC_DIR/emqx.conf"
-    [ "x" = "x$EMQX_SSL_PORT" ]        || sh -c "$SED_REPLACE 's/^[ \t]*listener.ssl.external[ \t]*=.*$/listener.ssl.external = $EMQX_SSL_PORT/' $RUNNER_ETC_DIR/emqx.conf"
-    [ "x" = "x$EMQX_WS_PORT" ]         || sh -c "$SED_REPLACE 's/^[ \t]*listener.ws.external[ \t]*=.*$/listener.ws.external = $EMQX_WS_PORT/' $RUNNER_ETC_DIR/emqx.conf"
-    [ "x" = "x$EMQX_WSS_PORT" ]        || sh -c "$SED_REPLACE 's/^[ \t]*listener.wss.external[ \t]*=.*$/listener.wss.external = $EMQX_WSS_PORT/' $RUNNER_ETC_DIR/emqx.conf"
+    [ "x" = "x$EMQX_NODE_NAME" ]       || sh -c "$SED_REPLACE 's/^[ \t]*node.name[ \t]*=.*$/node.name = $EMQX_NODE_NAME/' $APPCONF"
+    [ "x" = "x$EMQX_NODE_COOKIE" ]     || sh -c "$SED_REPLACE 's/^[ \t]*node.cookie[ \t]*=.*$/node.cookie = $EMQX_NODE_COOKIE/' $APPCONF"
+    [ "x" = "x$EMQX_MAX_PORTS" ]       || sh -c "$SED_REPLACE 's/^[ \t]*node.max_ports[ \t]*=.*$/node.max_ports = $EMQX_MAX_PORTS/' $APPCONF"
+    [ "x" = "x$EMQX_MAX_PACKET_SIZE" ] || sh -c "$SED_REPLACE 's/^[ \t]*mqtt.max_packet_size[ \t]*=.*$/mqtt.max_packet_size = $EMQX_MAX_PACKET_SIZE/' $APPCONF"
+    [ "x" = "x$EMQX_TCP_PORT" ]        || sh -c "$SED_REPLACE 's/^[ \t]*listener.tcp.external[ \t]*=.*$/listener.tcp.external = $EMQX_TCP_PORT/' $APPCONF"
+    [ "x" = "x$EMQX_SSL_PORT" ]        || sh -c "$SED_REPLACE 's/^[ \t]*listener.ssl.external[ \t]*=.*$/listener.ssl.external = $EMQX_SSL_PORT/' $APPCONF"
+    [ "x" = "x$EMQX_WS_PORT" ]         || sh -c "$SED_REPLACE 's/^[ \t]*listener.ws.external[ \t]*=.*$/listener.ws.external = $EMQX_WS_PORT/' $APPCONF"
+    [ "x" = "x$EMQX_WSS_PORT" ]        || sh -c "$SED_REPLACE 's/^[ \t]*listener.wss.external[ \t]*=.*$/listener.wss.external = $EMQX_WSS_PORT/' $APPCONF"
 }
 
 # Call bootstrapd for daemon commands like start/stop/console
@@ -219,13 +214,19 @@ if [ -z "$RELX_CONFIG_PATH" ]; then
     fi
 fi
 
-[ "x" = "x$EMQX_NODE_NAME" ] || NAME_ARG="-name $EMQX_NODE_NAME"
 # Extract the target node name from node.args
 if [ -z "$NAME_ARG" ]; then
-    NODENAME=`egrep '^[ \t]*node.name[ \t]*=[ \t]*' $RUNNER_ETC_DIR/emqx.conf 2> /dev/null | tail -1 | cut -d = -f 2-`
+    if [ ! -z "$EMQX_NODE_NAME" ]; then
+        NODENAME="$EMQX_NODE_NAME"
+    elif [ ! -z `ps -ef | grep emqx | grep -o -E '\-name (\S*)' | awk '{print $2}'` ]; then
+        NODENAME=`ps -ef | grep emqx | grep -o -E '\-name (\S*)' | awk '{print $2}'`
+    else
+        NODENAME=`egrep '^[ \t]*node.name[ \t]*=[ \t]*' $RUNNER_ETC_DIR/emqx.conf 2> /dev/null | tail -1 | cut -d = -f 2-`
+    fi
     if [ -z "$NODENAME" ]; then
         echoerr "vm.args needs to have a -name parameter."
         echoerr "  -sname is not supported."
+        echoerr "perhaps you do not have read permissions on $RUNNER_ETC_DIR/emqx.conf"
         exit 1
     else
         NAME_ARG="-name ${NODENAME# *}"
@@ -238,12 +239,18 @@ NAME="$(echo "$NAME_ARG" | awk '{print $2}')"
 
 PIPE_DIR="${PIPE_DIR:-/$RUNNER_DATA_DIR/${WHOAMI}_erl_pipes/$NAME/}"
 
-[ "x" = "x$EMQX_NODE_COOKIE" ] || COOKIE_ARG="-setcookie $EMQX_NODE_COOKIE"
 # Extract the target cookie
 if [ -z "$COOKIE_ARG" ]; then
-    COOKIE=`egrep '^[ \t]*node.cookie[ \t]*=[ \t]*' $RUNNER_ETC_DIR/emqx.conf 2> /dev/null | tail -1 | cut -d = -f 2-`
+    if [ ! -z "$EMQX_NODE_COOKIE" ]; then
+        COOKIE="$EMQX_NODE_COOKIE"
+    elif [ ! -z `ps -ef | grep emqx | grep -o -E '\-setcookie (\S*)' | awk '{print $2}'` ]; then
+        COOKIE=`ps -ef | grep emqx | grep -o -E '\-setcookie (\S*)' | awk '{print $2}'`
+    else
+        COOKIE=`egrep '^[ \t]*node.cookie[ \t]*=[ \t]*' $RUNNER_ETC_DIR/emqx.conf 2> /dev/null | tail -1 | cut -d = -f 2-`
+    fi
     if [ -z "$COOKIE" ]; then
         echoerr "vm.args needs to have a -setcookie parameter."
+        echoerr "please check $RUNNER_ETC_DIR/emqx.conf"
         exit 1
     else
         COOKIE_ARG="-setcookie $COOKIE"
