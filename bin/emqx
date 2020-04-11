@@ -218,8 +218,8 @@ fi
 if [ -z "$NAME_ARG" ]; then
     if [ ! -z "$EMQX_NODE_NAME" ]; then
         NODENAME="$EMQX_NODE_NAME"
-    elif [ ! -z `ps -ef | grep emqx | grep -o -E '\-name (\S*)' | awk '{print $2}'` ]; then
-        NODENAME=`ps -ef | grep emqx | grep -o -E '\-name (\S*)' | awk '{print $2}'`
+    elif [ ! -z `ps -ef | grep "$ERTS_PATH/beam.smp" | grep -o -E '\-name (\S*)' | awk '{print $2}'` ]; then
+        NODENAME=`ps -ef | grep "$ERTS_PATH/beam.smp" | grep -o -E '\-name (\S*)' | awk '{print $2}'`
     else
         NODENAME=`egrep '^[ \t]*node.name[ \t]*=[ \t]*' $RUNNER_ETC_DIR/emqx.conf 2> /dev/null | tail -1 | cut -d = -f 2-`
     fi
@@ -243,8 +243,8 @@ PIPE_DIR="${PIPE_DIR:-/$RUNNER_DATA_DIR/${WHOAMI}_erl_pipes/$NAME/}"
 if [ -z "$COOKIE_ARG" ]; then
     if [ ! -z "$EMQX_NODE_COOKIE" ]; then
         COOKIE="$EMQX_NODE_COOKIE"
-    elif [ ! -z `ps -ef | grep emqx | grep -o -E '\-setcookie (\S*)' | awk '{print $2}'` ]; then
-        COOKIE=`ps -ef | grep emqx | grep -o -E '\-setcookie (\S*)' | awk '{print $2}'`
+    elif [ ! -z `ps -ef | grep "$ERTS_PATH/beam.smp" | grep -o -E '\-setcookie (\S*)' | awk '{print $2}'` ]; then
+        COOKIE=`ps -ef | grep "$ERTS_PATH/beam.smp" | grep -o -E '\-setcookie (\S*)' | awk '{print $2}'`
     else
         COOKIE=`egrep '^[ \t]*node.cookie[ \t]*=[ \t]*' $RUNNER_ETC_DIR/emqx.conf 2> /dev/null | tail -1 | cut -d = -f 2-`
     fi
