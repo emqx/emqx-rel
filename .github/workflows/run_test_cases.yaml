@@ -31,25 +31,24 @@ jobs:
             path: rebar3.crashdump
         - name: set config files
           run: |
-            cd _build/emqx/lib
-            sudo chmod +w ./* -R
+            cd _checkouts
             for var in $(ls); do
               if [ $var == "emqx_auth_mysql" ];then
-                sed -i "/auth.mysql.server/c auth.mysql.server = mysql_server:3306" ./$var/etc/emqx_auth_mysql.conf 
-                echo "auth.mysql.username = root" >> ./$var/etc/emqx_auth_mysql.conf
-                echo "auth.mysql.password = public" >> ./$var/etc/emqx_auth_mysql.conf
+                sudo sed -i "/auth.mysql.server/c auth.mysql.server = mysql_server:3306" ./$var/etc/emqx_auth_mysql.conf 
+                sudo echo "auth.mysql.username = root" >> ./$var/etc/emqx_auth_mysql.conf
+                sudo echo "auth.mysql.password = public" >> ./$var/etc/emqx_auth_mysql.conf
               fi
               if [ $var == "emqx_auth_redis" ];then
-                sed -i "/auth.redis.server/c auth.redis.server = redis_server:6379" ./$var/etc/emqx_auth_redis.conf
+                sudo sed -i "/auth.redis.server/c auth.redis.server = redis_server:6379" ./$var/etc/emqx_auth_redis.conf
               fi
               if [ $var == "emqx_auth_mongo" ];then
-                sed -i "/auth.mongo.server/c auth.mongo.server = mongo_server:27017" ./$var/etc/emqx_auth_mongo.conf 
+                sudo sed -i "/auth.mongo.server/c auth.mongo.server = mongo_server:27017" ./$var/etc/emqx_auth_mongo.conf 
               fi
               if [ $var == "emqx_auth_pgsql" ];then
-                sed -i "/auth.pgsql.server/c auth.pgsql.server = pgsql_server:5432" ./$var/etc/emqx_auth_pgsql.conf 
+                sudo sed -i "/auth.pgsql.server/c auth.pgsql.server = pgsql_server:5432" ./$var/etc/emqx_auth_pgsql.conf 
               fi
               if [ $var == "emqx_auth_ldap" ];then
-                sed -i "/auth.ldap.servers/c auth.ldap.servers = ldap_server" ./$var/etc/emqx_auth_ldap.conf 
+                sudo sed -i "/auth.ldap.servers/c auth.ldap.servers = ldap_server" ./$var/etc/emqx_auth_ldap.conf 
               fi
             done
         - name: run all test cases
