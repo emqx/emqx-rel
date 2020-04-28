@@ -58,4 +58,4 @@ jobs:
           if: always()
           with:
             name: logs
-            path: _build/emqx+test/logs
+            path: tests/logs

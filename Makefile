@@ -30,7 +30,8 @@ CT_APPS := emqx_auth_jwt emqx_auth_mysql emqx_auth_username \
 		emqx_stomp emqx_auth_clientid  emqx_auth_ldap   emqx_auth_pgsql \
 		emqx_coap emqx_lua_hook emqx_passwd emqx_reloader emqx_sn \
 		emqx_web_hook emqx_auth_http emqx_auth_mongo emqx_auth_redis \
-		emqx_dashboard emqx_lwm2m emqx_psk_file emqx_retainer emqx_statsd emqx_sasl
+		emqx_dashboard emqx_lwm2m emqx_psk_file emqx_retainer emqx_statsd emqx_sasl \
+		emqx_auth_mnesia
 
 .PHONY: default
 default: $(REBAR) $(PROFILE)
@@ -94,7 +95,9 @@ checkout:
 .PHONY: $(REBAR) $(CT_APPS:%=ct-%)
 ct: $(CT_APPS:%=ct-%)
 $(CT_APPS:%=ct-%): checkout-$(PROFILE)
-	$(REBAR) as $(PROFILE) ct --verbose --dir _checkouts/$(@:ct-%=%)/test --verbosity 50
+	-make -C _checkouts/$(@:ct-%=%) ct
+	@mkdir -p tests/logs/$(@:ct-%=%)
+	@cp -r _checkouts/$(@:ct-%=%)/_build/test/logs tests/logs/$(@:ct-%=%)
 
 $(REBAR):
 ifneq ($(wildcard rebar3),rebar3)
