@@ -31,7 +31,7 @@ jobs:
             path: rebar3.crashdump
         - name: set config files
           run: |
-            cd _checkouts
+            cd _build/emqx/lib
             for var in $(ls); do
               if [ $var == "emqx_auth_mysql" ];then
                 sudo sed -i "/auth.mysql.server/c auth.mysql.server = mysql_server:3306" ./$var/etc/emqx_auth_mysql.conf 

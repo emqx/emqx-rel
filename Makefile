@@ -95,9 +95,9 @@ checkout:
 .PHONY: $(REBAR) $(CT_APPS:%=ct-%)
 ct: $(CT_APPS:%=ct-%)
 $(CT_APPS:%=ct-%): checkout-$(PROFILE)
-	-make -C _checkouts/$(@:ct-%=%) ct
+	-make -C _build/emqx/lib/$(@:ct-%=%) ct
 	@mkdir -p tests/logs/$(@:ct-%=%)
-	@cp -r _checkouts/$(@:ct-%=%)/_build/test/logs tests/logs/$(@:ct-%=%)
+	@cp -r _build/emqx/lib/$(@:ct-%=%)/_build/test/logs tests/logs/$(@:ct-%=%)
 
 $(REBAR):
 ifneq ($(wildcard rebar3),rebar3)
