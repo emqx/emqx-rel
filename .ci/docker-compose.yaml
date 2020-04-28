@@ -3,7 +3,7 @@ version: '3'
 services:
   emqx:
     build: ./emqx-erlang
-    image: emqx-erlang:22.1
+    image: emqx-erlang
     depends_on:
       - mysql_server
       - redis_server
