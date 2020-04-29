@@ -142,7 +142,7 @@
 @for /f %%Z in ('%%mergeconf_cmd%%') do @(
   set merged_app_conf=%%Z
 )
-@set gen_config_cmd=%escript% %cuttlefish% -s %rel_dir%\emqx.schema -c %merged_app_conf% -d %data_dir%\configs generate
+@set gen_config_cmd=%escript% %cuttlefish% -i %rel_dir%\emqx.schema -c %merged_app_conf% -d %data_dir%\configs generate
 @for /f "delims=" %%A in ('%%gen_config_cmd%%') do @(
   set generated_config_args=%%A
 )
