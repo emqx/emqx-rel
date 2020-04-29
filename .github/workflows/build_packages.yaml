@@ -24,7 +24,7 @@ jobs:
         set-executionpolicy remotesigned -s cu
         iex (new-object net.webclient).downloadstring('https://get.scoop.sh')
         scoop bucket add extras https://github.com/lukesampson/scoop-extras.git
-        scoop install sudo curl 7zip aws erlang vcredist2013
+        scoop install sudo curl 7zip aws erlang openjdk vcredist2013
         $env:path + ";" + $env:USERPROFILE + "\scoop\shims"
         make deps-emqx
         $rebar3 = $env:USERPROFILE + "\rebar3"
