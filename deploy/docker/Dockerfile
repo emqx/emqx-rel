@@ -1,5 +1,5 @@
-ARG BUILD_FROM=erlang:22.1-alpine 
-ARG RUN_FROM=alpine:3.10
+ARG BUILD_FROM=emqx/build-env:erl22.3-alpine3.11-amd64
+ARG RUN_FROM=alpine:3.11
 FROM ${BUILD_FROM} AS builder
 
 ARG QEMU_ARCH=x86_64
