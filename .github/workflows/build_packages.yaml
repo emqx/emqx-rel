@@ -144,12 +144,11 @@ jobs:
     - uses: actions/checkout@v2
       with: 
         path: emqx-rel
-        fetch-depth: 0
-    # - name: fetch all history for all tags and branches
-    #   run: |
-    #     cd emqx-rel
-    #     git remote set-branches origin "*"
-    #     git pull --unshallow
+        # fetch-depth: 0
+    - name: fetch all history for all tags and branches
+      run: |
+        cd emqx-rel
+        git fetch --depth=1 origin +refs/tags/*:refs/tags/*
     - uses: actions/checkout@v2
       with:
         repository: emqx/emqx-integration-test
