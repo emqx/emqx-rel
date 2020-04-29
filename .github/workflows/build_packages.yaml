@@ -90,7 +90,7 @@ jobs:
           - debian9 
           - debian8 
           - opensuse
-          - centos8
+          # - centos8
           - centos7 
           - centos6
           - raspbian10
