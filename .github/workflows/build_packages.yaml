@@ -1,9 +1,9 @@
 name: Build packages
 
 on:
-  push:
   pull_request:
-  create:
+  push:
+    branches:
     tags:
       - v*
   repository_dispatch:
@@ -92,7 +92,7 @@ jobs:
           - opensuse
           # - centos8
           - centos7 
-          - centos6
+          # - centos6
           - raspbian10
           - raspbian9
           - raspbian8
