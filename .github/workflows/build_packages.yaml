@@ -2,7 +2,8 @@ name: Build packages
 
 on:
   push:
-    branches:
+  pull_request:
+  create:
     tags:
       - v*
   repository_dispatch:
