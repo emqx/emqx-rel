@@ -3,7 +3,7 @@ TARGET ?= emqx/emqx
 QEMU_ARCH ?= x86_64
 ARCH ?= amd64
 QEMU_VERSION ?= v4.0.0
-OS ?= alpine3.11
+OS ?= alpine
 
 ## versioning
 EMQX_DEPS_DEFAULT_VSN ?= develop
