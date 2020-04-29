@@ -25,7 +25,8 @@ jobs:
         iex (new-object net.webclient).downloadstring('https://get.scoop.sh')
         scoop bucket add extras https://github.com/lukesampson/scoop-extras.git
         scoop bucket add java
-        scoop install sudo curl 7zip aws erlang oraclejdk8 vcredist2013
+        scoop install sudo curl 7zip aws erlang ojdkbuild8 vcredist2013
+        java -version
         $env:path + ";" + $env:USERPROFILE + "\scoop\shims"
         make deps-emqx
         $rebar3 = $env:USERPROFILE + "\rebar3"
