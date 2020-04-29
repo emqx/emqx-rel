@@ -37,10 +37,7 @@ popd
 
 :schema
 pushd %1
-for %%f in ("priv\*.schema") do (
-    ::echo %%f
-    copy %%f "%REBAR_BUILD_DIR%\conf\schema\"
-)
+copy priv\emqx.schema "%REBAR_BUILD_DIR%\conf\schema\"
 popd
 :end
 
