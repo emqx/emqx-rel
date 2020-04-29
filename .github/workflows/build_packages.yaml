@@ -147,7 +147,8 @@ jobs:
     - name: fetch all history for all tags and branches
       run: |
         cd emqx-rel
-        git fetch --prune --unshallow
+        git remote set-branches origin "*"
+        git pull --unshallow
     - uses: actions/checkout@v2
       with:
         repository: emqx/emqx-integration-test
