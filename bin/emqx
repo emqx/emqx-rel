@@ -74,7 +74,6 @@ echoerr() { echo "$@" 1>&2; }
 
 # By default, use cuttlefish to generate app.config and vm.args
 CUTTLEFISH="${USE_CUTTLEFISH:-yes}"
-CUTTLEFISH_COMMAND_PREFIX="$ERTS_PATH/escript $RUNNER_ROOT_DIR/bin/cuttlefish -i $REL_DIR/schema/emqx.schema -d $RUNNER_DATA_DIR/configs"
 
 SED_REPLACE="sed -i "
 case $(sed --help 2>&1) in
@@ -157,9 +156,7 @@ generate_config() {
         # the vm, we need to pass it in twice.
         CONFIG_ARGS=" -config $RUNNER_ETC_DIR/app.config -args_file $RUNNER_ETC_DIR/vm.args -vm_args $RUNNER_ETC_DIR/vm.args "
     else
-        APPCONF=`relx_nodetool mergeconf $RUNNER_ETC_DIR/emqx.conf $RUNNER_DATA_DIR/configs`
-        replace_env_in_conf
-        CONFIG_ARGS=`$CUTTLEFISH_COMMAND_PREFIX -c $APPCONF generate`
+        CONFIG_ARGS=`$ERTS_PATH/escript $RUNNER_ROOT_DIR/bin/cuttlefish -i $REL_DIR/emqx.schema -c $RUNNER_ETC_DIR/emqx.conf -d $RUNNER_DATA_DIR/configs generate`
 
         ## Merge cuttlefish generated *.args into the vm.args
         CUTTLE_GEN_ARG_FILE=`echo "$CONFIG_ARGS" | sed -n 's/^.*\(vm_args[[:space:]]\)//p' | awk '{print $1}'`
@@ -185,17 +182,6 @@ generate_config() {
         echoerr "Error reading $CONFIG_ARGS"
         exit 1
     fi
-}
-
-replace_env_in_conf() {
-    [ "x" = "x$EMQX_NODE_NAME" ]       || sh -c "$SED_REPLACE 's/^[ \t]*node.name[ \t]*=.*$/node.name = $EMQX_NODE_NAME/' $APPCONF"
-    [ "x" = "x$EMQX_NODE_COOKIE" ]     || sh -c "$SED_REPLACE 's/^[ \t]*node.cookie[ \t]*=.*$/node.cookie = $EMQX_NODE_COOKIE/' $APPCONF"
-    [ "x" = "x$EMQX_MAX_PORTS" ]       || sh -c "$SED_REPLACE 's/^[ \t]*node.max_ports[ \t]*=.*$/node.max_ports = $EMQX_MAX_PORTS/' $APPCONF"
-    [ "x" = "x$EMQX_MAX_PACKET_SIZE" ] || sh -c "$SED_REPLACE 's/^[ \t]*mqtt.max_packet_size[ \t]*=.*$/mqtt.max_packet_size = $EMQX_MAX_PACKET_SIZE/' $APPCONF"
-    [ "x" = "x$EMQX_TCP_PORT" ]        || sh -c "$SED_REPLACE 's/^[ \t]*listener.tcp.external[ \t]*=.*$/listener.tcp.external = $EMQX_TCP_PORT/' $APPCONF"
-    [ "x" = "x$EMQX_SSL_PORT" ]        || sh -c "$SED_REPLACE 's/^[ \t]*listener.ssl.external[ \t]*=.*$/listener.ssl.external = $EMQX_SSL_PORT/' $APPCONF"
-    [ "x" = "x$EMQX_WS_PORT" ]         || sh -c "$SED_REPLACE 's/^[ \t]*listener.ws.external[ \t]*=.*$/listener.ws.external = $EMQX_WS_PORT/' $APPCONF"
-    [ "x" = "x$EMQX_WSS_PORT" ]        || sh -c "$SED_REPLACE 's/^[ \t]*listener.wss.external[ \t]*=.*$/listener.wss.external = $EMQX_WSS_PORT/' $APPCONF"
 }
 
 # Call bootstrapd for daemon commands like start/stop/console
@@ -246,7 +232,7 @@ if [ -z "$COOKIE_ARG" ]; then
     elif [ ! -z `ps -ef | grep "$ERTS_PATH/beam.smp" | grep -o -E '\-setcookie (\S*)' | awk '{print $2}'` ]; then
         COOKIE=`ps -ef | grep "$ERTS_PATH/beam.smp" | grep -o -E '\-setcookie (\S*)' | awk '{print $2}'`
     else
-        COOKIE=`egrep '^[ \t]*node.cookie[ \t]*=[ \t]*' $RUNNER_ETC_DIR/emqx.conf 2> /dev/null | tail -1 | cut -d = -f 2-`
+        COOKIE=`egrep '^[ \t]*node.cookie[ \t]*=[ \t]*' "$RUNNER_ETC_DIR/emqx.conf" 2> /dev/null | tail -1 | cut -d = -f 2-`
     fi
     if [ -z "$COOKIE" ]; then
         echoerr "vm.args needs to have a -setcookie parameter."
@@ -261,7 +247,7 @@ fi
 COOKIE="$(echo "$COOKIE_ARG" | awk '{print $2}')"
 
 # Support for IPv6 Dist. See: https://github.com/emqtt/emqttd/issues/1460
-PROTO_DIST=`egrep '^[ \t]*cluster.proto_dist[ \t]*=[ \t]*' $RUNNER_ETC_DIR/emqx.conf 2> /dev/null | tail -1 | cut -d = -f 2-`
+PROTO_DIST=`egrep '^[ \t]*cluster.proto_dist[ \t]*=[ \t]*' "$RUNNER_ETC_DIR/emqx.conf" 2> /dev/null | tail -1 | cut -d = -f 2-`
 if [ -z "$PROTO_DIST" ]; then
     PROTO_DIST_ARG=""
 else
