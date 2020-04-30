@@ -140,7 +140,7 @@ running_test(){
         IDLE_TIME=$((IDLE_TIME+1))
     done
     pytest -v /paho-mqtt-testing/interoperability/test_client/V5/test_connect.py::test_basic
-    emqx stop
+    emqx stop || kill $(ps -ef |grep emqx | grep beam.smp |awk '{print $2}')
 
     if [ $(sed -n '/^ID=/p' /etc/os-release | sed -r 's/ID=(.*)/\1/g' | sed 's/"//g') = ubuntu ] \
     || [ $(sed -n '/^ID=/p' /etc/os-release | sed -r 's/ID=(.*)/\1/g' | sed 's/"//g') = debian ] \
