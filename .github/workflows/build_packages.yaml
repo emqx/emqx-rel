@@ -46,10 +46,10 @@ jobs:
         aws s3 cp --recursive ./_packages/emqx  s3://packages.emqx.io/emqx-ce/$version
     - name: run emqx
       run: |
-        sudo ./_build/emqx/rel/emqx/bin/emqx start
-        sudo ./_build/emqx/rel/emqx/bin/emqx stop
-        sudo ./_build/emqx/rel/emqx/bin/emqx install
-        sudo ./_build/emqx/rel/emqx/bin/emqx uninstall
+        ./_build/emqx/rel/emqx/bin/emqx start
+        ./_build/emqx/rel/emqx/bin/emqx stop
+        ./_build/emqx/rel/emqx/bin/emqx install
+        ./_build/emqx/rel/emqx/bin/emqx uninstall
 
   # mac:
   #   runs-on: macos-latest
