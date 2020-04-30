@@ -180,7 +180,7 @@ jobs:
       run: |
         if [ ${{ github.event_name}} == 'repository_dispatch' ]; then version=${{ github.event.client_payload.version }}; else version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g"); fi
         cd emqx-rel && tag=$(git describe --tags $(git rev-list --tags --max-count=1)) && cd -
-        sudo EMQX_DEPS_DEFAULT_VSN=$tag TARGET=emqx/emqx PAHO_BRANCH="develop-4.0" make -C emqx-integration-test/paho-test
+        sudo EMQX_DEPS_DEFAULT_VSN=$tag TARGET=emqx/emqx PAHO_BRANCH="develop-4.0" make -C emqx-integration-test/paho-test test
         sudo EMQX_DEPS_DEFAULT_VSN=$tag TARGET=emqx/emqx PAHO_BRANCH="develop-4.0" make -C emqx-integration-test/paho-test cluster_test
         sudo EMQX_DEPS_DEFAULT_VSN=$tag TARGET=emqx/emqx-edge PAHO_BRANCH="develop-4.0" make -C emqx-integration-test/paho-test cluster_test
 
