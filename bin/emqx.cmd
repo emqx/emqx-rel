@@ -138,7 +138,7 @@
 @goto :eof
 
 :generate_app_config
-@set gen_config_cmd=%escript% %cuttlefish% -i %rel_dir%\emqx.schema -c %etc_dir\emqx.conf% -d %data_dir%\configs generate
+@set gen_config_cmd=%escript% %cuttlefish% -i %rel_dir%\emqx.schema -c %etc_dir%\emqx.conf -d %data_dir%\configs generate
 @for /f "delims=" %%A in ('%%gen_config_cmd%%') do @(
   set generated_config_args=%%A
 )
