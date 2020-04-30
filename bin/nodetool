@@ -262,12 +262,6 @@ create_mnesia_dir(DataDir, NodeName) ->
     io:format("~s", [MnesiaDir]),
     halt(0).
 
-appconf() ->
-    {{Y, M, D}, {H, MM, S}} = calendar:local_time(),
-    lists:flatten(
-      io_lib:format(
-        "app.~4..0w.~2..0w.~2..0w.~2..0w.~2..0w.~2..0w.conf", [Y, M, D, H, MM, S])).
-
 chkconfig(File) ->
     case file:consult(File) of
         {ok, Terms} ->
