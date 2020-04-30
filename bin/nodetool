@@ -20,7 +20,6 @@ main(Args) ->
             end
     end,
     ok = do_with_halt(Args, "mnesia_dir", fun create_mnesia_dir/2),
-    ok = do_with_halt(Args, "mergeconf", fun mergeconf/2),
     ok = do_with_halt(Args, "chkconfig", fun("-config", X) -> chkconfig(X) end),
     ok = do_with_halt(Args, "chkconfig", fun chkconfig/1),
     Args1 = do_with_ret(Args, "-name",
@@ -262,25 +261,6 @@ create_mnesia_dir(DataDir, NodeName) ->
     file:make_dir(MnesiaDir),
     io:format("~s", [MnesiaDir]),
     halt(0).
-
-mergeconf(EmqCfg, DestDir) ->
-    filelib:ensure_dir(DestDir),%% support brew on macosx
-    AppConf = filename:join(DestDir, appconf()),
-    case file:open(AppConf, [write]) of
-        {ok, DestFd} ->
-            CfgFiles = [EmqCfg],
-            lists:foreach(fun(CfgFile) ->
-                            {ok, CfgData} = file:read_file(CfgFile),
-                            file:write(DestFd, CfgData),
-                            file:write(DestFd, <<"\n">>)
-                          end, CfgFiles),
-            file:close(DestFd),
-            io:format("~s", [AppConf]),
-            halt(0);
-        {error, Error} ->
-            io:format(standard_error, ["Error opening file: ", AppConf, " ", file:format_error(Error), "\n"], []),
-            halt(1)
-    end.
 
 appconf() ->
     {{Y, M, D}, {H, MM, S}} = calendar:local_time(),
