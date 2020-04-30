@@ -138,11 +138,7 @@
 @goto :eof
 
 :generate_app_config
-@set mergeconf_cmd=%escript% %nodetool% mergeconf %etc_dir%\emqx.conf  %data_dir%\configs
-@for /f %%Z in ('%%mergeconf_cmd%%') do @(
-  set merged_app_conf=%%Z
-)
-@set gen_config_cmd=%escript% %cuttlefish% -i %rel_dir%\emqx.schema -c %merged_app_conf% -d %data_dir%\configs generate
+@set gen_config_cmd=%escript% %cuttlefish% -i %rel_dir%\emqx.schema -c %etc_dir\emqx.conf% -d %data_dir%\configs generate
 @for /f "delims=" %%A in ('%%gen_config_cmd%%') do @(
   set generated_config_args=%%A
 )
