@@ -39,15 +39,17 @@ jobs:
         $pkg_name = "emqx-windows-$("${{ github.ref }}" | sed -r 's .*/.*/(.*) \1 g').zip"
         Compress-Archive -Path _build/emqx/rel/emqx -DestinationPath _build/emqx/rel/$pkg_name
         mv _build/emqx/rel/$pkg_name _packages/emqx
-        sudo ./_build/emqx/rel/emqx/bin/emqx start
-        sudo ./_build/emqx/rel/emqx/bin/emqx stop
-        sudo ./_build/emqx/rel/emqx/bin/emqx install
-        sudo ./_build/emqx/rel/emqx/bin/emqx uninstall
         Get-FileHash -Path "_packages/emqx/$pkg_name" | Format-List | grep 'Hash' | awk '{print $3}'  > _packages/emqx/$pkg_name.sha256
         aws configure set aws_access_key_id ${{ secrets.AwsAccessKeyId }}
         aws configure set aws_secret_access_key ${{ secrets.AwsSecretAccessKey }}
         aws configure set default.region us-west-2
         aws s3 cp --recursive ./_packages/emqx  s3://packages.emqx.io/emqx-ce/$version
+    - name: run emqx
+      run: |
+        sudo ./_build/emqx/rel/emqx/bin/emqx start
+        sudo ./_build/emqx/rel/emqx/bin/emqx stop
+        sudo ./_build/emqx/rel/emqx/bin/emqx install
+        sudo ./_build/emqx/rel/emqx/bin/emqx uninstall
 
   # mac:
   #   runs-on: macos-latest
