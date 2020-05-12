@@ -76,12 +76,12 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
-          - containerPort: {{ .Values.emqxConfig.EMQX_LISTENER__TCP__EXTERNAL | default 1883 }}
-          - containerPort: {{ .Values.emqxConfig.EMQX_LISTENER__SSL__EXTERNAL | default 8883 }}
-          - containerPort: {{ .Values.emqxConfig.EMQX_MANAGEMENT__LISTENER__HTTP | default 8081 }}
-          - containerPort: {{ .Values.emqxConfig.EMQX_LISTENER__WS__EXTERNAL | default 8083 }}
-          - containerPort: {{ .Values.emqxConfig.EMQX_LISTENER__WSS__EXTERNAL | default 8084 }}
-          - containerPort: {{ .Values.emqxConfig.EMQX_DASHBOARD__LISTENER__HTTP | default 18083 }}
+          - containerPort: {{if hasKey .Values.emqxConfig "EMQX_LISTENER__TCP__EXTERNAL" }} .Values.emqxConfig.EMQX_LISTENER__TCP__EXTERNAL {{ else }} 1883 {{ end }}
+          - containerPort: {{if hasKey .Values.emqxConfig "EMQX_LISTENER__SSL__EXTERNAL" }} .Values.emqxConfig.EMQX_LISTENER__SSL__EXTERNAL {{ else }} 8883 {{ end }}
+          - containerPort: {{if hasKey .Values.emqxConfig "EMQX_MANAGEMENT__LISTENER__HTTP" }} .Values.emqxConfig.EMQX_MANAGEMENT__LISTENER__HTTP {{ else }} 8081 {{ end }}
+          - containerPort: {{if hasKey .Values.emqxConfig "EMQX_LISTENER__WS__EXTERNAL" }} .Values.emqxConfig.EMQX_LISTENER__WS__EXTERNAL {{ else }} 8083 {{ end }}
+          - containerPort: {{if hasKey .Values.emqxConfig "EMQX_LISTENER__WSS__EXTERNAL" }} .Values.emqxConfig.EMQX_LISTENER__WSS__EXTERNAL {{ else }} 8084 {{ end }}
+          - containerPort: {{if hasKey .Values.emqxConfig "EMQX_DASHBOARD__LISTENER__HTTP" }} .Values.emqxConfig.EMQX_DASHBOARD__LISTENER__HTTP {{ else }} 18083 {{ end }}
           envFrom:
             - configMapRef:
                 name: {{ include "emqx.fullname" . }}-env 
@@ -113,7 +113,7 @@ spec:
           readinessProbe:
             httpGet:
               path: /status
-              port: {{ .Values.emqxConfig.EMQX_MANAGEMENT__LISTENER__HTTP | default 8081 }}
+              port: {{if hasKey .Values.emqxConfig "EMQX_MANAGEMENT__LISTENER__HTTP" }} .Values.emqxConfig.EMQX_MANAGEMENT__LISTENER__HTTP {{ else }} 8081 {{ end }}
             initialDelaySeconds: 5
             periodSeconds: 5
     {{- with .Values.nodeSelector }}
