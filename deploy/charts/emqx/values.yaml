@@ -6,6 +6,7 @@
 replicaCount: 3 
 image:
   repository: emqx/emqx
+  tag: ""
   pullPolicy: IfNotPresent
 
 persistence:
