@@ -68,7 +68,51 @@ emqxAclConfig: >
 emqxLicneseSecretName:
 
 service:
+  ## Service type
+  ##
   type: ClusterIP
+  ## Port for MQTT
+  ##
+  mqtt: 1883
+  ## Port for MQTT(SSL) 
+  ##
+  mqttssl: 8883
+  ## Port for mgmt API
+  ##
+  mgmt: 8081
+  ## Port for WebSocket/HTTP
+  ##
+  ws: 8083
+  ## Port for WSS/HTTPS
+  ##
+  wss: 8084
+  ## Port for dashboard
+  ##
+  dashboard: 18083
+  ## Specify the nodePort(s) value for the LoadBalancer and NodePort service types.
+  ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#type-nodeport
+  ##
+  # nodePorts:
+  #   mqtt: 1883
+  #   mqttssl: 8883
+  #   mgmt: 8081
+  #   ws: 8083
+  #   wss: 8084
+  #   dashboard: 18083
+  ## Set the LoadBalancer service type to internal only.
+  ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#internal-load-balancer
+  ##
+  # loadBalancerIP:
+  ## Load Balancer sources
+  ## ref: https://kubernetes.io/docs/tasks/access-application-cluster/configure-cloud-provider-firewall/#restrict-access-for-loadbalancer-service
+  ## Example:
+  ## loadBalancerSourceRanges:
+  ## - 10.10.10.0/24
+  ##
+  loadBalancerSourceRanges: []
+  ## Provide any additional annotations which may be required. Evaluated as a template
+  ##
+  annotations: {}
 
 nodeSelector: {}
 
