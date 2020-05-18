@@ -27,8 +27,6 @@ jobs:
         scoop bucket add extras https://github.com/lukesampson/scoop-extras.git
         scoop bucket add java
         scoop update
-        scoop search erlang
-        scoop info erlang
         scoop install sudo curl 7zip aws ojdkbuild8 vcredist2013
         scoop install erlang@22.3 
         make deps-emqx
