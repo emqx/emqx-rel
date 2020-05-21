@@ -218,14 +218,14 @@ compile_epmd_module() ->
       "dist_port(Name) when is_atom(Name) ->
          dist_port(atom_to_list(Name));
        dist_port(Name) when is_list(Name) ->
-         NodeName = re:replace(Name, \"@.*$\", \"\"),
-         Offset =
-           case re:run(NodeName, \"[0-9]+$\", [{capture, first, list}]) of
-             nomatch -> 0;
-             {match, [OffsetAsString]} ->
-               list_to_integer(OffsetAsString)
-             end,
-         4370 + Offset."
+         4370 + offset(Name).",
+      "offset(NodeName) ->
+         ShortName = re:replace(NodeName, \"@.*$\", \"\"),
+         case re:run(ShortName, \"[0-9]+$\", [{capture, first, list}]) of
+           nomatch -> 0;
+           {match, [OffsetAsString]} ->
+             (list_to_integer(OffsetAsString) rem 60000)
+         end."
     ]).
 
 compile(Exprs) ->
