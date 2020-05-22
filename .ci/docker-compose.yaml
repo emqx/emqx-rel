@@ -16,6 +16,13 @@ services:
       - ../.:/emqx-rel
     tty: true
 
+  python:
+    image: python:3.7.2
+    networks:
+      - emqx-bridge
+    volumes:
+      - ../.:/emqx-rel
+
   mysql_server:
     image: mysql:5.7
     restart: always

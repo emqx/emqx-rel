@@ -20,8 +20,10 @@ jobs:
           run: | 
             sudo curl -L "https://github.com/docker/compose/releases/download/1.25.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
             sudo chmod +x /usr/local/bin/docker-compose
+        - name: docker-compose build
+          run:  docker-compose -f .ci/docker-compose.yaml build
         - name: docker-compose up
-          run:  docker-compose -p emqx_auto_func_test -f .ci/docker-compose.yaml up -d --build
+          run:  docker-compose -p emqx_auto_func_test -f .ci/docker-compose.yaml up -d
         - name: get deps
           run:  docker exec emqx_auto_func_test_emqx_1 bash -c "cd /emqx-rel && make distclean && EMQX_DEPS_DEFAULT_VSN=develop make deps-emqx"
         - uses: actions/upload-artifact@v1
@@ -54,6 +56,8 @@ jobs:
             done
         - name: run all test cases
           run: docker exec emqx_auto_func_test_emqx_1 bash -c "cd /emqx-rel && EMQX_DEPS_DEFAULT_VSN=develop make ct -k -j 4"
+        - name: get the results
+          run: docker exec emqx_auto_func_test_python_1 bash -xc "cd /emqx-rel/tests/logs && python /emqx-rel/.ci/boot.py"
         - uses: actions/upload-artifact@v1
           if: always()
           with:
