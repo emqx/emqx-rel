@@ -32,7 +32,7 @@ jobs:
         - name: set config files
           run: |
             cd _build/emqx/lib
-            sudo chmod 666 ./emqx*/etc/*.conf
+            sudo chmod -R 777 ./emqx*/etc
             for var in $(ls); do
               if [ $var == "emqx_auth_mysql" ];then
                 sed -i "/auth.mysql.server/c auth.mysql.server = mysql_server:3306" ./$var/etc/emqx_auth_mysql.conf 
