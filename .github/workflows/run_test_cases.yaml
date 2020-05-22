@@ -33,22 +33,23 @@ jobs:
           run: |
             cd _build/emqx/lib
             for var in $(ls); do
+              sudo chmod 666 ./$var/etc/*.conf
               if [ $var == "emqx_auth_mysql" ];then
-                sudo sed -i "/auth.mysql.server/c auth.mysql.server = mysql_server:3306" ./$var/etc/emqx_auth_mysql.conf 
-                sudo echo "auth.mysql.username = root" >> ./$var/etc/emqx_auth_mysql.conf
-                sudo echo "auth.mysql.password = public" >> ./$var/etc/emqx_auth_mysql.conf
+                sed -i "/auth.mysql.server/c auth.mysql.server = mysql_server:3306" ./$var/etc/emqx_auth_mysql.conf 
+                echo "auth.mysql.username = root" >> ./$var/etc/emqx_auth_mysql.conf
+                echo "auth.mysql.password = public" >> ./$var/etc/emqx_auth_mysql.conf
               fi
               if [ $var == "emqx_auth_redis" ];then
-                sudo sed -i "/auth.redis.server/c auth.redis.server = redis_server:6379" ./$var/etc/emqx_auth_redis.conf
+                sed -i "/auth.redis.server/c auth.redis.server = redis_server:6379" ./$var/etc/emqx_auth_redis.conf
               fi
               if [ $var == "emqx_auth_mongo" ];then
-                sudo sed -i "/auth.mongo.server/c auth.mongo.server = mongo_server:27017" ./$var/etc/emqx_auth_mongo.conf 
+                sed -i "/auth.mongo.server/c auth.mongo.server = mongo_server:27017" ./$var/etc/emqx_auth_mongo.conf 
               fi
               if [ $var == "emqx_auth_pgsql" ];then
-                sudo sed -i "/auth.pgsql.server/c auth.pgsql.server = pgsql_server:5432" ./$var/etc/emqx_auth_pgsql.conf 
+                sed -i "/auth.pgsql.server/c auth.pgsql.server = pgsql_server:5432" ./$var/etc/emqx_auth_pgsql.conf 
               fi
               if [ $var == "emqx_auth_ldap" ];then
-                sudo sed -i "/auth.ldap.servers/c auth.ldap.servers = ldap_server" ./$var/etc/emqx_auth_ldap.conf 
+                sed -i "/auth.ldap.servers/c auth.ldap.servers = ldap_server" ./$var/etc/emqx_auth_ldap.conf 
               fi
             done
         - name: run all test cases
