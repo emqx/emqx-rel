@@ -45,6 +45,21 @@ The following table lists the configurable parameters of the emqx chart and thei
 | `nodeSelector` | Node labels for pod assignment |`{}`|
 | `tolerations` | Toleration labels for pod assignment |`[]`|
 | `affinity` | Map of node/pod affinities |`{}`|
-| `service.type`  | Emqx cluster service type. |ClusterIP|
+| `service.type`  | Kubernetes Service type. |ClusterIP|
+| `service.mqtt`  | Port for MQTT. |1883|
+| `service.mqttssl` | Port for MQTT(SSL). |8883|
+| `service.mgmt`  | Port for mgmt API. |8081|
+| `service.ws`  | Port for WebSocket/HTTP. |8083|
+| `service.wss`  | Port for WSS/HTTPS. |8084|
+| `service.dashboard`  | Port for dashboard. |18083|
+| `service.nodePorts.mqtt`  | Kubernetes node port for MQTT. |nil|
+| `service.nodePorts.mqttssl` | Kubernetes node port for MQTT(SSL). |nil|
+| `service.nodePorts.mgmt`  | Kubernetes node port for mgmt API. |nil|
+| `service.nodePorts.ws`  | Kubernetes node port for WebSocket/HTTP. |nil|
+| `service.nodePorts.wss`  | Kubernetes node port for WSS/HTTPS. |nil|
+| `service.nodePorts.dashboard`  | Kubernetes node port for dashboard. |nil|
+| `service.loadBalancerIP`  | loadBalancerIP for Service |	nil |
+| `service.loadBalancerSourceRanges` |	Address(es) that are allowed when service is LoadBalancer |	[] |
+| `service.annotations` |	Service annotations |	{}(evaluated as a template)|
 | `emqxConfig` | Emqx configuration item, see the [documentation](https://hub.docker.com/r/emqx/emqx) | |
 | `emqxAclConfig` | Emqx acl configuration item, see the [documentation](https://docs.emqx.io/broker/latest/en/advanced/acl-file.html) | |

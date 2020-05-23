@@ -1,7 +1,6 @@
 name: Build packages
 
 on:
-  pull_request:
   push:
     branches:
       - "*"
@@ -28,8 +27,6 @@ jobs:
         scoop bucket add extras https://github.com/lukesampson/scoop-extras.git
         scoop bucket add java
         scoop update
-        scoop search erlang
-        scoop info erlang
         scoop install sudo curl 7zip aws ojdkbuild8 vcredist2013
         scoop install erlang@22.3 
         make deps-emqx
@@ -214,7 +211,7 @@ jobs:
       if: matrix.arch[0] == 'amd64'
       run: |
         if [ ${{ github.event_name}} == 'repository_dispatch' ]; then version=${{ github.event.client_payload.version }}; else version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g"); fi
-        cd emqx-rel && if [ ! -z $(echo $version | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?") ]; then deps_version=$version; else deps_version=master; fi && cd -
+        if [ ! -z $(echo $version | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?") ]; then deps_version=$version; else deps_version=master; fi
         sudo EMQX_DEPS_DEFAULT_VSN=$deps_version TARGET=emqx/emqx PAHO_BRANCH="develop-4.0" make -C emqx-integration-test/paho-test test
         sudo EMQX_DEPS_DEFAULT_VSN=$deps_version TARGET=emqx/emqx PAHO_BRANCH="develop-4.0" make -C emqx-integration-test/paho-test cluster_test
         sudo EMQX_DEPS_DEFAULT_VSN=$deps_version TARGET=emqx/emqx-edge PAHO_BRANCH="develop-4.0" make -C emqx-integration-test/paho-test cluster_test
