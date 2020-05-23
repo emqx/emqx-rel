@@ -9,32 +9,70 @@ metadata:
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
 spec:
-  type: {{ .Values.service.type }} 
+  type: {{ .Values.service.type }}
+  {{- if eq .Values.service.type "LoadBalancer" }}
+  {{- if .Values.service.loadBalancerIP }}
+  loadBalancerIP: {{ .Values.service.loadBalancerIP }}
+  {{- end }}
+  {{- if .Values.service.loadBalancerSourceRanges }}
+  loadBalancerSourceRanges: {{- toYaml .Values.service.loadBalancerSourceRanges | nindent 4 }}
+  {{- end }}
+  {{- end }}
   ports:
   - name: mqtt
-    port: {{ .Values.emqxConfig.EMQX_LISTENER__TCP__EXTERNAL | default 1883 }}
+    port: {{ .Values.service.mqtt | default 1883 }}
     protocol: TCP
-    targetPort: {{ .Values.emqxConfig.EMQX_LISTENER__TCP__EXTERNAL | default 1883 }}
+    targetPort: mqtt
+    {{- if and (or (eq .Values.service.type "NodePort") (eq .Values.service.type "LoadBalancer")) (not (empty .Values.service.nodePorts.mqtt)) }}
+    nodePort: {{ .Values.service.nodePorts.mqtt }}
+    {{- else if eq .Values.service.type "ClusterIP" }}
+    nodePort: null
+    {{- end }}
   - name: mqttssl
-    port: {{ .Values.emqxConfig.EMQX_LISTENER__SSL__EXTERNAL | default 8883 }}
+    port: {{ .Values.service.mqttssl | default 8883 }}
     protocol: TCP
-    targetPort: {{ .Values.emqxConfig.EMQX_LISTENER__SSL__EXTERNAL | default 8883 }}
+    targetPort: mqttssl
+    {{- if and (or (eq .Values.service.type "NodePort") (eq .Values.service.type "LoadBalancer")) (not (empty .Values.service.nodePorts.mqttssl)) }}
+    nodePort: {{ .Values.service.nodePorts.mqttssl }}
+    {{- else if eq .Values.service.type "ClusterIP" }}
+    nodePort: null
+    {{- end }}
   - name: mgmt
-    port: {{ .Values.emqxConfig.EMQX_MANAGEMENT__LISTENER__HTTP | default 8081 }}
+    port: {{ .Values.service.mgmt | default 8081 }}
     protocol: TCP
-    targetPort: {{ .Values.emqxConfig.EMQX_MANAGEMENT__LISTENER__HTTP | default 8081 }}
-  - name: websocket
-    port: {{ .Values.emqxConfig.EMQX_LISTENER__WS__EXTERNAL | default 8083 }}
+    targetPort: mgmt
+    {{- if and (or (eq .Values.service.type "NodePort") (eq .Values.service.type "LoadBalancer")) (not (empty .Values.service.nodePorts.mgmt)) }}
+    nodePort: {{ .Values.service.nodePorts.mgmt }}
+    {{- else if eq .Values.service.type "ClusterIP" }}
+    nodePort: null
+    {{- end }}
+  - name: ws
+    port: {{ .Values.service.ws | default 8083 }}
     protocol: TCP
-    targetPort: {{ .Values.emqxConfig.EMQX_LISTENER__WS__EXTERNAL | default 8083 }}
+    targetPort: ws
+    {{- if and (or (eq .Values.service.type "NodePort") (eq .Values.service.type "LoadBalancer")) (not (empty .Values.service.nodePorts.ws)) }}
+    nodePort: {{ .Values.service.nodePorts.ws }}
+    {{- else if eq .Values.service.type "ClusterIP" }}
+    nodePort: null
+    {{- end }}
   - name: wss
-    port: {{ .Values.emqxConfig.EMQX_LISTENER__WSS__EXTERNAL | default 8084 }}
+    port: {{ .Values.service.wss | default 8084 }}
     protocol: TCP
-    targetPort: {{ .Values.emqxConfig.EMQX_LISTENER__WSS__EXTERNAL | default 8084 }}
+    targetPort: wss
+    {{- if and (or (eq .Values.service.type "NodePort") (eq .Values.service.type "LoadBalancer")) (not (empty .Values.service.nodePorts.wss)) }}
+    nodePort: {{ .Values.service.nodePorts.wss }}
+    {{- else if eq .Values.service.type "ClusterIP" }}
+    nodePort: null
+    {{- end }}
   - name: dashboard
-    port: {{ .Values.emqxConfig.EMQX_DASHBOARD__LISTENER__HTTP | default 18083 }}
+    port: {{ .Values.service.dashboard | default 18083 }}
     protocol: TCP
-    targetPort: {{ .Values.emqxConfig.EMQX_DASHBOARD__LISTENER__HTTP | default 18083 }}
+    targetPort: dashboard
+    {{- if and (or (eq .Values.service.type "NodePort") (eq .Values.service.type "LoadBalancer")) (not (empty .Values.service.nodePorts.dashboard)) }}
+    nodePort: {{ .Values.service.nodePorts.dashboard }}
+    {{- else if eq .Values.service.type "ClusterIP" }}
+    nodePort: null
+    {{- end }}
   selector:
     app.kubernetes.io/name: {{ include "emqx.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
@@ -56,29 +94,29 @@ spec:
   clusterIP: None
   ports:
   - name: mqtt
-    port: {{ .Values.emqxConfig.EMQX_LISTENER__TCP__EXTERNAL | default 1883 }}
+    port: {{ .Values.service.mqtt | default 1883 }}
     protocol: TCP
-    targetPort: {{ .Values.emqxConfig.EMQX_LISTENER__TCP__EXTERNAL | default 1883 }}
+    targetPort: mqtt
   - name: mqttssl
-    port: {{ .Values.emqxConfig.EMQX_LISTENER__SSL__EXTERNAL | default 8883 }}
+    port: {{ .Values.service.mqttssl | default 8883 }}
     protocol: TCP
-    targetPort: {{ .Values.emqxConfig.EMQX_LISTENER__SSL__EXTERNAL | default 8883 }}
+    targetPort: mqttssl
   - name: mgmt
-    port: {{ .Values.emqxConfig.EMQX_MANAGEMENT__LISTENER__HTTP | default 8081 }}
+    port: {{ .Values.service.mgmt | default 8081 }}
     protocol: TCP
-    targetPort: {{ .Values.emqxConfig.EMQX_MANAGEMENT__LISTENER__HTTP | default 8081 }}
-  - name: websocket
-    port: {{ .Values.emqxConfig.EMQX_LISTENER__WS__EXTERNAL | default 8083 }}
+    targetPort: mgmt
+  - name: ws
+    port: {{ .Values.service.ws | default 8083 }}
     protocol: TCP
-    targetPort: {{ .Values.emqxConfig.EMQX_LISTENER__WS__EXTERNAL | default 8083 }}
+    targetPort: ws
   - name: wss
-    port: {{ .Values.emqxConfig.EMQX_LISTENER__WSS__EXTERNAL | default 8084 }}
+    port: {{ .Values.service.wss | default 8084 }}
     protocol: TCP
-    targetPort: {{ .Values.emqxConfig.EMQX_LISTENER__WSS__EXTERNAL | default 8084 }}
+    targetPort: wss
   - name: dashboard
-    port: {{ .Values.emqxConfig.EMQX_DASHBOARD__LISTENER__HTTP | default 18083 }}
+    port: {{ .Values.service.dashboard | default 18083 }}
     protocol: TCP
-    targetPort: {{ .Values.emqxConfig.EMQX_DASHBOARD__LISTENER__HTTP | default 18083 }}
+    targetPort: dashboard
   selector:
     app.kubernetes.io/name: {{ include "emqx.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
