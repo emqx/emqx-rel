@@ -60,7 +60,7 @@ jobs:
             done
             cd -
         - name: run all test cases
-          run: docker exec emqx_auto_func_test_emqx_1 bash -c "cd /emqx-rel && make ct -k"
+          run: docker exec emqx_auto_func_test_emqx_1 bash -c " DEBUG=1 make -C /emqx-rel ct -k"
         - name: get the results
           run: docker exec emqx_auto_func_test_python_1 bash -xc "pip install --upgrade pip && pip install beautifulsoup4 && cd /emqx-rel/tests && python /emqx-rel/.ci/deps_tests/boot.py"
         - uses: actions/upload-artifact@v1
