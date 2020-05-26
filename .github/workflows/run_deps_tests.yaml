@@ -1,4 +1,4 @@
-name: Run all test cases
+name: Run deps tests
 
 on: 
   push:
@@ -9,11 +9,11 @@ on:
     #   - develop
     #   - release-*
   repository_dispatch:
-    types: [run_all_test_cases]
+    types: [run_deps_tests]
 
 jobs:
 
-    run_test_case:
+    run_deps_tests:
 
         runs-on: ubuntu-latest
 
@@ -22,7 +22,7 @@ jobs:
         - name: get deps
           run: |
             if [ ${{ github.event_name}} == 'repository_dispatch' ]; then version=${{ github.event.client_payload.version }}; else version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g"); fi
-            version=develop
+            version=v4.1-rc.2
             make distclean &&  EMQX_DEPS_DEFAULT_VSN=$version make deps-emqx
         - name: Install docker-compose
           run: | 
