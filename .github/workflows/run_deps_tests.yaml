@@ -23,7 +23,7 @@ jobs:
           run: |
             if [ ${{ github.event_name}} == 'repository_dispatch' ]; then version=${{ github.event.client_payload.version }}; else version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g"); fi
             version=v4.1-rc.2
-            make distclean &&  EMQX_DEPS_DEFAULT_VSN=$version make deps-emqx
+            make distclean &&  EMQX_DEPS_DEFAULT_VSN=$version make
         - name: Install docker-compose
           run: | 
             sudo curl -L "https://github.com/docker/compose/releases/download/1.25.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
@@ -62,7 +62,7 @@ jobs:
         - name: run all test cases
           run: docker exec emqx_auto_func_test_emqx_1 bash -c "EMQX_DEPS_DEFAULT_VSN=v4.1-rc.1 DEBUG=1 make -C /emqx-rel ct -k"
         - name: get the results
-          run: docker exec emqx_auto_func_test_python_1 bash -xc "pip install --upgrade pip && pip install beautifulsoup4 && cd /emqx-rel/tests && python /emqx-rel/.ci/deps_tests/boot.py"
+          run: docker exec emqx_auto_func_test_python_1 bash -c "pip install --upgrade pip && pip install beautifulsoup4 && cd /emqx-rel/tests && python /emqx-rel/.ci/deps_tests/boot.py"
         - uses: actions/upload-artifact@v1
           if: always()
           with:
