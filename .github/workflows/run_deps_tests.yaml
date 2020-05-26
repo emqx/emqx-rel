@@ -23,7 +23,7 @@ jobs:
           run: |
             if [ ${{ github.event_name}} == 'repository_dispatch' ]; then version=${{ github.event.client_payload.version }}; else version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g"); fi
             version=v4.1-rc.2
-            docker run -i --rm -e EMQX_DEPS_DEFAULT_VSN=$version -v $(pwd):/emqx-rel erlang:22.3 bash -c "make deps-emqx"
+            docker run -i --rm -e EMQX_DEPS_DEFAULT_VSN=$version -v $(pwd):/emqx-rel erlang:22.3 bash -c "make -C /emqx-rel deps-emqx"
         - name: Install docker-compose
           run: | 
             sudo curl -L "https://github.com/docker/compose/releases/download/1.25.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
