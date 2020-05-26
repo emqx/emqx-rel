@@ -1,0 +1,77 @@
+version: '3'
+
+services:
+  emqx1:
+    image: ${IMAGE}
+    environment:
+    - "EMQX_NAME=emqx"
+    - "EMQX_HOST=node1.emqx.io"
+    - "EMQX_CLUSTER__DISCOVERY=static"
+    - "EMQX_CLUSTER__STATIC__SEEDS=emqx@node1.emqx.io, emqx@node2.emqx.io"
+    - "EMQX_ZONE__EXTERNAL__RETRY_INTERVAL=2s"
+    - "EMQX_MQTT__MAX_TOPIC_ALIAS=10"
+    command: 
+        - /bin/sh 
+        - -c
+        - |
+          sed -i "s 127.0.0.1 $$(ip route show |grep "link" |awk '{print $$1}') g" /opt/emqx/etc/acl.conf
+          /usr/bin/start.sh
+    volumes:
+        - ./tmp/emqx.lic:/opt/emqx/etc/emqx.lic
+    healthcheck:
+      test: ["CMD", "/opt/emqx/bin/emqx_ctl", "status"]
+      interval: 5s
+      timeout: 25s
+      retries: 5
+    networks:
+      emqx-bridge:
+        aliases:
+        - node1.emqx.io
+  
+  emqx2:
+    image: ${IMAGE}
+    environment:
+    - "EMQX_NAME=emqx"
+    - "EMQX_HOST=node2.emqx.io"
+    - "EMQX_CLUSTER__DISCOVERY=static"
+    - "EMQX_CLUSTER__STATIC__SEEDS=emqx@node1.emqx.io, emqx@node2.emqx.io"
+    - "EMQX_ZONE__EXTERNAL__RETRY_INTERVAL=2s"
+    - "EMQX_MQTT__MAX_TOPIC_ALIAS=10"
+    command: 
+      - /bin/sh 
+      - -c
+      - |
+        sed -i "s 127.0.0.1 $$(ip route show |grep "link" |awk '{print $$1}') g" /opt/emqx/etc/acl.conf
+        /usr/bin/start.sh
+    volumes:
+        - ./tmp/emqx.lic:/opt/emqx/etc/emqx.lic
+    healthcheck:
+      test: ["CMD", "/opt/emqx/bin/emqx_ctl", "status"]
+      interval: 5s
+      timeout: 25s
+      retries: 5
+    networks:
+      emqx-bridge:
+        aliases:
+        - node2.emqx.io
+
+  client:
+    image: python:3.7.2-alpine3.9
+    depends_on:
+      - emqx1
+      - emqx2
+    tty: true
+    networks:
+        emqx-bridge:
+#     command: 
+#       - sh
+#       - -c
+#       - |
+#         apk update && apk add git
+#         git clone -b ${PAHO_BRANCH} https://github.com/emqx/paho.mqtt.testing.git /paho.mqtt.testing
+#         pip install pytest
+#         pytest -v /paho.mqtt.testing/interoperability/test_cluster --host1 node1.emqx.io --host2 node2.emqx.io
+
+networks:
+  emqx-bridge:
+    driver: bridge

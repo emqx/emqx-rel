@@ -13,7 +13,7 @@ services:
     networks:
       - emqx-bridge
     volumes:
-      - ../.:/emqx-rel
+      - ../../.:/emqx-rel
     tty: true
 
   python:
@@ -21,7 +21,7 @@ services:
     networks:
       - emqx-bridge
     volumes:
-      - ../.:/emqx-rel
+      - ../../.:/emqx-rel
     tty: true
 
   mysql_server:
@@ -41,7 +41,7 @@ services:
     depends_on:
       - mysql_server
     volumes:
-      - ../_build/emqx/lib/emqx_auth_mysql/mqtt.sql:/emqx_auth_mysql_test.sql
+      - ../../_build/emqx/lib/emqx_auth_mysql/mqtt.sql:/emqx_auth_mysql_test.sql
     command:
       - /bin/bash
       - -c
