@@ -2,8 +2,12 @@ name: Run all test cases
 
 on: 
   push:
-    tags:
-      - v*
+    # tags:
+    #   - v*
+    # branches:
+    #   - master
+    #   - develop
+    #   - release-*
   repository_dispatch:
     types: [run_all_test_cases]
 
@@ -14,35 +18,53 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
+        - uses: actions/checkout@v1
+        - name: get deps
+          run: |
+            if [ ${{ github.event_name}} == 'repository_dispatch' ]; then version=${{ github.event.client_payload.version }}; else version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g"); fi
+            version=develop
+            make distclean &&  EMQX_DEPS_DEFAULT_VSN=$version make deps-emqx
         - name: Install docker-compose
           run: | 
             sudo curl -L "https://github.com/docker/compose/releases/download/1.25.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
             sudo chmod +x /usr/local/bin/docker-compose
-        - name: Setup docker
+        - name: docker-compose build
           run: |
-            echo '{ "experimental": true, "storage-driver": "overlay2", "max-concurrent-downloads": 50, "max-concurrent-uploads": 50, "graph": "/mnt/docker" }' | sudo tee /etc/docker/daemon.json
-            sudo systemctl restart docker
-        - uses: actions/checkout@v2
-          with:
-            repository: emqx/emqx-integration-test
-            token: ${{ secrets.AccessToken }} 
-            path: emqx-integration-test
-        - name: Run all test cases
+            cp _build/emqx/lib/emqx_auth_ldap/emqx.io.ldif .ci/emqx-ldap/schema
+            cp _build/emqx/lib/emqx_auth_ldap/emqx.schema .ci/emqx-ldap/schema
+            docker-compose -f .ci/docker-compose.yaml build --no-cache
+        - name: docker-compose up
+          run:  docker-compose -p emqx_auto_func_test -f .ci/docker-compose.yaml up -d
+        - name: set config files
           run: |
-            if [ ${{ github.event_name}} == 'repository_dispatch' ]; then version=${{ github.event.client_payload.version }}; else version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g"); fi
-            cd emqx-integration-test/docker-compose
-            sudo docker-compose -p emqx_auto_func_test up -d --build
-            sudo docker ps -a
-            sudo docker exec emqx_auto_func_test_emqx_1 bash -xc "cd /tests; sed -i '/^set.*/d' run_emqx.sh; export EMQX_DEPS_DEFAULT_VSN=$version; ./run_emqx.sh emqx-ce.spec "
-            sudo docker exec emqx_auto_func_test_python_1 bash -xc "cd /tests && python ./boot.py "
-            sudo docker-compose -p emqx_auto_func_test down
+            cd _build/emqx/lib
+            sudo chmod -R 777 ./emqx*/etc
+            for var in $(ls); do
+              if [ $var == "emqx_auth_mysql" ];then
+                sed -i "/auth.mysql.server/c auth.mysql.server = mysql_server:3306" ./$var/etc/emqx_auth_mysql.conf 
+                echo "auth.mysql.username = root" >> ./$var/etc/emqx_auth_mysql.conf
+                echo "auth.mysql.password = public" >> ./$var/etc/emqx_auth_mysql.conf
+              fi
+              if [ $var == "emqx_auth_redis" ];then
+                sed -i "/auth.redis.server/c auth.redis.server = redis_server:6379" ./$var/etc/emqx_auth_redis.conf
+              fi
+              if [ $var == "emqx_auth_mongo" ];then
+                sed -i "/auth.mongo.server/c auth.mongo.server = mongo_server:27017" ./$var/etc/emqx_auth_mongo.conf 
+              fi
+              if [ $var == "emqx_auth_pgsql" ];then
+                sed -i "/auth.pgsql.server/c auth.pgsql.server = pgsql_server:5432" ./$var/etc/emqx_auth_pgsql.conf 
+              fi
+              if [ $var == "emqx_auth_ldap" ];then
+                sed -i "/auth.ldap.servers/c auth.ldap.servers = ldap_server" ./$var/etc/emqx_auth_ldap.conf 
+              fi
+            done
+            cd -
+        - name: run all test cases
+          run: docker exec emqx_auto_func_test_emqx_1 bash -c "cd /emqx-rel && make ct -k"
+        - name: get the results
+          run: docker exec emqx_auto_func_test_python_1 bash -xc "pip install --upgrade pip && pip install beautifulsoup4 && cd /emqx-rel/tests && python /emqx-rel/.ci/boot.py"
         - uses: actions/upload-artifact@v1
           if: always()
           with:
             name: logs
-            path: emqx-integration-test/docker-compose/files/logs
-        - name: Run paho test
-          run: |
-            if [ ${{ github.event_name}} == 'repository_dispatch' ]; then version=${{ github.event.client_payload.version }}; else version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g"); fi
-            cd emqx-integration-test/paho-test
-            EMQX_DEPS_DEFAULT_VSN=$version TARGET=emqx/emqx PAHO_BRANCH="develop-4.0" make 
+            path: tests/logs
