@@ -358,7 +358,7 @@ case "$1" in
         ;;
 
     restart|reboot)
-        echo "{{ emqx_description }} $REL_VSN is stoped: $($RUNNER_BIN_DIR/emqx stop)"
+        echo "{{ emqx_description }} $REL_VSN is stopped: $($RUNNER_BIN_DIR/emqx stop)"
         $RUNNER_BIN_DIR/emqx start
         ;;
 
