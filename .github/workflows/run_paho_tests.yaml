@@ -34,6 +34,7 @@ jobs:
             version=develop
             EMQX_DEPS_DEFAULT_VSN=$version make emqx-docker-build
         - name: make paho tests
+          run: |
             if [ ${{ github.event_name}} == 'repository_dispatch' ]; then version=${{ github.event.client_payload.version }}; else version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g"); fi
             version=develop
             EMQX_DEPS_DEFAULT_VSN=$develop TARGET=emqx/emqx PAHO_BRANCH="develop-4.0" make -C .ci/paho_tests test
