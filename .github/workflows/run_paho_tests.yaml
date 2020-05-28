@@ -1,4 +1,4 @@
-name: Run deps tests
+name: Run paho tests
 
 on: 
   push:
@@ -37,4 +37,4 @@ jobs:
           run: |
             if [ ${{ github.event_name}} == 'repository_dispatch' ]; then version=${{ github.event.client_payload.version }}; else version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g"); fi
             version=develop
-            EMQX_DEPS_DEFAULT_VSN=$develop TARGET=emqx/emqx PAHO_BRANCH="develop-4.0" make -C .ci/paho_tests test
+            EMQX_DEPS_DEFAULT_VSN=$version TARGET=emqx/emqx PAHO_BRANCH="develop-4.0" make -C .ci/paho_tests test
