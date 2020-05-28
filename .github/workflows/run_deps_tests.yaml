@@ -9,7 +9,7 @@ on:
     #  - develop
     #  - release-*
   repository_dispatch:
-    types: [run_deps_tests]
+    types: [run_tests]
 
 jobs:
 

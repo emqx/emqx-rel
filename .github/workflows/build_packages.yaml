@@ -200,7 +200,6 @@ jobs:
       run: |
         if [ ${{ github.event_name}} == 'repository_dispatch' ]; then version=${{ github.event.client_payload.version }}; else version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g"); fi
         if [ ! -z $(echo $version | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?") ]; then deps_version=$version; else deps_version=master; fi
-        sudo EMQX_DEPS_DEFAULT_VSN=$deps_version TARGET=emqx/emqx PAHO_BRANCH="develop-4.0" make -C .ci/paho_tests test
         sudo EMQX_DEPS_DEFAULT_VSN=$deps_version TARGET=emqx/emqx PAHO_BRANCH="develop-4.0" make -C .ci/paho_tests cluster_test
         sudo EMQX_DEPS_DEFAULT_VSN=$deps_version TARGET=emqx/emqx-edge PAHO_BRANCH="develop-4.0" make -C .ci/paho_tests cluster_test
 

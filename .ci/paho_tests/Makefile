@@ -8,19 +8,7 @@ PAHO_BRANCH ?= develop-4.0
 
 
 .PHONY: all
-all: get_docker_image test
-
-.PHONY: get_docker_image
-get_docker_image:clean
-	@rm -rf tmp
-	@mkdir -p tmp
-	@if [ ! -z $$(echo $(EMQX_NAME) | grep -o ee) ];then \
-		git clone -b $(EMQX_DEPS_DEFAULT_VSN) https://github.com/emqx/emqx-enterprise-rel tmp/emqx_enterprise_rel; \
-		EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN) make -C tmp/emqx_enterprise_rel emqx-docker-build; \
-	else \
-		git clone -b $(EMQX_DEPS_DEFAULT_VSN) https://github.com/emqx/emqx-rel tmp/emqx_rel; \
-		EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN) make -C tmp/emqx_rel $(EMQX_NAME)-docker-build; \
-	fi
+all: test
 
 define wait_emqx
 	@while [ "$$(docker inspect -f '{{ .State.Health.Status}}' $$(docker ps -a -q -f name=paho_test_emqx1))" != "healthy" ] || [ "$$(docker inspect -f '{{ .State.Health.Status}}' $$(docker ps -a -q -f name=paho_test_emqx2))" != "healthy" ]; do \
