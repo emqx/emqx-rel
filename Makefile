@@ -25,12 +25,32 @@ PROFILE ?= emqx
 PROFILES := emqx emqx-edge
 PKG_PROFILES := emqx-pkg emqx-edge-pkg
 
-CT_APPS := emqx_auth_jwt emqx_auth_mysql emqx_auth_username \
-		emqx_delayed_publish emqx_management emqx_recon emqx_rule_enginex \
-		emqx_stomp emqx_auth_clientid  emqx_auth_ldap   emqx_auth_pgsql \
-		emqx_coap emqx_lua_hook emqx_passwd emqx_reloader emqx_sn \
-		emqx_web_hook emqx_auth_http emqx_auth_mongo emqx_auth_redis \
-		emqx_dashboard emqx_lwm2m emqx_psk_file emqx_retainer emqx_statsd emqx_sasl
+CT_APPS := emqx \
+           emqx_auth_clientid \
+           emqx_auth_http \
+           emqx_auth_jwt \
+           emqx_auth_ldap \
+           emqx_auth_mongo \
+           emqx_auth_mysql \
+           emqx_auth_pgsql \
+           emqx_auth_redis \
+           emqx_auth_username \
+           emqx_auth_mnesia \
+           emqx_sasl \
+           emqx_coap \
+           emqx_recon \
+           emqx_dashboard \
+           emqx_delayed_publish \
+           emqx_lua_hook \
+           emqx_lwm2m \
+           emqx_management \
+           emqx_retainer \
+           emqx_sn \
+           emqx_stomp \
+           emqx_web_hook \
+           emqx_bridge_mqtt \
+           emqx_rule_engine \
+           emqx_extension_hook
 
 .PHONY: default
 default: $(REBAR) $(PROFILE)
@@ -94,7 +114,9 @@ checkout:
 .PHONY: $(REBAR) $(CT_APPS:%=ct-%)
 ct: $(CT_APPS:%=ct-%)
 $(CT_APPS:%=ct-%): checkout-$(PROFILE)
-	$(REBAR) as $(PROFILE) ct --verbose --dir _checkouts/$(@:ct-%=%)/test --verbosity 50
+	-make -C _build/emqx/lib/$(@:ct-%=%) ct
+	@mkdir -p tests/logs/$(@:ct-%=%)
+	@if [ -d _build/emqx/lib/$(@:ct-%=%)/_build/test/logs ]; then cp -r _build/emqx/lib/$(@:ct-%=%)/_build/test/logs/* tests/logs/$(@:ct-%=%); fi
 
 $(REBAR):
 ifneq ($(wildcard rebar3),rebar3)
