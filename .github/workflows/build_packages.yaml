@@ -1,6 +1,7 @@
 name: Build packages
 
 on:
+  pull_request:
   push:
     branches:
       - "*"
@@ -177,44 +178,30 @@ jobs:
         aws configure set aws_access_key_id ${{ secrets.AwsAccessKeyId }}
         aws configure set aws_secret_access_key ${{ secrets.AwsSecretAccessKey }}
         aws configure set default.region us-west-2
-    - uses: actions/checkout@v2
-      with: 
-        path: emqx-rel
-        # fetch-depth: 0
-    - name: fetch all history for all tags and branches
-      run: |
-        cd emqx-rel
-        git fetch --depth=1 origin +refs/tags/*:refs/tags/*
-    - uses: actions/checkout@v2
-      with:
-        repository: emqx/emqx-integration-test
-        token: ${{ secrets.AccessToken }}
-        path: emqx-integration-test
+    - uses: actions/checkout@v1
     - name: build emqx docker image
       env:
         ARCH: ${{ matrix.arch[0] }}
         QEMU_ARCH: ${{ matrix.arch[1] }}
       run: |
         if [ ${{ github.event_name}} == 'repository_dispatch' ]; then version=${{ github.event.client_payload.version }}; else version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g"); fi
-        cd emqx-rel && if [ ! -z $(echo $version | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?") ]; then deps_version=$version; else deps_version=master; fi && cd -
-        ls -al emqx-rel
+        if [ ! -z $(echo $version | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?") ]; then deps_version=$version; else deps_version=master; fi
         sudo docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-        sudo EMQX_DEPS_DEFAULT_VSN=$deps_version TARGET=emqx/emqx ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH  make -C emqx-rel/deploy/docker
-        sudo EMQX_DEPS_DEFAULT_VSN=$deps_version TARGET=emqx/emqx ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH make -C emqx-rel/deploy/docker save
-        cd emqx-rel/_packages/emqx && for var in $(ls emqx-docker-* ); do sudo bash -c "echo $(sha256sum $var | awk '{print $1}') > $var.sha256"; done && cd -
-        aws s3 cp --recursive emqx-rel/_packages/emqx  s3://packages.emqx.io/emqx-ce/$version
-        sudo EMQX_DEPS_DEFAULT_VSN=$deps_version TARGET=emqx/emqx-edge ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH  make -C emqx-rel/deploy/docker
-        sudo EMQX_DEPS_DEFAULT_VSN=$deps_version TARGET=emqx/emqx-edge ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH  make -C emqx-rel/deploy/docker save
-        cd emqx-rel/_packages/emqx-edge && for var in $(ls emqx-edge-docker-* ); do sudo bash -c "echo $(sha256sum $var | awk '{print $1}') > $var.sha256"; done && cd -
-        aws s3 cp --recursive emqx-rel/_packages/emqx-edge s3://packages.emqx.io/emqx-edge/$version
+        sudo EMQX_DEPS_DEFAULT_VSN=$deps_version TARGET=emqx/emqx ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH  make -C deploy/docker
+        sudo EMQX_DEPS_DEFAULT_VSN=$deps_version TARGET=emqx/emqx ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH make -C deploy/docker save
+        cd _packages/emqx && for var in $(ls emqx-docker-* ); do sudo bash -c "echo $(sha256sum $var | awk '{print $1}') > $var.sha256"; done && cd -
+        aws s3 cp --recursive _packages/emqx  s3://packages.emqx.io/emqx-ce/$version
+        sudo EMQX_DEPS_DEFAULT_VSN=$deps_version TARGET=emqx/emqx-edge ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH  make -C deploy/docker
+        sudo EMQX_DEPS_DEFAULT_VSN=$deps_version TARGET=emqx/emqx-edge ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH  make -C deploy/docker save
+        cd _packages/emqx-edge && for var in $(ls emqx-edge-docker-* ); do sudo bash -c "echo $(sha256sum $var | awk '{print $1}') > $var.sha256"; done && cd -
+        aws s3 cp --recursive _packages/emqx-edge s3://packages.emqx.io/emqx-edge/$version
     - name: docker test
       if: matrix.arch[0] == 'amd64'
       run: |
         if [ ${{ github.event_name}} == 'repository_dispatch' ]; then version=${{ github.event.client_payload.version }}; else version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g"); fi
         if [ ! -z $(echo $version | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?") ]; then deps_version=$version; else deps_version=master; fi
-        sudo EMQX_DEPS_DEFAULT_VSN=$deps_version TARGET=emqx/emqx PAHO_BRANCH="develop-4.0" make -C emqx-integration-test/paho-test test
-        sudo EMQX_DEPS_DEFAULT_VSN=$deps_version TARGET=emqx/emqx PAHO_BRANCH="develop-4.0" make -C emqx-integration-test/paho-test cluster_test
-        sudo EMQX_DEPS_DEFAULT_VSN=$deps_version TARGET=emqx/emqx-edge PAHO_BRANCH="develop-4.0" make -C emqx-integration-test/paho-test cluster_test
+        sudo EMQX_DEPS_DEFAULT_VSN=$deps_version TARGET=emqx/emqx PAHO_BRANCH="develop-4.0" make -C .ci/paho_tests cluster_test
+        sudo EMQX_DEPS_DEFAULT_VSN=$deps_version TARGET=emqx/emqx-edge PAHO_BRANCH="develop-4.0" make -C .ci/paho_tests cluster_test
 
   upload:
     runs-on: ubuntu-latest
