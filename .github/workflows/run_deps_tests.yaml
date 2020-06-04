@@ -1,13 +1,9 @@
 name: Run deps tests
 
-on: 
+on:
   push:
-    #tags:
-    #  - v*
-    #branches:
-    #  - master
-    #  - develop
-    #  - release-*
+    tags:
+     - v*
   repository_dispatch:
     types: [run_tests]
 
@@ -22,7 +18,6 @@ jobs:
         - name: get deps
           run: |
             if [ ${{ github.event_name}} == 'repository_dispatch' ]; then version=${{ github.event.client_payload.version }}; else version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g"); fi
-            version=develop
             docker run -i --rm -e EMQX_DEPS_DEFAULT_VSN=$version -v $(pwd):/emqx-rel erlang:22.3 bash -c "make -C /emqx-rel deps-emqx"
         - name: Install docker-compose
           run: | 
