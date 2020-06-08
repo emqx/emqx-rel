@@ -7,7 +7,7 @@ OS ?= alpine
 
 ## versioning
 EMQX_DEPS_DEFAULT_VSN ?= develop
-BUILD_VERSION ?= $(EMQX_DEPS_DEFAULT_VSN)
+BUILD_VERSION ?= $(EMQX_DEPS_DEFAULT_VSN:v%=%)
 
 EMQX_NAME = $(subst emqx/,,$(TARGET))
 ARCH_LIST = amd64 arm64v8 arm32v7 i386 s390x
@@ -57,7 +57,7 @@ build:
 	@cd ../.. \
 	&& docker build --no-cache \
 		--build-arg EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN) \
-		--build-arg BUILD_FROM=emqx/build-env:erl22.3-alpine3.11-$(ARCH)  \
+		--build-arg BUILD_FROM=emqx/build-env:erl22.3-alpine-$(ARCH)  \
 		--build-arg RUN_FROM=$(ARCH)/alpine:3.11 \
 		--build-arg EMQX_NAME=$(EMQX_NAME) \
 		--build-arg QEMU_ARCH=$(QEMU_ARCH) \

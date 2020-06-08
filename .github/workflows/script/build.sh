@@ -15,7 +15,7 @@ emqx_prepare(){
 
 emqx_build_to_zip(){
     cd ${REL_PATH}
-    pkg=${EMQX_NAME}-${SYSTEM}-${EMQX_DEPS_DEFAULT_VSN}.zip
+    pkg=${EMQX_NAME}-${SYSTEM}-${EMQX_DEPS_DEFAULT_VSN#v}.zip
     make ${EMQX_NAME}
     cd _build/${EMQX_NAME}/rel/ && zip -rq $pkg emqx && mv $pkg ${PACKAGE_PATH}
 }
@@ -37,8 +37,8 @@ emqx_test(){
                 sed -i "/zone.external.server_keepalive/c zone.external.server_keepalive = 60" ${PACKAGE_PATH}/${SYSTEM}/${EMQX_NAME}/emqx/etc/emqx.conf 
                 sed -i "/mqtt.max_topic_alias/c mqtt.max_topic_alias = 10" ${PACKAGE_PATH}/${SYSTEM}/${EMQX_NAME}/emqx/etc/emqx.conf
 
-                if [ ! -z $(echo $EMQX_DEPS_DEFAULT_VSN | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?-(alpha|beta|rc)\.[0-9]") ]; then
-                    if [ ! -d ${PACKAGE_PATH}/${SYSTEM}/${EMQX_NAME}/emqx/lib/emqx-${EMQX_DEPS_DEFAULT_VSN#v} ] || [ ! -d ${PACKAGE_PATH}/${SYSTEM}/${EMQX_NAME}/emqx/releases/${EMQX_DEPS_DEFAULT_VSN} ] ;then
+                if [ ! -z $(echo ${EMQX_DEPS_DEFAULT_VSN#v} | grep -oE "[0-9]+\.[0-9]+(\.[0-9]+)?-(alpha|beta|rc)\.[0-9]") ]; then
+                    if [ ! -d ${PACKAGE_PATH}/${SYSTEM}/${EMQX_NAME}/emqx/lib/emqx-${EMQX_DEPS_DEFAULT_VSN#v} ] || [ ! -d ${PACKAGE_PATH}/${SYSTEM}/${EMQX_NAME}/emqx/releases/${EMQX_DEPS_DEFAULT_VSN#v} ] ;then
                         echo "emqx zip version error"
                         exit 1
                     fi
@@ -117,8 +117,8 @@ emqx_test(){
 }
 
 running_test(){
-    if [ ! -z $(echo $EMQX_DEPS_DEFAULT_VSN | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?-(alpha|beta|rc)\.[0-9]") ]; then
-        if [ ! -d /usr/lib/emqx/lib/emqx-${EMQX_DEPS_DEFAULT_VSN#v} ] || [ ! -d /usr/lib/emqx/releases/${EMQX_DEPS_DEFAULT_VSN} ];then
+    if [ ! -z $(echo ${EMQX_DEPS_DEFAULT_VSN#v} | grep -oE "[0-9]+\.[0-9]+(\.[0-9]+)?-(alpha|beta|rc)\.[0-9]") ]; then
+        if [ ! -d /usr/lib/emqx/lib/emqx-${EMQX_DEPS_DEFAULT_VSN#v} ] || [ ! -d /usr/lib/emqx/releases/${EMQX_DEPS_DEFAULT_VSN#v} ];then
             echo "emqx package version error"
             exit 1
         fi
