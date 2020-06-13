@@ -16,6 +16,7 @@ License: Apache License Version 2.0
 URL: https://www.emqx.io
 BuildRoot: %{_tmppath}/%{_name}-%{_version}-root
 Provides: %{_name}
+AutoReq: 0
 
 %description
 EMQX, a distributed, massively scalable, highly extensible MQTT message broker written in Erlang/OTP.
