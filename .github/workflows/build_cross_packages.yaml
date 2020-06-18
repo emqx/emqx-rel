@@ -1,4 +1,4 @@
-name: Build packages
+name: Cross build packages
 
 on:
   pull_request:
@@ -7,8 +7,6 @@ on:
       - "*"
     tags:
       - v*
-  repository_dispatch:
-    types: [build_packages]
 
 jobs:
   windows:
@@ -92,52 +90,17 @@ jobs:
           - ubuntu20.04
           - ubuntu18.04
           - ubuntu16.04
-          - ubuntu14.04
           - debian10
           - debian9
-          - debian8
           - opensuse
           - centos8
           - centos7
           - centos6
-
-    steps:
-    - uses: actions/checkout@v1
-    - name: set aws
-      run: |
-        curl "https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-        unzip awscliv2.zip
-        sudo ./aws/install
-        aws configure set aws_access_key_id ${{ secrets.AwsAccessKeyId }}
-        aws configure set aws_secret_access_key ${{ secrets.AwsSecretAccessKey }}
-        aws configure set default.region us-west-2
-    - name: build emqx packages
-      env:
-        ERL_OTP: erl22.3
-        SYSTEM: ${{ matrix.os }}
-      run: |
-        if [ ${{ github.event_name}} == 'repository_dispatch' ]; then version=${{ github.event.client_payload.version }}; else version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g"); fi
-        if [ ! -z $(echo $version | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?") ]; then deps_version=$version; else deps_version=master; fi
-        sudo docker run --rm --privileged multiarch/qemu-user-static:register --reset
-        sudo docker run -i --name $SYSTEM-build -e EMQX_DEPS_DEFAULT_VSN=$deps_version -e SYSTEM=$SYSTEM -v $(pwd):/emqx-rel emqx/build-env:$ERL_OTP-$SYSTEM sh -c "cd /emqx-rel/.github/workflows/script; if [ -z $(echo $SYSTEM | grep -o raspbian) ];then EMQX_NAME=emqx ./build.sh; fi; EMQX_NAME=emqx-edge ./build.sh"
-        cd _packages/emqx && for var in $(ls emqx-$SYSTEM-* ); do sudo bash -c "echo $(sha256sum $var | awk '{print $1}') > $var.sha256"; done && cd -
-        cd _packages/emqx-edge/&& for var in $(ls emqx-edge-$SYSTEM-* ); do sudo bash -c "echo $(sha256sum $var | awk '{print $1}') > $var.sha256"; done && cd -
-        [ -d _packages/emqx ] && aws s3 cp --recursive ./_packages/emqx  s3://packages.emqx.io/emqx-ce/$version
-        [ -d _packages/emqx-edge ] && aws s3 cp --recursive ./_packages/emqx-edge s3://packages.emqx.io/emqx-edge/$version
-
-  linux-arm:
-    runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        os:
           - raspbian10
           - raspbian9
-          - raspbian8
-  
+
     steps:
-    - uses: actions/checkout@v1
-    - name: set aws
+    - name: install and setup aws cli
       run: |
         curl "https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
         unzip awscliv2.zip
@@ -145,19 +108,120 @@ jobs:
         aws configure set aws_access_key_id ${{ secrets.AwsAccessKeyId }}
         aws configure set aws_secret_access_key ${{ secrets.AwsSecretAccessKey }}
         aws configure set default.region us-west-2
+    - name: install docker
+      run: |
+        sudo apt-get remove docker docker-engine docker.io containerd runc
+        sudo apt-get update
+        sudo apt-get install apt-transport-https ca-certificates curl gnupg-agent software-properties-common
+        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+        sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+        sudo apt-get update
+        sudo apt-get install docker-ce docker-ce-cli containerd.io
+    - name: prepare docker
+      run: |
+        mkdir -p $HOME/.docker
+        echo '{ "experimental": "enabled" }' | tee $HOME/.docker/config.json
+        echo '{ "experimental": true, "storage-driver": "overlay2", "max-concurrent-downloads": 50, "max-concurrent-uploads": 50, "graph": "/mnt/docker" }' | sudo tee /etc/docker/daemon.json
+        sudo systemctl restart docker
+        docker info
+        docker buildx create --use --name mybuild
+        docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+    - uses: actions/checkout@v1
+    - name: get deps
+      run: |
+        version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
+        if [ ! -z $(echo $version | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?") ]; then deps_version=$version; else deps_version=master; fi
+
+        echo "::set-env name=EMQX_DEPS_DEFAULT_VSN::$deps_version"
+        echo "::set-env name=version::$version"
+
+        EMQX_DEPS_DEFAULT_VSN=$deps_version make deps-all
     - name: build emqx packages
+      env: 
+        ERL_OTP: erl22.3
+        SYSTEM: ${{ matrix.os }}
+      if: matrix.os != 'centos6' && matrix.os != 'raspbian9' && matrix.os != 'raspbian10'
+      run: |
+        for EMQX in emqx emqx-edge; do
+          docker buildx build --no-cache \
+            --platform=linux/amd64,linux/arm64 \
+            -t cross_build_emqx_for_$SYSTEM \
+            -f .github/workflows/script/Dockerfile \
+            --build-arg BUILD_FROM=emqx/build-env:$ERL_OTP-$SYSTEM \
+            --build-arg SYSTEM=$SYSTEM \
+            --build-arg EMQX_NAME=${EMQX} \
+            --build-arg EMQX_DEPS_DEFAULT_VSN=$EMQX_DEPS_DEFAULT_VSN \
+            --output type=tar,dest=cross-build-$EMQX-for-$SYSTEM.tar .
+
+          mkdir -p _packages/$EMQX
+          tar -xvf cross-build-$EMQX-for-$SYSTEM.tar --wildcards linux_amd64/emqx-rel/_packages/$EMQX/*
+          mv linux_amd64/emqx-rel/_packages/$EMQX/* _packages/$EMQX/
+          tar -xvf cross-build-$EMQX-for-$SYSTEM.tar --wildcards linux_arm64/emqx-rel/_packages/$EMQX/*
+          mv linux_arm64/emqx-rel/_packages/$EMQX/* _packages/$EMQX/
+
+          rm -rf cross-build-$EMQX-for-$SYSTEM.tar
+        done
+    - name: build emqx packages on centos6
+      if: matrix.os == 'centos6'
       env:
         ERL_OTP: erl22.3
         SYSTEM: ${{ matrix.os }}
       run: |
-        if [ ${{ github.event_name}} == 'repository_dispatch' ]; then version=${{ github.event.client_payload.version }}; else version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g"); fi
-        if [ ! -z $(echo $version | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?") ]; then deps_version=$version; else deps_version=master; fi
-        sudo docker run --rm --privileged multiarch/qemu-user-static:register --reset
-        sudo docker run -i --name $SYSTEM-build -e EMQX_DEPS_DEFAULT_VSN=$deps_version -e SYSTEM=$SYSTEM -v $(pwd):/emqx-rel emqx/build-env:$ERL_OTP-$SYSTEM sh -c "cd /emqx-rel/.github/workflows/script; EMQX_NAME=emqx-edge ./build.sh"
-        cd _packages/emqx && for var in $(ls emqx-$SYSTEM-* ); do sudo bash -c "echo $(sha256sum $var | awk '{print $1}') > $var.sha256"; done && cd -
-        cd _packages/emqx-edge/&& for var in $(ls emqx-edge-$SYSTEM-* ); do sudo bash -c "echo $(sha256sum $var | awk '{print $1}') > $var.sha256"; done && cd -
-        [ -d _packages/emqx ] && aws s3 cp --recursive ./_packages/emqx  s3://packages.emqx.io/emqx-ce/$version
-        [ -d _packages/emqx-edge ] && aws s3 cp --recursive ./_packages/emqx-edge s3://packages.emqx.io/emqx-edge/$version
+        for EMQX in emqx emqx-edge; do
+          docker buildx build --no-cache \
+            --platform=linux/amd64 \
+            -t cross_build_emqx_for_$SYSTEM \
+            -f .github/workflows/script/Dockerfile \
+            --build-arg BUILD_FROM=emqx/build-env:$ERL_OTP-$SYSTEM \
+            --build-arg SYSTEM=$SYSTEM \
+            --build-arg EMQX_NAME=${EMQX} \
+            --build-arg EMQX_DEPS_DEFAULT_VSN=$EMQX_DEPS_DEFAULT_VSN \
+            --output type=tar,dest=cross-build-$EMQX-for-$SYSTEM.tar .
+
+          mkdir -p _packages/$EMQX
+          tar -xvf cross-build-$EMQX-for-$SYSTEM.tar --wildcards emqx-rel/_packages/$EMQX/*
+          mv emqx-rel/_packages/$EMQX/* _packages/$EMQX/
+          rm -rf cross-build-$EMQX-for-$SYSTEM.tar
+        done
+    - name: build emqx packages on raspbian
+      if: matrix.os == 'raspbian9' || matrix.os == 'raspbian10'
+      env:
+        ERL_OTP: erl22.3
+        SYSTEM: ${{ matrix.os }}
+      run: |
+        EMQX=emqx-edge
+        docker buildx build --no-cache \
+          --platform=linux/arm64 \
+          -t cross_build_emqx_for_$SYSTEM \
+          -f .github/workflows/script/Dockerfile \
+          --build-arg BUILD_FROM=emqx/build-env:$ERL_OTP-$SYSTEM \
+          --build-arg SYSTEM=$SYSTEM \
+          --build-arg EMQX_NAME=${EMQX} \
+          --build-arg EMQX_DEPS_DEFAULT_VSN=v4.1.0 \
+          --output type=tar,dest=cross-build-$EMQX-for-$SYSTEM.tar .
+
+        mkdir -p _packages/$EMQX
+        tar -xvf cross-build-$EMQX-for-$SYSTEM.tar --wildcards emqx-rel/_packages/$EMQX/*
+        mv emqx-rel/_packages/$EMQX/* _packages/$EMQX/
+    - name: upload aws s3
+      run: |
+        if [ -d _packages/emqx ]; then
+          cd _packages/emqx
+            for var in $(ls emqx-* ); do
+              bash -c "echo $(sha256sum $var | awk '{print $1}') > $var.sha256"
+            done
+          cd -
+          aws s3 cp --recursive ./_packages/emqx s3://packages.emqx.io/emqx-ce/$version
+        fi
+
+        if [ -d _packages/emqx-edge ]; then
+          cd _packages/emqx-edge
+            for var in $(ls emqx-edge-* ); do
+              bash -c "echo $(sha256sum $var | awk '{print $1}') > $var.sha256"
+            done
+          cd -
+          aws s3 cp --recursive ./_packages/emqx-edge s3://packages.emqx.io/emqx-ce/$version
+        fi
 
   docker:
     runs-on: ubuntu-latest
@@ -186,21 +250,25 @@ jobs:
         ARCH: ${{ matrix.arch[0] }}
         QEMU_ARCH: ${{ matrix.arch[1] }}
       run: |
-        if [ ${{ github.event_name}} == 'repository_dispatch' ]; then version=${{ github.event.client_payload.version }}; else version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g"); fi
+        version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
         if [ ! -z $(echo $version | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?") ]; then deps_version=$version; else deps_version=master; fi
         sudo docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+
         sudo EMQX_DEPS_DEFAULT_VSN=$deps_version TARGET=emqx/emqx ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH  make -C deploy/docker
         sudo EMQX_DEPS_DEFAULT_VSN=$deps_version TARGET=emqx/emqx ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH make -C deploy/docker save
+
         cd _packages/emqx && for var in $(ls emqx-docker-* ); do sudo bash -c "echo $(sha256sum $var | awk '{print $1}') > $var.sha256"; done && cd -
         aws s3 cp --recursive _packages/emqx  s3://packages.emqx.io/emqx-ce/$version
+
         sudo EMQX_DEPS_DEFAULT_VSN=$deps_version TARGET=emqx/emqx-edge ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH  make -C deploy/docker
         sudo EMQX_DEPS_DEFAULT_VSN=$deps_version TARGET=emqx/emqx-edge ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH  make -C deploy/docker save
+
         cd _packages/emqx-edge && for var in $(ls emqx-edge-docker-* ); do sudo bash -c "echo $(sha256sum $var | awk '{print $1}') > $var.sha256"; done && cd -
         aws s3 cp --recursive _packages/emqx-edge s3://packages.emqx.io/emqx-edge/$version
     - name: docker test
       if: matrix.arch[0] == 'amd64'
       run: |
-        if [ ${{ github.event_name}} == 'repository_dispatch' ]; then version=${{ github.event.client_payload.version }}; else version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g"); fi
+        version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
         if [ ! -z $(echo $version | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?") ]; then deps_version=$version; else deps_version=master; fi
         sudo EMQX_DEPS_DEFAULT_VSN=$deps_version TARGET=emqx/emqx PAHO_BRANCH="develop-4.0" make -C .ci/paho_tests cluster_test
         sudo EMQX_DEPS_DEFAULT_VSN=$deps_version TARGET=emqx/emqx-edge PAHO_BRANCH="develop-4.0" make -C .ci/paho_tests cluster_test
@@ -224,7 +292,7 @@ jobs:
       run: sudo apt-get update && sudo apt install -y dos2unix
     - name: get packages
       run: |
-        if [ ${{ github.event_name}} == 'repository_dispatch' ]; then version=${{ github.event.client_payload.version }}; else version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g"); fi
+        version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
         mkdir -p packages
         aws s3 cp --recursive s3://packages.emqx.io/emqx-ce/$version ./packages
         aws s3 cp --recursive s3://packages.emqx.io/emqx-edge/$version ./packages
@@ -237,7 +305,7 @@ jobs:
         path: emqx-rel
     - name: update to github and emqx.io
       run: |
-        if [ ${{ github.event_name}} == 'repository_dispatch' ]; then version=${{ github.event.client_payload.version }}; else version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g"); fi
+        version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
         if [ ! -z $(echo $version | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?") ]; then
           cd packages
           for var in $(ls); do
@@ -248,7 +316,7 @@ jobs:
         fi
     - name: push docker image to docker hub
       run: |
-        if [ ${{ github.event_name}} == 'repository_dispatch' ]; then version=${{ github.event.client_payload.version }}; else version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g"); fi
+        version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
         if [ ! -z $(echo $version | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?") ]; then
           sudo make -C emqx-rel/deploy/docker prepare
           cd ./packages && for var in $(ls |grep docker |grep -v sha256); do unzip $var; sudo docker load < ${var%.*}; rm -f ${var%.*}; done && cd -
@@ -258,13 +326,13 @@ jobs:
         fi
     - name: update repo.emqx.io
       run: |
-        if [ ${{ github.event_name}} == 'repository_dispatch' ]; then version=${{ github.event.client_payload.version }}; else version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g"); fi
+        version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
         if [ ! -z $(echo $version | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?") ]; then
           curl -H "Authorization: token ${{ secrets.AccessToken }}" -H "Accept: application/vnd.github.everest-preview+json" -H "Content-Type: application/json" -X POST -d "{\"event_type\":\"update_repos\",\"client_payload\":{\"version\": \"$version\",\"emqx_ce\":true,\"emqx_ee\":false}}" https://api.github.com/repos/emqx/emqx-packages-docker/dispatches
         fi
     # - name: update homebrew packages
     #   run: |
-    #     if [ ${{ github.event_name}} == 'repository_dispatch' ]; then version=${{ github.event.client_payload.version }}; else version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g"); fi
+    #     version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
     #     if [ ! -z $(echo $version | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?") ] && [ -z $(echo $version | grep -oE "(alpha|beta|rc)\.[0-9]") ]; then
     #       curl -H "Authorization: token ${{ secrets.AccessToken }}" -H "Accept: application/vnd.github.everest-preview+json" -H "Content-Type: application/json" -X POST -d "{\"event_type\":\"update_homebrew\",\"client_payload\":{\"version\": \"$version\"}}" https://api.github.com/repos/emqx/emqx-packages-docker/dispatches
     #     fi

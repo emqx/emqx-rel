@@ -3,9 +3,8 @@ TOPDIR := /tmp/emqx
 SRCDIR := $(TOPDIR)/$(PKG_VSN)
 BUILT := $(SRCDIR)/BUILT
 
-ARCH := $(shell dpkg --print-architecture)
-SOURCE_PKG := $(EMQX_NAME)_$(PKG_VSN)_$(ARCH)
-TARGET_PKG := $(EMQX_NAME)-$(SYSTEM)-$(PKG_VSN)_$(ARCH)
+SOURCE_PKG := $(EMQX_NAME)_$(PKG_VSN)_$(shell dpkg --print-architecture)
+TARGET_PKG := $(EMQX_NAME)-$(SYSTEM)-$(PKG_VSN)_$(shell uname -m)
 
 .PHONY: all
 all: | $(BUILT)

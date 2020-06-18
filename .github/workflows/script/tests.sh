@@ -13,18 +13,6 @@ emqx_prepare(){
     pip3 install pytest
 }
 
-emqx_build_to_zip(){
-    cd ${REL_PATH}
-    pkg=${EMQX_NAME}-${SYSTEM}-${EMQX_DEPS_DEFAULT_VSN#v}.zip
-    make ${EMQX_NAME}
-    cd _build/${EMQX_NAME}/rel/ && zip -rq $pkg emqx && mv $pkg ${PACKAGE_PATH}
-}
-
-emqx_build_to_pkg(){
-    cd ${REL_PATH}
-    make ${EMQX_NAME}-pkg
-}
-
 emqx_test(){
     cd ${PACKAGE_PATH}
 
@@ -44,6 +32,7 @@ emqx_test(){
                     fi
                 fi
 
+                echo "running ${packagename} start"
                 ${PACKAGE_PATH}/${SYSTEM}/${EMQX_NAME}/emqx/bin/emqx start
                 IDLE_TIME=0
                 while [ -z "$(${PACKAGE_PATH}/${SYSTEM}/${EMQX_NAME}/emqx/bin/emqx_ctl status |grep 'is running'|awk '{print $1}')" ]
@@ -56,17 +45,17 @@ emqx_test(){
                     sleep 10
                     IDLE_TIME=$((IDLE_TIME+1))
                 done
-                echo "running ${packagename} start"
                 pytest -v /paho-mqtt-testing/interoperability/test_client/V5/test_connect.py::test_basic
                 ${PACKAGE_PATH}/${SYSTEM}/${EMQX_NAME}/emqx/bin/emqx stop
-                echo "running ${packagename} start"
+                echo "running ${packagename} stop"
                 rm -rf ${PACKAGE_PATH}/${SYSTEM}/${EMQX_NAME}/emqx
+                rm -rf ${PACKAGE_PATH}/${SYSTEM}
             ;;
             "deb")
-                 if [ $SYSTEM == 'debian7' ];then
+                if [ $SYSTEM == 'debian7' ];then
                     echo "Skip the debian7 deb package test"
                     continue
-                 fi
+                fi
                 packagename=`basename ${PACKAGE_PATH}/${EMQX_NAME}-${SYSTEM}-*.deb`
                 dpkg -i ${PACKAGE_PATH}/$packagename
                 if [ $(dpkg -l |grep emqx |awk '{print $1}') != "ii" ]
@@ -96,7 +85,7 @@ emqx_test(){
             "rpm")
                 packagename=`basename ${PACKAGE_PATH}/${EMQX_NAME}-${SYSTEM}-*.rpm`
                 rpm -ivh ${PACKAGE_PATH}/$packagename
-                if [ $(rpm -q ${EMQX_NAME}) != emqx* ];then
+                if [ -z $(rpm -q emqx | grep -o emqx) ];then
                     echo "package install error"
                     exit 1
                 fi
@@ -106,7 +95,7 @@ emqx_test(){
                 echo "running ${packagename} stop"
                 
                 rpm -e ${EMQX_NAME}
-                if [ $(rpm -q emqx) == emqx* ];then
+                if [ "$(rpm -q emqx)" != "package emqx is not installed" ];then
                     echo "package uninstall error"
                     exit 1
                 fi  
@@ -162,6 +151,4 @@ running_test(){
 }
 
 emqx_prepare
-emqx_build_to_zip
-emqx_build_to_pkg
 emqx_test
