@@ -13,14 +13,14 @@ ifeq ($(ARCH),mips64)
 ARCH:=mips64el
 endif
 
-TARGET_PKG := $(EMQX_NAME)-$(SYSTEM)-v$(RPM_VSN)-$(RPM_REL).$(ARCH)
+TARGET_PKG := $(EMQX_NAME)-$(SYSTEM)-$(RPM_VSN)-$(RPM_REL).$(ARCH)
 
 ifeq ($(RPM_REL),)
 	# no tail
 	RPM_REL := 1
-	TARGET_PKG := $(EMQX_NAME)-$(SYSTEM)-v$(RPM_VSN).$(ARCH)
+	TARGET_PKG := $(EMQX_NAME)-$(SYSTEM)-$(RPM_VSN).$(ARCH)
 endif
-SOURCE_PKG := emqx-$(SYSTEM)-v$(RPM_VSN)-$(RPM_REL).$(ARCH)
+SOURCE_PKG := emqx-$(SYSTEM)-$(RPM_VSN)-$(RPM_REL).$(ARCH)
 
 SYSTEMD := $(shell if command -v systemctl >/dev/null 2>&1; then echo yes; fi)
 # Not $(PWD) as it does not work for make -C
