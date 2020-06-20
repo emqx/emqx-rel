@@ -3,7 +3,7 @@ name: Run deps tests
 on:
   push:
     tags:
-     - v*
+      - v*
   repository_dispatch:
     types: [run_tests]
 
@@ -39,6 +39,9 @@ jobs:
                 sed -i "/auth.mysql.server/c auth.mysql.server = mysql_server:3306" ./$var/etc/emqx_auth_mysql.conf 
                 echo "auth.mysql.username = root" >> ./$var/etc/emqx_auth_mysql.conf
                 echo "auth.mysql.password = public" >> ./$var/etc/emqx_auth_mysql.conf
+                echo "auth.mysql.ssl.cafile =   /emqx-rel/_build/emqx/lib/emqx_auth_mysql/test/emqx_auth_mysql_SUITE_data/ca.pem" >> ./$var/etc/emqx_auth_mysql.conf
+                echo "auth.mysql.ssl.certfile = /emqx-rel/_build/emqx/lib/emqx_auth_mysql/test/emqx_auth_mysql_SUITE_data/client-cert.pem" >> ./$var/etc/emqx_auth_mysql.conf
+                echo "auth.mysql.ssl.keyfile =  /emqx-rel/_build/emqx/lib/emqx_auth_mysql/test/emqx_auth_mysql_SUITE_data/client-key.pem" >> ./$var/etc/emqx_auth_mysql.conf
               fi
               if [ $var == "emqx_auth_redis" ];then
                 sed -i "/auth.redis.server/c auth.redis.server = redis_server:6379" ./$var/etc/emqx_auth_redis.conf
