@@ -2,7 +2,6 @@ FROM buildpack-deps:stretch
 
 ENV VERSION=2.4.47
 
-COPY  aliyun.sources.list /etc/apt/sources.list
 RUN apt-get update && apt-get install -y groff groff-base
 RUN wget ftp://ftp.openldap.org/pub/OpenLDAP/openldap-release/openldap-${VERSION}.tgz \
     && gunzip -c openldap-${VERSION}.tgz | tar xvfB - \

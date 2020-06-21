@@ -24,7 +24,7 @@ endef
 
 .PHONY: create_container
 create_container: clean
-	@sed -i "/IMAGE=/c\IMAGE=$(TARGET):$(EMQX_DEPS_DEFAULT_VSN)" .env
+	@sed -i "/IMAGE=/c\IMAGE=$(TARGET):$(EMQX_DEPS_DEFAULT_VSN:v%=%)" .env
 
 	@docker-compose -p paho_test up -d
 	
