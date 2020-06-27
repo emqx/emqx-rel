@@ -12,7 +12,8 @@ COPY . /emqx-rel
 
 WORKDIR /emqx-rel
 
-RUN make ${EMQX_NAME} \
+RUN echo "========================= build ${EMQX_NAME} =========================" \
+    && make ${EMQX_NAME} \
     && pkg=${EMQX_NAME}-${SYSTEM}-${EMQX_DEPS_DEFAULT_VSN#v}-$(uname -m).zip \
     && cd _build/${EMQX_NAME}/rel/ \
     && zip -rq $pkg emqx \
