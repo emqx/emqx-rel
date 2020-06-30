@@ -3,9 +3,8 @@ set -e -u
 
 emqx_exit(){
     # tail emqx.log.*
-    emqx_log=$(echo $(ls -t /opt/emqx/log/emqx.log.*) | awk '{print $1}')
-    num=$(sed -n -e '/LOGGING STARTED/=' ${emqx_log} | tail -1)
-    tail -n +$((num-2)) ${emqx_log}
+    num=$(sed -n -e '/LOGGING STARTED/=' /opt/emqx/log/emqx.log | tail -1)
+    tail -n +$((num-2)) /opt/emqx/log/emqx.log
 
     echo "['$(date -u +"%Y-%m-%dT%H:%M:%SZ")']:emqx exit abnormally"
     exit 1
