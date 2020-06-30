@@ -126,7 +126,7 @@ do
         VAR_FULL_NAME=$(echo "$VAR" | sed -r "s/([^=]*)=.*/\1/g")
         # Config in emq.conf
         if [[ ! -z "$(cat $CONFIG |grep -E "^(^|^#*|^#*\s*)$VAR_NAME")" ]]; then
-            echo "$(echo_value)"
+            echo_value
             if [[ -z "$(eval echo \$$VAR_FULL_NAME)" ]]; then
                 echo "$(sed -r "s/(^\s*)($VAR_NAME\s*=\s*.*)/#\2/g" $CONFIG)" > $CONFIG
             else
@@ -136,7 +136,7 @@ do
         # Config in plugins/*
         for CONFIG_PLUGINS_FILE in $(ls $CONFIG_PLUGINS); do
             if [[ ! -z "$(cat $CONFIG_PLUGINS/$CONFIG_PLUGINS_FILE |grep -E "^(^|^#*|^#*\s*)$VAR_NAME")" ]]; then
-                echo "$(echo_value)"
+                echo_value
                 if [[ -z "$(eval echo \$$VAR_FULL_NAME)" ]]; then
                     echo "$(sed -r "s/(^\s*)($VAR_NAME\s*=\s*.*)/#\2/g" $CONFIG_PLUGINS/$CONFIG_PLUGINS_FILE)" > $CONFIG_PLUGINS/$CONFIG_PLUGINS_FILE
                 else
