@@ -173,7 +173,7 @@ fi
 # Modules loaded by default
 
 if [[ ! -z "$EMQX_LOADED_MODULES" ]]; then
-    echo "EMQX_LOADED_PLUGINS=$EMQX_LOADED_MODULES"
+    echo "EMQX_LOADED_MODULES=$EMQX_LOADED_MODULES"
     # First, remove special char at header
     # Next, replace special char to ".\n" to fit emq loaded_plugins format
     for var in $(echo $(echo "$EMQX_LOADED_MODULES."|sed -e "s/^[^A-Za-z0-9_]\{1,\}//g"|sed -e "s/[^A-Za-z0-9_]\{1,\}/\ /g")|tr ' ' '\n'); do
