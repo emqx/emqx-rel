@@ -1,8 +1,9 @@
 #!/bin/sh
-set -ex
+set -x -e -u
 export EMQX_NAME=${EMQX_NAME:-"emqx"}
-export REL_PATH=${REL_PATH:-"/emqx-rel"}
-export PACKAGE_PATH="${REL_PATH}/_packages/${EMQX_NAME}"
+export PACKAGE_PATH="/emqx-rel/_packages/${EMQX_NAME}"
+# export EMQX_NODE_NAME="emqx-on-$(uname -m)@127.0.0.1"
+# export EMQX_NODE_COOKIE=$(date +%s%N)
 
 emqx_prepare(){
     mkdir -p ${PACKAGE_PATH}
