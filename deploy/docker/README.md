@@ -142,7 +142,7 @@ For example, set ``EMQX_LOADED_PLUGINS= emqx_auth_redis,emqx_auth_mysql`` to loa
 
 You can use comma, space or other separator that you want.
 
-All the plugin you defined in env ``EMQX_LOADED_PLUGINS`` will be loaded.
+All the plugins defined in ``EMQX_LOADED_PLUGINS`` will be loaded.
 
 ```bash
 EMQX_LOADED_PLUGINS="emqx_auth_redis,emqx_auth_mysql"
