@@ -114,7 +114,7 @@ For example, set ``EMQX_LOADED_MODULES=emqx_mod_delayed,emqx_mod_rewrite`` to lo
 
 You can use comma, space or other separator that you want.
 
-All the plugin you defined in env ``EMQX_LOADED_PLUGINS`` will be loaded.
+All the modules defined in env ``EMQX_LOADED_MODULES`` will be loaded.
 
 ```bash
 EMQX_LOADED_MODULES="emqx_mod_delayed,emqx_mod_rewrite"
