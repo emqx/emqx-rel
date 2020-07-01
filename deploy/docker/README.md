@@ -120,6 +120,7 @@ All the plugin you defined in env ``EMQX_LOADED_PLUGINS`` will be loaded.
 EMQX_LOADED_MODULES="emqx_mod_delayed,emqx_mod_rewrite"
 EMQX_LOADED_MODULES="emqx_mod_delayed emqx_mod_rewrite"
 EMQX_LOADED_MODULES="emqx_mod_delayed | emqx_mod_rewrite"
+```
 
 #### EMQ Loaded Plugins Configuration
 
