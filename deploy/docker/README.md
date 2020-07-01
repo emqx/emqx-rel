@@ -110,7 +110,7 @@ Default environment variable ``EMQX_LOADED_MODULES``, including
 # The default EMQX_LOADED_MODULES env
 EMQX_LOADED_MODULES="emqx_mod_acl_internal,emqx_mod_acl_internal"
 ```
-For example, load ``emqx_mod_delayed`` and ``emqx_mod_rewrite`` modules, set it into ``EMQX_LOADED_MODULES`` and use any separator to separates it.
+For example, set ``EMQX_LOADED_MODULES=emqx_mod_delayed,emqx_mod_rewrite`` to load these two modules.
 
 You can use comma, space or other separator that you want.
 
