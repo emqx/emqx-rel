@@ -138,7 +138,7 @@ Default environment variable ``EMQX_LOADED_PLUGINS``, including
 # The default EMQX_LOADED_PLUGINS env
 EMQX_LOADED_PLUGINS="emqx_recon,emqx_retainer,emqx_management,emqx_dashboard"
 ```
-For example, load ``emqx_auth_redis`` and ``emqx_auth_mysql`` plugin, set it into ``EMQX_LOADED_PLUGINS`` and use any separator to separates it.
+For example, set ``EMQX_LOADED_PLUGINS= emqx_auth_redis,emqx_auth_mysql`` to load these two plugins.
 
 You can use comma, space or other separator that you want.
 
