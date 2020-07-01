@@ -105,6 +105,16 @@ if [[ ! -z "$EMQX_ADMIN_PASSWORD" ]]; then
     export EMQX_DASHBOARD__DEFAULT_USER__PASSWORD=$EMQX_ADMIN_PASSWORD
 fi
 
+# echo value of $VAR_FULL_NAME hiding secrets if any
+echo_value () {
+    # check if contains sensitive value
+    if [ ! -z $(echo $(echo $VAR_NAME | tr '.' ' ') |grep -w -o -E "password|passwd|key|token|secret") ]; then
+        echo "$VAR_NAME=***secret***"
+    else
+        echo "$VAR_NAME=$(eval echo \$$VAR_FULL_NAME)"
+    fi
+}
+
 # Catch all EMQX_ prefix environment variable and match it in configure file
 CONFIG="${_EMQX_HOME}/etc/emqx.conf"
 CONFIG_PLUGINS="${_EMQX_HOME}/etc/plugins"
@@ -116,7 +126,7 @@ do
         VAR_FULL_NAME=$(echo "$VAR" | sed -r "s/([^=]*)=.*/\1/g")
         # Config in emq.conf
         if [[ ! -z "$(cat $CONFIG |grep -E "^(^|^#*|^#*\s*)$VAR_NAME")" ]]; then
-            echo "$VAR_NAME=$(eval echo \$$VAR_FULL_NAME)"
+            echo_value
             if [[ -z "$(eval echo \$$VAR_FULL_NAME)" ]]; then
                 echo "$(sed -r "s/(^\s*)($VAR_NAME\s*=\s*.*)/#\2/g" $CONFIG)" > $CONFIG
             else
@@ -126,7 +136,7 @@ do
         # Config in plugins/*
         for CONFIG_PLUGINS_FILE in $(ls $CONFIG_PLUGINS); do
             if [[ ! -z "$(cat $CONFIG_PLUGINS/$CONFIG_PLUGINS_FILE |grep -E "^(^|^#*|^#*\s*)$VAR_NAME")" ]]; then
-                echo "$VAR_NAME=$(eval echo \$$VAR_FULL_NAME)"
+                echo_value
                 if [[ -z "$(eval echo \$$VAR_FULL_NAME)" ]]; then
                     echo "$(sed -r "s/(^\s*)($VAR_NAME\s*=\s*.*)/#\2/g" $CONFIG_PLUGINS/$CONFIG_PLUGINS_FILE)" > $CONFIG_PLUGINS/$CONFIG_PLUGINS_FILE
                 else
