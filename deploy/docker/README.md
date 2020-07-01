@@ -110,11 +110,11 @@ Default environment variable ``EMQX_LOADED_MODULES``, including
 # The default EMQX_LOADED_MODULES env
 EMQX_LOADED_MODULES="emqx_mod_acl_internal,emqx_mod_acl_internal"
 ```
-For example, load ``emqx_mod_delayed`` and ``emqx_mod_rewrite`` modules, set it into ``EMQX_LOADED_MODULES`` and use any separator to separates it.
+For example, set ``EMQX_LOADED_MODULES=emqx_mod_delayed,emqx_mod_rewrite`` to load these two modules.
 
 You can use comma, space or other separator that you want.
 
-All the plugin you defined in env ``EMQX_LOADED_PLUGINS`` will be loaded.
+All the modules defined in env ``EMQX_LOADED_MODULES`` will be loaded.
 
 ```bash
 EMQX_LOADED_MODULES="emqx_mod_delayed,emqx_mod_rewrite"
@@ -139,11 +139,11 @@ Default environment variable ``EMQX_LOADED_PLUGINS``, including
 # The default EMQX_LOADED_PLUGINS env
 EMQX_LOADED_PLUGINS="emqx_recon,emqx_retainer,emqx_management,emqx_dashboard"
 ```
-For example, load ``emqx_auth_redis`` and ``emqx_auth_mysql`` plugin, set it into ``EMQX_LOADED_PLUGINS`` and use any separator to separates it.
+For example, set ``EMQX_LOADED_PLUGINS= emqx_auth_redis,emqx_auth_mysql`` to load these two plugins.
 
 You can use comma, space or other separator that you want.
 
-All the plugin you defined in env ``EMQX_LOADED_PLUGINS`` will be loaded.
+All the plugins defined in ``EMQX_LOADED_PLUGINS`` will be loaded.
 
 ```bash
 EMQX_LOADED_PLUGINS="emqx_auth_redis,emqx_auth_mysql"
