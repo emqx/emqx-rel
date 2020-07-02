@@ -143,14 +143,38 @@ do
     fi
 done
 
-## EMQ Plugin load settings
+## EMQX Plugin load settings
 # Plugins loaded by default
 
 if [[ ! -z "$EMQX_LOADED_PLUGINS" ]]; then
     echo "EMQX_LOADED_PLUGINS=$EMQX_LOADED_PLUGINS"
-    # First, remove special char at header
-    # Next, replace special char to ".\n" to fit emq loaded_plugins format
-    echo $(echo "$EMQX_LOADED_PLUGINS."|sed -e "s/^[^A-Za-z0-9_]\{1,\}//g"|sed -e "s/[^A-Za-z0-9_]\{1,\}/\. /g")|tr ' ' '\n' > /opt/emqx/data/loaded_plugins
+    # Parse plugin names and place `{plugin_name, true}.` tuples in `loaded_plugins`.
+    for var in $(echo "$EMQX_LOADED_PLUGINS"|sed -e "s/^[^A-Za-z0-9_]\{1,\}//g"|sed -e "s/[^A-Za-z0-9_]\{1,\}/\ /g"); do
+        if [ ! -z $(grep -o $var ${_EMQX_HOME}/data/loaded_plugins) ]; then
+            echo "$(sed -r "s/\{($var),[ ]*(true|false)\}./\{\1, true\}./1" ${_EMQX_HOME}/data/loaded_plugins)" > ${_EMQX_HOME}/data/loaded_plugins
+            # backward compatible.
+            echo "$(sed -r -e "s/($var)./\{\1, true\}./1" ${_EMQX_HOME}/data/loaded_plugins)" > ${_EMQX_HOME}/data/loaded_plugins
+        else
+            echo "{$var, true}." >> ${_EMQX_HOME}/data/loaded_plugins
+        fi
+    done
+fi
+
+## EMQX Modules load settings
+# Modules loaded by default
+
+if [[ ! -z "$EMQX_LOADED_MODULES" ]]; then
+    echo "EMQX_LOADED_MODULES=$EMQX_LOADED_MODULES"
+    # Parse module names and place `{module_name, true}.` tuples in `loaded_modules`.
+    for var in $(echo "$EMQX_LOADED_MODULES"|sed -e "s/^[^A-Za-z0-9_]\{1,\}//g"|sed -e "s/[^A-Za-z0-9_]\{1,\}/\ /g"); do
+        if [ ! -z $(grep -o $var ${_EMQX_HOME}/data/loaded_modules) ]; then
+            echo "$(sed -r "s/\{($var),[ ]*(true|false)\}./\{\1, true\}./1" ${_EMQX_HOME}/data/loaded_modules)" > ${_EMQX_HOME}/data/loaded_modules
+            # backward compatible.
+            echo "$(sed -r -e "s/($var)./\{\1, true\}./1" ${_EMQX_HOME}/data/loaded_modules)" > ${_EMQX_HOME}/data/loaded_modules
+        else
+            echo "{$var, true}." >> ${_EMQX_HOME}/data/loaded_modules
+        fi
+    done
 fi
 
 exec "$@"

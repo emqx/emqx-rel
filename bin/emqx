@@ -351,8 +351,7 @@ case "$1" in
         if ! relx_nodetool "stop"; then
             exit 1
         fi
-        while $(kill -s 0 "$PID" 2>/dev/null);
-        do
+        while $(kill -s 0 "$PID" 2>/dev/null); do
             sleep 1
         done
         ;;
