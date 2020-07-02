@@ -349,17 +349,9 @@ case "$1" in
         if ! relx_nodetool "stop"; then
             exit 1
         fi
-        WAIT_TIME=${WAIT_FOR_ERLANG:-15}
-        while [ $WAIT_TIME -gt 0 ]; do
-            if $(kill -s 0 "$PID" 2>/dev/null); then
-                WAIT_TIME=`expr $WAIT_TIME - 1`
-                sleep 1
-                continue
-            fi
-            echo "{{ emqx_description }} $REL_VSN is stoped successfully!"
-            exit 0
+        while $(kill -s 0 "$PID" 2>/dev/null); do
+            sleep 1
         done
-        exit 1
         ;;
 
     restart|reboot)
