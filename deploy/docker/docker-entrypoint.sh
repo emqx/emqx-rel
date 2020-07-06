@@ -107,8 +107,10 @@ fi
 
 # echo value of $VAR_FULL_NAME hiding secrets if any
 echo_value () {
+    # get MASK_CONFIG
+    MASK_CONFIG_FILTER=${MASK_CONFIG_FILTER:-password|passwd|key|token|secret}
     # check if contains sensitive value
-    if [ ! -z $(echo $(echo $VAR_NAME | tr '.' ' ') |grep -w -o -E "password|passwd|key|token|secret") ]; then
+    if [ ! -z $(echo $(echo $VAR_NAME | tr '.' ' ') |grep -w -o -E "$MASK_CONFIG_FILTER") ]; then
         echo "$VAR_NAME=***secret***"
     else
         echo "$VAR_NAME=$(eval echo \$$VAR_FULL_NAME)"
