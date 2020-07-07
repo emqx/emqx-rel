@@ -19,9 +19,6 @@ emqx_exit(){
 # When receiving the EXIT signal, execute emqx_exit function
 trap "emqx_exit" EXIT
 
-# Set log.rotation=off in etc/emqx.conf
-sed -i -r 's/log.rotation = (.*)/log.rotation = off/1' /opt/emqx/etc/emqx.conf
-
 # Start and run emqx, and when emqx crashed, this container will stop
 /opt/emqx/bin/emqx start
 
@@ -33,7 +30,7 @@ echo "['$(date -u +"%Y-%m-%dT%H:%M:%SZ")']:emqx start"
 ## Fork tailing emqx.log, the fork is not killed after this script exits
 ## The assumption is that this is the docker entrypoint,
 ## hence docker container is terminated after entrypoint exists
-tail -f /opt/emqx/log/emqx.log &
+tail -f /opt/emqx/log/erlang.log.1 &
 
 # monitor emqx is running, or the docker must stop to let docker PaaS know
 # warning: never use infinite loops such as `` while true; do sleep 1000; done`` here
@@ -46,6 +43,12 @@ while [ $IDLE_TIME -lt 5 ]; do
     IDLE_TIME=$(expr $IDLE_TIME + 1)
     if curl http://localhost:${MGMT_PORT}/status >/dev/null 2>&1; then
         IDLE_TIME=0
+        # Print the latest erlang.log
+        erlang_logs=$(ps -ef |grep "tail -f /opt/emqx/log/erlang.log" |grep -v grep | sed -r "s/.*tail -f (.*)/\1/g")
+        new_erlang_log=$(echo $(ls -t /opt/emqx/log/erlang.log.*) | awk '{print $1}')
+        if [ -z "$(echo $erlang_logs | grep -o $new_erlang_log)" ];then
+            tail -f $new_erlang_log &
+        fi
     else
         echo "['$(date -u +"%Y-%m-%dT%H:%M:%SZ")']:emqx not running, waiting for recovery in $((25-IDLE_TIME*5)) seconds"
     fi
