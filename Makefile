@@ -3,18 +3,6 @@
 REBAR_GIT_CLONE_OPTIONS += --depth 1
 export REBAR_GIT_CLONE_OPTIONS
 
-TAG = $(shell git tag -l --points-at HEAD)
-
-CUR_BRANCH := $(shell git branch | grep -e "^*" | cut -d' ' -f 2)
-
-ifeq ($(EMQX_DEPS_DEFAULT_VSN),)
-	ifneq ($(TAG),)
-		EMQX_DEPS_DEFAULT_VSN ?= $(lastword 1, $(TAG))
-	else
-		EMQX_DEPS_DEFAULT_VSN ?= $(CUR_BRANCH)
-	endif
-endif
-
 REBAR = $(CURDIR)/rebar3
 
 REBAR_URL = https://s3.amazonaws.com/rebar3/rebar3
@@ -26,31 +14,34 @@ PROFILES := emqx emqx-edge
 PKG_PROFILES := emqx-pkg emqx-edge-pkg
 
 CT_APPS := emqx \
-           emqx_auth_clientid \
-           emqx_auth_http \
-           emqx_auth_jwt \
-           emqx_auth_ldap \
-           emqx_auth_mongo \
-           emqx_auth_mysql \
-           emqx_auth_pgsql \
-           emqx_auth_redis \
-           emqx_auth_username \
-           emqx_auth_mnesia \
-           emqx_sasl \
-           emqx_coap \
-           emqx_recon \
-           emqx_dashboard \
-           emqx_delayed_publish \
-           emqx_lua_hook \
-           emqx_lwm2m \
-           emqx_management \
-           emqx_retainer \
-           emqx_sn \
-           emqx_stomp \
-           emqx_web_hook \
-           emqx_bridge_mqtt \
-           emqx_rule_engine \
-           emqx_extension_hook
+        emqx_auth_clientid \
+        emqx_auth_http \
+        emqx_auth_jwt \
+        emqx_auth_ldap \
+        emqx_auth_mnesia \
+        emqx_auth_mongo \
+        emqx_auth_mysql \
+        emqx_auth_pgsql \
+        emqx_auth_redis \
+        emqx_auth_username \
+        emqx_bridge_mqtt \
+        emqx_coap \
+        emqx_dashboard \
+        emqx_extension_hook \
+        emqx_lua_hook \
+        emqx_lwm2m \
+        emqx_management \
+        emqx_plugin_template \
+        emqx_psk_file \
+        emqx_recon \
+        emqx_reloader \
+        emqx_retainer \
+        emqx_rule_engine \
+        emqx_sasl \
+        emqx_sn \
+        emqx_statsd \
+        emqx_stomp \
+        emqx_web_hook
 
 .PHONY: default
 default: $(REBAR) $(PROFILE)
@@ -126,46 +117,46 @@ endif
 
 # Build packages
 .PHONY: $(PKG_PROFILES)
-$(PKG_PROFILES:%=%): $(REBAR)
+$(PKG_PROFILES:%=%): $(REBAR) $(PKG_PROFILES:%=deps-%)
 	ln -snf _build/$(@)/lib ./_checkouts
 	@if [ $$(echo $(@) |grep edge) ];then export EMQX_DESC="EMQ X Edge";else export EMQX_DESC="EMQ X Broker"; fi;\
 	$(REBAR) as $(@) release
-	EMQX_REL=$$(pwd) EMQX_BUILD=$(@) EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN) make -C deploy/packages
+	EMQX_REL=$$(pwd) EMQX_BUILD=$(@) make -C deploy/packages
 
 # Build docker image
 .PHONY: $(PROFILES:%=%-docker-build)
-$(PROFILES:%=%-docker-build):
+$(PROFILES:%=%-docker-build): $(PROFILES:%=deps-%)
 	@if [ ! -z `echo $(@) |grep -oE edge` ]; then \
-		TARGET=emqx/emqx-edge EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN) make -C deploy/docker; \
+		TARGET=emqx/emqx-edge make -C deploy/docker; \
 	else \
-		TARGET=emqx/emqx EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN) make -C deploy/docker; \
+		TARGET=emqx/emqx make -C deploy/docker; \
 	fi;
 
 # Save docker images
 .PHONY: $(PROFILES:%=%-docker-save)
 $(PROFILES:%=%-docker-save):
 	@if [ ! -z `echo $(@) |grep -oE edge` ]; then \
-		TARGET=emqx/emqx-edge EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN) make -C deploy/docker save; \
+		TARGET=emqx/emqx-edge make -C deploy/docker save; \
 	else \
-		TARGET=emqx/emqx EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN) make -C deploy/docker save; \
+		TARGET=emqx/emqx make -C deploy/docker save; \
 	fi;
 
 # Push docker image
 .PHONY: $(PROFILES:%=%-docker-push)
 $(PROFILES:%=%-docker-push):
 	@if [ ! -z `echo $(@) |grep -oE edge` ]; then \
-		TARGET=emqx/emqx-edge EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN) make -C deploy/docker push; \
-		TARGET=emqx/emqx-edge EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN) make -C deploy/docker manifest_list; \
+		TARGET=emqx/emqx-edge make -C deploy/docker push; \
+		TARGET=emqx/emqx-edge make -C deploy/docker manifest_list; \
 	else \
-		TARGET=emqx/emqx EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN) make -C deploy/docker push; \
-		TARGET=emqx/emqx EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN) make -C deploy/docker manifest_list; \
+		TARGET=emqx/emqx make -C deploy/docker push; \
+		TARGET=emqx/emqx make -C deploy/docker manifest_list; \
 	fi;
 
 # Clean docker image
 .PHONY: $(PROFILES:%=%-docker-clean)
 $(PROFILES:%=%-docker-clean):
 	@if [ ! -z `echo $(@) |grep -oE edge` ]; then \
-		TARGET=emqx/emqx-edge EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN) make -C deploy/docker clean; \
+		TARGET=emqx/emqx-edge make -C deploy/docker clean; \
 	else \
-		TARGET=emqx/emqx EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN) make -C deploy/docker clean; \
+		TARGET=emqx/emqx make -C deploy/docker clean; \
 	fi;

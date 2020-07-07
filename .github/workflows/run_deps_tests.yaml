@@ -3,7 +3,7 @@ name: Run deps tests
 on:
   push:
     tags:
-     - v*
+      - v*
   repository_dispatch:
     types: [run_tests]
 

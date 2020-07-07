@@ -20,7 +20,7 @@ jobs:
     - name: build
       run: |
         $version = $("${{ github.ref }}" | sed -r 's .*/.*/(.*) \1 g')
-        if ($version -match "v[0-9]+\.[0-9]+(\.[0-9]+)?") {$deps_version = $version} else {$deps_version = "master"}
+        if ($version -match "v[0-9]+\.[0-9]+(\.[0-9]+)?") {$deps_version = $version} else {$deps_version = ""}
         $env:EMQX_DEPS_DEFAULT_VSN = $deps_version
         set-executionpolicy remotesigned -s cu
         iex (new-object net.webclient).downloadstring('https://get.scoop.sh')
@@ -100,7 +100,6 @@ jobs:
           - centos6
 
     steps:
-    - uses: actions/checkout@v1
     - name: set aws
       run: |
         curl "https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
@@ -109,6 +108,16 @@ jobs:
         aws configure set aws_access_key_id ${{ secrets.AwsAccessKeyId }}
         aws configure set aws_secret_access_key ${{ secrets.AwsSecretAccessKey }}
         aws configure set default.region us-west-2
+    - uses: actions/checkout@v1
+    - name: set env
+      run: |
+        version=${{ github.event.client_payload.version }}
+        echo "::set-env name=version::$version"
+        if [ ! -z $(echo $version | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?") ]; then
+          echo "::set-env name=EMQX_DEPS_DEFAULT_VSN::$version"
+        else
+          echo "::set-env name=EMQX_DEPS_DEFAULT_VSN::\"\""
+        fi
     - name: build emqx packages
       env:
         ERL_OTP: erl22.3
@@ -134,7 +143,6 @@ jobs:
           - raspbian8
   
     steps:
-    - uses: actions/checkout@v1
     - name: set aws
       run: |
         curl "https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
@@ -143,15 +151,23 @@ jobs:
         aws configure set aws_access_key_id ${{ secrets.AwsAccessKeyId }}
         aws configure set aws_secret_access_key ${{ secrets.AwsSecretAccessKey }}
         aws configure set default.region us-west-2
+    - uses: actions/checkout@v1
+    - name: set env
+      run: |
+        version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
+        echo "::set-env name=version::$version"
+        if [ ! -z $(echo $version | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?") ]; then
+          echo "::set-env name=EMQX_DEPS_DEFAULT_VSN::$version"
+        else
+          echo "::set-env name=EMQX_DEPS_DEFAULT_VSN:\"\""
+        fi
     - name: build emqx packages
       env:
         ERL_OTP: erl22.3
         SYSTEM: ${{ matrix.os }}
       run: |
-        if [ ${{ github.event_name}} == 'repository_dispatch' ]; then version=${{ github.event.client_payload.version }}; else version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g"); fi
-        if [ ! -z $(echo $version | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?") ]; then deps_version=$version; else deps_version=master; fi
         sudo docker run --rm --privileged multiarch/qemu-user-static:register --reset
-        sudo docker run -i --name $SYSTEM-build -e EMQX_DEPS_DEFAULT_VSN=$deps_version -e SYSTEM=$SYSTEM -v $(pwd):/emqx-rel emqx/build-env:$ERL_OTP-$SYSTEM-1 sh -c "cd /emqx-rel/.github/workflows/script; EMQX_NAME=emqx-edge ./build.sh"
+        sudo docker run -i --name $SYSTEM-build -e EMQX_DEPS_DEFAULT_VSN=$EMQX_DEPS_DEFAULT_VSN -e SYSTEM=$SYSTEM -v $(pwd):/emqx-rel emqx/build-env:$ERL_OTP-$SYSTEM-1 sh -c "cd /emqx-rel/.github/workflows/script; EMQX_NAME=emqx-edge ./build.sh"
         cd _packages/emqx && for var in $(ls emqx-$SYSTEM-* ); do sudo bash -c "echo $(sha256sum $var | awk '{print $1}') > $var.sha256"; done && cd -
         cd _packages/emqx-edge/&& for var in $(ls emqx-edge-$SYSTEM-* ); do sudo bash -c "echo $(sha256sum $var | awk '{print $1}') > $var.sha256"; done && cd -
         [ -d _packages/emqx ] && aws s3 cp --recursive ./_packages/emqx  s3://packages.emqx.io/emqx-ce/$version
@@ -179,29 +195,34 @@ jobs:
         aws configure set aws_secret_access_key ${{ secrets.AwsSecretAccessKey }}
         aws configure set default.region us-west-2
     - uses: actions/checkout@v1
+    - name: set env
+      run: |
+        version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
+        echo "::set-env name=version::$version"
+        if [ ! -z $(echo $version | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?") ]; then
+          echo "::set-env name=EMQX_DEPS_DEFAULT_VSN::$version"
+        else
+          echo "::set-env name=EMQX_DEPS_DEFAULT_VSN::\"\""
+        fi
     - name: build emqx docker image
       env:
         ARCH: ${{ matrix.arch[0] }}
         QEMU_ARCH: ${{ matrix.arch[1] }}
       run: |
-        if [ ${{ github.event_name}} == 'repository_dispatch' ]; then version=${{ github.event.client_payload.version }}; else version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g"); fi
-        if [ ! -z $(echo $version | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?") ]; then deps_version=$version; else deps_version=master; fi
         sudo docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-        sudo EMQX_DEPS_DEFAULT_VSN=$deps_version TARGET=emqx/emqx ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH  make -C deploy/docker
-        sudo EMQX_DEPS_DEFAULT_VSN=$deps_version TARGET=emqx/emqx ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH make -C deploy/docker save
+        sudo ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH make emqx-docker-build
+        sudo ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH make emqx-docker-save
         cd _packages/emqx && for var in $(ls emqx-docker-* ); do sudo bash -c "echo $(sha256sum $var | awk '{print $1}') > $var.sha256"; done && cd -
         aws s3 cp --recursive _packages/emqx  s3://packages.emqx.io/emqx-ce/$version
-        sudo EMQX_DEPS_DEFAULT_VSN=$deps_version TARGET=emqx/emqx-edge ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH  make -C deploy/docker
-        sudo EMQX_DEPS_DEFAULT_VSN=$deps_version TARGET=emqx/emqx-edge ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH  make -C deploy/docker save
+        sudo ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH  make emqx-edge-docker-build
+        sudo ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH  make emqx-edge-docker-save
         cd _packages/emqx-edge && for var in $(ls emqx-edge-docker-* ); do sudo bash -c "echo $(sha256sum $var | awk '{print $1}') > $var.sha256"; done && cd -
         aws s3 cp --recursive _packages/emqx-edge s3://packages.emqx.io/emqx-edge/$version
     - name: docker test
       if: matrix.arch[0] == 'amd64'
       run: |
-        if [ ${{ github.event_name}} == 'repository_dispatch' ]; then version=${{ github.event.client_payload.version }}; else version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g"); fi
-        if [ ! -z $(echo $version | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?") ]; then deps_version=$version; else deps_version=master; fi
-        sudo EMQX_DEPS_DEFAULT_VSN=$deps_version TARGET=emqx/emqx PAHO_BRANCH="develop-4.0" make -C .ci/paho_tests cluster_test
-        sudo EMQX_DEPS_DEFAULT_VSN=$deps_version TARGET=emqx/emqx-edge PAHO_BRANCH="develop-4.0" make -C .ci/paho_tests cluster_test
+        sudo EMQX_DEPS_DEFAULT_VSN=$EMQX_DEPS_DEFAULT_VSN TARGET=emqx/emqx PAHO_BRANCH="develop-4.0" make -C .ci/paho_tests cluster_test
+        sudo EMQX_DEPS_DEFAULT_VSN=$EMQX_DEPS_DEFAULT_VSN TARGET=emqx/emqx-edge PAHO_BRANCH="develop-4.0" make -C .ci/paho_tests cluster_test
 
   upload:
     runs-on: ubuntu-latest

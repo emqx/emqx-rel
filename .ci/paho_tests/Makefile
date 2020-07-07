@@ -3,7 +3,16 @@ TARGET ?= emqx/emqx
 EMQX_NAME = $(subst emqx/,,$(TARGET))
 
 ## versioning
-EMQX_DEPS_DEFAULT_VSN ?= develop
+EMQX_DEPS_DEFAULT_VSN ?= ""
+ifeq ($(EMQX_DEPS_DEFAULT_VSN), )
+	BUILD_VERSION := $(shell git describe --tags --always)
+else ifeq ($(EMQX_DEPS_DEFAULT_VSN), "")
+	BUILD_VERSION := $(shell git describe --tags --always)
+else
+	BUILD_VERSION := $(EMQX_DEPS_DEFAULT_VSN)
+endif
+
+
 PAHO_BRANCH ?= develop-4.0
 
 
@@ -24,7 +33,7 @@ endef
 
 .PHONY: create_container
 create_container: clean
-	@sed -i "/IMAGE=/c\IMAGE=$(TARGET):$(EMQX_DEPS_DEFAULT_VSN)" .env
+	@sed -i "/IMAGE=/c\IMAGE=$(TARGET):$(BUILD_VERSION)" .env
 
 	@docker-compose -p paho_test up -d
 	
