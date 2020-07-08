@@ -27,7 +27,7 @@ sleep 5
 
 echo "['$(date -u +"%Y-%m-%dT%H:%M:%SZ")']:emqx start"
 
-## Fork tailing emqx.log, the fork is not killed after this script exits
+## Fork tailing erlang.log, the fork is not killed after this script exits
 ## The assumption is that this is the docker entrypoint,
 ## hence docker container is terminated after entrypoint exists
 tail -f /opt/emqx/log/erlang.log.1 &
@@ -44,10 +44,11 @@ while [ $IDLE_TIME -lt 5 ]; do
     if curl http://localhost:${MGMT_PORT}/status >/dev/null 2>&1; then
         IDLE_TIME=0
         # Print the latest erlang.log
-        erlang_logs=$(ps -ef |grep "tail -f /opt/emqx/log/erlang.log" |grep -v grep | sed -r "s/.*tail -f (.*)/\1/g")
-        new_erlang_log=$(echo $(ls -t /opt/emqx/log/erlang.log.*) | awk '{print $1}')
-        if [ -z "$(echo $erlang_logs | grep -o $new_erlang_log)" ];then
+        now_erlang_log=$(ps -ef |grep "tail -f /opt/emqx/log/erlang.log" |grep -v grep | sed -r "s/.*tail -f (.*)/\1/g")
+        new_erlang_log="$(ls -t /opt/emqx/log/erlang.log.* | head -1)"
+        if [ $now_erlang_log != $new_erlang_log ];then
             tail -f $new_erlang_log &
+            kill $(ps -ef |grep "tail -f $now_erlang_log" | grep -v grep | awk '{print $1}')
         fi
     else
         echo "['$(date -u +"%Y-%m-%dT%H:%M:%SZ")']:emqx not running, waiting for recovery in $((25-IDLE_TIME*5)) seconds"
