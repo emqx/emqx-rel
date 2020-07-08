@@ -160,10 +160,11 @@ if [[ ! -z "$EMQX_LOADED_PLUGINS" ]]; then
     echo "EMQX_LOADED_PLUGINS=$EMQX_LOADED_PLUGINS"
     # Parse plugin names and place `{plugin_name, true}.` tuples in `loaded_plugins`.
     for var in $(echo "$EMQX_LOADED_PLUGINS"|sed -e "s/^[^A-Za-z0-9_]\{1,\}//g"|sed -e "s/[^A-Za-z0-9_]\{1,\}/\ /g"); do
-        if [ ! -z $(grep -o $var ${_EMQX_HOME}/data/loaded_plugins) ]; then
+        if [ ! -z "$(grep -oE "\{($var),[ ]*(true|false)\}" ${_EMQX_HOME}/data/loaded_plugins)" ]; then
             echo "$(sed -r "s/\{($var),[ ]*(true|false)\}./\{\1, true\}./1" ${_EMQX_HOME}/data/loaded_plugins)" > ${_EMQX_HOME}/data/loaded_plugins
+        elif [ ! -z $(grep -o "$var\." ${_EMQX_HOME}/data/loaded_plugins) ]; then
             # backward compatible.
-            echo "$(sed -r -e "s/($var)./\{\1, true\}./1" ${_EMQX_HOME}/data/loaded_plugins)" > ${_EMQX_HOME}/data/loaded_plugins
+            echo "$(sed -r "s/($var)./\{\1, true\}./1" ${_EMQX_HOME}/data/loaded_plugins)" > ${_EMQX_HOME}/data/loaded_plugins
         else
             echo "{$var, true}." >> ${_EMQX_HOME}/data/loaded_plugins
         fi
@@ -177,10 +178,11 @@ if [[ ! -z "$EMQX_LOADED_MODULES" ]]; then
     echo "EMQX_LOADED_MODULES=$EMQX_LOADED_MODULES"
     # Parse module names and place `{module_name, true}.` tuples in `loaded_modules`.
     for var in $(echo "$EMQX_LOADED_MODULES"|sed -e "s/^[^A-Za-z0-9_]\{1,\}//g"|sed -e "s/[^A-Za-z0-9_]\{1,\}/\ /g"); do
-        if [ ! -z $(grep -o $var ${_EMQX_HOME}/data/loaded_modules) ]; then
+        if [ ! -z "$(grep -oE "\{($var),[ ]*(true|false)\}" ${_EMQX_HOME}/data/loaded_plugins)" ]; then
             echo "$(sed -r "s/\{($var),[ ]*(true|false)\}./\{\1, true\}./1" ${_EMQX_HOME}/data/loaded_modules)" > ${_EMQX_HOME}/data/loaded_modules
+        elif [ ! -z $(grep -o "$var\." ${_EMQX_HOME}/data/loaded_modules) ]; then
             # backward compatible.
-            echo "$(sed -r -e "s/($var)./\{\1, true\}./1" ${_EMQX_HOME}/data/loaded_modules)" > ${_EMQX_HOME}/data/loaded_modules
+            echo "$(sed -r "s/($var)./\{\1, true\}./1" ${_EMQX_HOME}/data/loaded_modules)" > ${_EMQX_HOME}/data/loaded_modules
         else
             echo "{$var, true}." >> ${_EMQX_HOME}/data/loaded_modules
         fi
