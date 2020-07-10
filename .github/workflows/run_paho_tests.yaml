@@ -32,7 +32,7 @@ jobs:
             fi
         - name: get deps
           run: |
-              docker run -i --rm -e EMQX_DEPS_DEFAULT_VSN=$EMQX_DEPS_DEFAULT_VSN -v $(pwd):/emqx-rel erlang:22.3 bash -c "make -C emqx-rel deps-emqx"
+              make deps-emqx
         - name: make emqx image
           run: make emqx-docker-build
         - name: make paho tests
