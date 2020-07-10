@@ -32,9 +32,7 @@ jobs:
             fi
         - name: get deps
           run: |
-              erl -eval '{ok, Version} = file:read_file(filename:join([code:root_dir(), "releases", erlang:system_info(otp_release), "OTP_VERSION"])), io:fwrite(Version), halt().' -noshel
-              erl -eval 'V = os:getenv("EMQX_DEPS_DEFAULT_VSN"), io:format(V), halt().' -noshel
-              make deps-emqx
+              docker run -i --rm -e EMQX_DEPS_DEFAULT_VSN=$EMQX_DEPS_DEFAULT_VSN -v $(pwd):/emqx-rel erlang:22.3 bash -c "make -C emqx-rel deps-emqx"
         - name: make emqx image
           run: make emqx-docker-build
         - name: make paho tests
