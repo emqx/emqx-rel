@@ -114,7 +114,7 @@ jobs:
         if [ ! -z $(echo $version | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?") ]; then
           echo "::set-env name=EMQX_DEPS_DEFAULT_VSN::$version"
         else
-          echo "::set-env name=EMQX_DEPS_DEFAULT_VSN::\"\""
+          echo "::set-env name=EMQX_DEPS_DEFAULT_VSN::"
         fi
     - name: build emqx packages
       env:
@@ -157,7 +157,7 @@ jobs:
         if [ ! -z $(echo $version | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?") ]; then
           echo "::set-env name=EMQX_DEPS_DEFAULT_VSN::$version"
         else
-          echo "::set-env name=EMQX_DEPS_DEFAULT_VSN:\"\""
+          echo "::set-env name=EMQX_DEPS_DEFAULT_VSN:"
         fi
     - name: build emqx packages
       env:
@@ -200,7 +200,7 @@ jobs:
         if [ ! -z $(echo $version | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?") ]; then
           echo "::set-env name=EMQX_DEPS_DEFAULT_VSN::$version"
         else
-          echo "::set-env name=EMQX_DEPS_DEFAULT_VSN::\"\""
+          echo "::set-env name=EMQX_DEPS_DEFAULT_VSN::"
         fi
     - name: build emqx docker image
       env:
