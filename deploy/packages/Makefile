@@ -8,7 +8,7 @@ endif
 ifneq ($(shell echo $(EMQX_DEPS_DEFAULT_VSN) | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?"),)
 	PKG_VSN := $(EMQX_DEPS_DEFAULT_VSN)
 else
-	PKG_VSN := 4.0
+	PKG_VSN := $(shell git describe --abbrev=0 --tags)
 endif
 
 # Default name

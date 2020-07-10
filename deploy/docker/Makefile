@@ -6,8 +6,14 @@ QEMU_VERSION ?= v4.0.0
 OS ?= alpine
 
 ## versioning
-EMQX_DEPS_DEFAULT_VSN ?= develop
-BUILD_VERSION ?= $(EMQX_DEPS_DEFAULT_VSN)
+EMQX_DEPS_DEFAULT_VSN ?= ""
+ifeq ($(EMQX_DEPS_DEFAULT_VSN), )
+	BUILD_VERSION := $(shell git describe --tags --always)
+else ifeq ($(EMQX_DEPS_DEFAULT_VSN), "")
+	BUILD_VERSION := $(shell git describe --tags --always)
+else
+	BUILD_VERSION := $(EMQX_DEPS_DEFAULT_VSN)
+endif
 
 EMQX_NAME = $(subst emqx/,,$(TARGET))
 ARCH_LIST = amd64 arm64v8 arm32v7 i386 s390x
@@ -37,7 +43,6 @@ build:
 	## Build Docker image
 	@echo "DOCKER BUILD: Build Docker image."
 	@echo "DOCKER BUILD: build version -> $(BUILD_VERSION)."
-	@echo "DOCKER BUILD: build from -> $(BUILD_FROM)."
 	@echo "DOCKER BUILD: arch - $(ARCH)."
 	@echo "DOCKER BUILD: qemu arch - $(QEMU_ARCH)."
 	@echo "DOCKER BUILD: docker repo - $(TARGET) "
@@ -47,7 +52,7 @@ build:
 	## Prepare qemu to build images other then x86_64 on travis
 	@echo "PREPARE: Qemu" \
 	&& docker run --rm --privileged multiarch/qemu-user-static:register --reset
-  
+
 	@mkdir -p tmp \
 	&& cd tmp \
 	&& curl -L -o qemu-$(QEMU_ARCH)-static.tar.gz https://github.com/multiarch/qemu-user-static/releases/download/$(QEMU_VERSION)/qemu-$(QEMU_ARCH)-static.tar.gz \
