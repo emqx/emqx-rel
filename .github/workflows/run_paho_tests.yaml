@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - v*
+    branch:
   repository_dispatch:
     types: [run_tests]
 
@@ -19,15 +20,18 @@ jobs:
             sudo curl -L "https://github.com/docker/compose/releases/download/1.25.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
             sudo chmod +x /usr/local/bin/docker-compose
         - uses: actions/checkout@v1
+        - name: set env
+          run: |
+            if [ ${{ github.event_name}} == 'repository_dispatch' ]; then version=${{ github.event.client_payload.version }}; else version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g"); fi
+            echo "::set-env name=version::$version"
+            if [ ! -z $(echo $version | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?") ]; then
+              echo "::set-env name=EMQX_DEPS_DEFAULT_VSN::$version"
+            else
+              echo "::set-env name=EMQX_DEPS_DEFAULT_VSN::\"\""
+            fi
         - name: get deps
-          run: |
-            if [ ${{ github.event_name}} == 'repository_dispatch' ]; then version=${{ github.event.client_payload.version }}; else version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g"); fi
-            docker run -i --rm -e EMQX_DEPS_DEFAULT_VSN=$version -v $(pwd):/emqx-rel erlang:22.3 bash -c "make -C /emqx-rel deps-emqx"
+          run: make deps-emqx
         - name: make emqx image
-          run: |
-            if [ ${{ github.event_name}} == 'repository_dispatch' ]; then version=${{ github.event.client_payload.version }}; else version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g"); fi
-            EMQX_DEPS_DEFAULT_VSN=$version make emqx-docker-build
+          run: make emqx-docker-build
         - name: make paho tests
-          run: |
-            if [ ${{ github.event_name}} == 'repository_dispatch' ]; then version=${{ github.event.client_payload.version }}; else version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g"); fi
-            EMQX_DEPS_DEFAULT_VSN=$version TARGET=emqx/emqx PAHO_BRANCH="develop-4.0" make -C .ci/paho_tests test
+          run: TARGET=emqx/emqx PAHO_BRANCH="develop-4.0" make -C .ci/paho_tests test

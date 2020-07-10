@@ -111,7 +111,7 @@ jobs:
     - uses: actions/checkout@v1
     - name: set env
       run: |
-        version=${{ github.event.client_payload.version }}
+        version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
         echo "::set-env name=version::$version"
         if [ ! -z $(echo $version | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?") ]; then
           echo "::set-env name=EMQX_DEPS_DEFAULT_VSN::$version"
