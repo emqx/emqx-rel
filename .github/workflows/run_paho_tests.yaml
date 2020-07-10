@@ -5,6 +5,7 @@ on:
     tags:
       - v*
     branch:
+      - "*"
   repository_dispatch:
     types: [run_tests]
 
