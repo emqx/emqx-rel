@@ -3,8 +3,6 @@ name: Build packages
 on:
   pull_request:
   push:
-    branches:
-      - "*"
     tags:
       - v*
   repository_dispatch:
