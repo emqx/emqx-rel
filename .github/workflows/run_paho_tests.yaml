@@ -4,8 +4,6 @@ on:
   push:
     tags:
       - v*
-    branches:
-      - "*"
   repository_dispatch:
     types: [run_tests]
 
@@ -31,8 +29,7 @@ jobs:
               echo "::set-env name=EMQX_DEPS_DEFAULT_VSN::"
             fi
         - name: get deps
-          run: |
-              make deps-emqx
+          run: make deps-emqx
         - name: make emqx image
           run: make emqx-docker-build
         - name: make paho tests
