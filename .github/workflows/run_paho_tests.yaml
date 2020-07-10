@@ -4,7 +4,7 @@ on:
   push:
     tags:
       - v*
-    branch:
+    branches:
       - "*"
   repository_dispatch:
     types: [run_tests]
