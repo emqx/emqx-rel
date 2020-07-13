@@ -107,15 +107,12 @@ DefaultDepRef =
 %% ==============================================================================
 %% Relx configs
 %% ==============================================================================
-
-GitDescribe = case DefaultDepRef of
-                  {tag, EnvTag} -> EnvTag;
-                  _Else -> lists:last(string:tokens(os:cmd("git tag -l \"v*\""), "\n"))
-              end,
 Relx0 = Kf(relx, CONFIG2),
 {release, {_, Vsn0}, RelxBaseApps0} = lists:keyfind(release, 1, Relx0),
 Vsn1 = case Vsn0 of
-    git_describe -> GitDescribe;
+    "${"++EnvV ->
+        VsnEnv = string:sub_string(EnvV,1,length(EnvV)-1),
+        os:get_env_var(VsnEnv);
     Vsn -> Vsn
 end,
 RelxElixirApps = Kf(elixir_relx_apps, CONFIG2),
