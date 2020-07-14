@@ -422,6 +422,7 @@ case "$1" in
             exit 1
         fi
 
+        ERL_FLAGS="$ERL_FLAGS $EPMD_ARG" \
         exec "$BINDIR/escript" "$ROOTDIR/bin/install_upgrade.escript" \
              "install" "$REL_NAME" "$NAME_TYPE" "$NAME" "$COOKIE" "$2"
         ;;
@@ -440,6 +441,7 @@ case "$1" in
             exit 1
         fi
 
+        ERL_FLAGS="$ERL_FLAGS $EPMD_ARG" \
         exec "$BINDIR/escript" "$ROOTDIR/bin/install_upgrade.escript" \
              "unpack" "$REL_NAME" "$NAME_TYPE" "$NAME" "$COOKIE" "$2"
         ;;
