@@ -190,7 +190,7 @@ For example, set ``MASK_CONFIG_FILTER="password|token"`` to hide all configurati
 
 By default emqx masks the configuration using following filter `"password|passwd|key|token|secret"`. Setting ``MASK_CONFIG_FILTER`` will be merged with the default filter.
 
-The configuration should match whole word (after splitting it by '.') with `MASK_CONFIG_FILTER`.
+The configuration should match whole word (after splitting it by '.') with `MASK_CONFIG_FILTER`. You can use commas, spaces or other required separators to separate different words.
 
 ### Cluster 
 
