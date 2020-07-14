@@ -50,7 +50,7 @@ RUN adduser -D -u 1000 emqx \
     && echo "emqx ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers
 
 RUN chgrp -Rf emqx /opt/emqx && chmod -Rf g+w /opt/emqx \
-      && chown -Rf emqx /opt/emqx
+    && chown -Rf emqx /opt/emqx
 
 USER emqx
 

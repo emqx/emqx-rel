@@ -318,8 +318,7 @@ case "$1" in
         # export RUN_ERL_LOG_GENERATIONS
 
         # Export the RUN_ERL_LOG_MAXSIZE
-        RUN_ERL_LOG_MAXSIZE=1048576
-        export RUN_ERL_LOG_MAXSIZE
+        export RUN_ERL_LOG_MAXSIZE=${RUN_ERL_LOG_MAXSIZE:-"10485760"}
 
         mkdir -p "$PIPE_DIR"
 
