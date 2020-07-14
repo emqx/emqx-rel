@@ -15,7 +15,7 @@ RUNNER_ETC_DIR="{{ runner_etc_dir }}"
 echoerr() { echo "$@" 1>&2; }
 
 if [ -z "$WITH_EPMD" ]; then
-    EPMD_ARG="-start_epmd false -epmd_module nodetool_epmd"
+    EPMD_ARG="-start_epmd false -epmd_module ekka_epmd -proto_dist ekka"
 else
     EPMD_ARG="-start_epmd true"
 fi
