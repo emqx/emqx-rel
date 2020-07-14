@@ -188,7 +188,7 @@ Use ``MASK_CONFIG_FILTER`` to hide senstive configuration values from leaking to
 
 For example, set ``MASK_CONFIG_FILTER="password|token"`` to hide all configuration names containing those keywords.
 
-By default emqx masks the configuration using following filter `"password|passwd|key|token|secret"`. Setting ``MASK_CONFIG_FILTER`` will overwrite default filter.
+By default emqx masks the configuration using following filter `"password|passwd|key|token|secret"`. Setting ``MASK_CONFIG_FILTER`` will be merged with the default filter.
 
 The configuration should match whole word (after splitting it by '.') with `MASK_CONFIG_FILTER`.
 
