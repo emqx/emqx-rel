@@ -112,7 +112,7 @@ echo_value () {
     FORMAT_MASK_CONFIG_FILTER=$(echo $MASK_CONFIG_FILTER |sed -e "s/^[^A-Za-z0-9_]\{1,\}//g"|sed -e "s/[^A-Za-z0-9_]\{1,\}/\|/g")
 
     # check if contains sensitive value
-    if [ ! -z $(echo $(echo $VAR_NAME | tr '.' ' ') |grep -w -o -E "$MASK_CONFIG_FILTER") ]; then
+    if [ ! -z $(echo $(echo $VAR_NAME | tr '.' ' ') |grep -w -o -E "$FORMAT_MASK_CONFIG_FILTER") ]; then
         echo "$VAR_NAME=***secret***"
     else
         echo "$VAR_NAME=$(eval echo \$$VAR_FULL_NAME)"
