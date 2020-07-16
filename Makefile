@@ -48,18 +48,37 @@ default: $(REBAR) $(PROFILE)
 all: $(REBAR) $(PROFILES)
 
 .PHONY: distclean
-distclean:
+distclean: remove-build-meta-files
 	@rm -rf _build
-	@rm -f data/app.*.config data/vm.*.args rebar.lock
 	@rm -rf _checkouts
 
+.PHONY: distclean-deps
+distclean-deps: remove-deps remove-build-meta-files
+
+.PHONY: remove-deps
+remove-deps:
+	@rm -rf _build/$(PROFILE)/lib
+	@rm -rf _build/$(PROFILE)/conf
+	@rm -rf _build/$(PROFILE)/plugins
+
+.PHONY: remove-build-meta-files
+remove-build-meta-files:
+	@rm -f data/app.*.config data/vm.*.args rebar.lock
+
 .PHONY: $(PROFILES)
-$(PROFILES:%=%): $(REBAR)
+$(PROFILES:%=%) $(PROFILES:%=tar-%): $(REBAR)
 ifneq ($(OS),Windows_NT)
-	@ln -snf _build/$(@)/lib ./_checkouts
+	@ln -snf _build/$(subst tar-,,$(@))/lib ./_checkouts
 endif
-	@if [ $$(echo $(@) |grep edge) ];then export EMQX_DESC="EMQ X Edge";else export EMQX_DESC="EMQ X Broker"; fi;\
-	$(REBAR) as $(@) release
+	@if [ $$(echo $(@) |grep edge) ];then export EMQX_DESC="EMQ X Edge";else export EMQX_DESC="EMQ X Broker"; fi; \
+	if [ "$(findstring tar, $(@))" == 'tar' ];\
+	  then $(REBAR) as $(subst tar-,,$(@)) tar;\
+	  else $(REBAR) as $(@) release;\
+	fi
+
+.PHONY: $(PROFILES:%=relup-%)
+$(PROFILES:%=relup-%): $(REBAR)
+	$(REBAR) as $(@:relup-%=%) relup
 
 .PHONY: $(PROFILES:%=build-%)
 $(PROFILES:%=build-%): $(REBAR)
