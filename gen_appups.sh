@@ -5,7 +5,7 @@
 write_file() {
     filename=$1
     text=$2
-    echo "writing to file: $filename"
+    #echo "writing to file: $filename"
     echo "$text" > "$filename"
 }
 

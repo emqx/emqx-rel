@@ -31,6 +31,66 @@ mkdir -p "$RUNNER_LOG_DIR"
 # Make sure data directory exists
 mkdir -p "$RUNNER_DATA_DIR"
 
+relx_usage() {
+    command="$1"
+
+    case "$command" in
+        unpack)
+            echo "Usage: $REL_NAME unpack [VERSION]"
+            echo "Unpacks a release package VERSION, it assumes that this"
+            echo "release package tarball has already been deployed at one"
+            echo "of the following locations:"
+            echo "      releases/<relname>-<version>.tar.gz"
+            echo "      releases/<version>/<relname>-<version>.tar.gz"
+            echo "      releases/<version>/<relname>.tar.gz"
+            ;;
+        install)
+            echo "Usage: $REL_NAME install [VERSION]"
+            echo "Installs a release package VERSION, it assumes that this"
+            echo "release package tarball has already been deployed at one"
+            echo "of the following locations:"
+            echo "      releases/<relname>-<version>.tar.gz"
+            echo "      releases/<version>/<relname>-<version>.tar.gz"
+            echo "      releases/<version>/<relname>.tar.gz"
+            echo ""
+            echo "     --no-permanent   Install release package VERSION but"
+            echo "                      don't make it permanent"
+            ;;
+        uninstall)
+            echo "Usage: $REL_NAME uninstall [VERSION]"
+            echo "Uninstalls a release VERSION, it will only accept"
+            echo "versions that are not currently in use"
+            ;;
+        upgrade)
+            echo "Usage: $REL_NAME upgrade [VERSION]"
+            echo "Upgrades the currently running release to VERSION, it assumes"
+            echo "that a release package tarball has already been deployed at one"
+            echo "of the following locations:"
+            echo "      releases/<relname>-<version>.tar.gz"
+            echo "      releases/<version>/<relname>-<version>.tar.gz"
+            echo "      releases/<version>/<relname>.tar.gz"
+            echo ""
+            echo "     --no-permanent   Install release package VERSION but"
+            echo "                      don't make it permanent"
+            ;;
+        downgrade)
+            echo "Usage: $REL_NAME downgrade [VERSION]"
+            echo "Downgrades the currently running release to VERSION, it assumes"
+            echo "that a release package tarball has already been deployed at one"
+            echo "of the following locations:"
+            echo "      releases/<relname>-<version>.tar.gz"
+            echo "      releases/<version>/<relname>-<version>.tar.gz"
+            echo "      releases/<version>/<relname>.tar.gz"
+            echo ""
+            echo "     --no-permanent   Install release package VERSION but"
+            echo "                      don't make it permanent"
+            ;;
+        *)
+            echo "Usage: $REL_NAME {start|start_boot <file>|ertspath|foreground|stop|restart|reboot|pid|ping|console|console_clean|console_boot <file>|attach|remote_console|upgrade|downgrade|install|uninstall|versions|escript|rpc|rpcterms|eval}"
+            ;;
+    esac
+}
+
 # Simple way to check the correct user and fail early
 check_user() {
     # Validate that the user running the script is the owner of the
@@ -40,10 +100,13 @@ check_user() {
             echo "You need to be root or use sudo to run this command"
             exit 1
         fi
-        ESCAPED_ARGS=`echo "$@" | sed -e 's/\([{}"]\)/\\\\\1/g'`
+        CMD="\"$RUNNER_SCRIPT\" "
+        for ARG in "$@"; do
+            CMD="${CMD} \"$ARG\""
+        done
         # This will drop priviledges into the runner user
         # It exec's in a new shell and the current shell will exit
-        exec su - $RUNNER_USER -c "$RUNNER_SCRIPT $ESCAPED_ARGS"
+        exec su - $RUNNER_USER -c "$CMD"
     fi
 }
 
@@ -408,13 +471,14 @@ case "$1" in
         relx_rem_sh
         ;;
 
-    upgrade|downgrade|install)
+    upgrade|downgrade|install|unpack|uninstall)
         if [ -z "$2" ]; then
-            echo "Missing package argument"
-            echo "Usage: $REL_NAME $1 {package base name}"
-            echo "NOTE {package base name} MUST NOT include the .tar.gz suffix"
+            echo "Missing version argument"
+            echo "Usage: $REL_NAME $1 {version}"
             exit 1
         fi
+
+        COMMAND="$1"; shift
 
         # Make sure a node IS running
         if ! relx_nodetool "ping" > /dev/null; then
@@ -424,26 +488,21 @@ case "$1" in
 
         ERL_FLAGS="$ERL_FLAGS $EPMD_ARG" \
         exec "$BINDIR/escript" "$ROOTDIR/bin/install_upgrade.escript" \
-             "install" "$REL_NAME" "$NAME_TYPE" "$NAME" "$COOKIE" "$2"
+             "$COMMAND" "{'$REL_NAME', \"$NAME_TYPE\", '$NAME', '$COOKIE'}" "$@"
         ;;
 
-    unpack)
-        if [ -z "$2" ]; then
-            echo "Missing package argument"
-            echo "Usage: $REL_NAME $1 {package base name}"
-            echo "NOTE {package base name} MUST NOT include the .tar.gz suffix"
-            exit 1
-        fi
-
+    versions)
         # Make sure a node IS running
         if ! relx_nodetool "ping" > /dev/null; then
             echo "Node is not running!"
             exit 1
         fi
 
+        COMMAND="$1"; shift
+
         ERL_FLAGS="$ERL_FLAGS $EPMD_ARG" \
         exec "$BINDIR/escript" "$ROOTDIR/bin/install_upgrade.escript" \
-             "unpack" "$REL_NAME" "$NAME_TYPE" "$NAME" "$COOKIE" "$2"
+             "versions" "{'$REL_NAME', \"$NAME_TYPE\", '$NAME', '$COOKIE'}" "$@"
         ;;
 
     console|console_clean|console_boot)
@@ -576,7 +635,7 @@ case "$1" in
         relx_nodetool "eval" $@
         ;;
     *)
-        echo "Usage: $REL_NAME {start|start_boot <file>|ertspath|foreground|stop|restart|reboot|pid|ping|console|console_clean|console_boot <file>|attach|remote_console|upgrade|escript|rpc|rpcterms|eval}"
+        relx_usage $1
         exit 1
         ;;
 esac
