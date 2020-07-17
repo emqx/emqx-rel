@@ -30,3 +30,4 @@ _checkouts
 _packages
 deploy/docker/tmp
 .vscode/settings.json
+.ignore
