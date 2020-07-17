@@ -15,16 +15,6 @@ jobs:
     - uses: ilammy/msvc-dev-cmd@v1
     - name: build
       run: |
-        $version = $("${{ github.ref }}" | sed -r 's .*/.*/(.*) \1 g')
-        if ($version -match "v[0-9]+\.[0-9]+(\.[0-9]+)?") {
-          $env:EMQX_DEPS_DEFAULT_VSN = $version
-          $regex = "[0-9]+\.[0-9]+(\.[0-9]+)?-(alpha|beta|rc)\.[0-9]"
-          $pkg_name = "emqx-windows-$([regex]::matches($version, $regex).value)).zip"
-          }
-        else {
-          $env:EMQX_DEPS_DEFAULT_VSN = "develop"
-          $pkg_name = "emqx-windows-$version.zip"
-          }
         set-executionpolicy remotesigned -s cu
         iex (new-object net.webclient).downloadstring('https://get.scoop.sh')
         $env:path + ";" + $env:USERPROFILE + "\scoop\shims"
@@ -33,6 +23,18 @@ jobs:
         scoop update
         scoop install sudo curl 7zip ojdkbuild8 vcredist2013
         scoop install erlang@22.3
+
+        $version = $("${{ github.ref }}" | sed -r "s ^refs/heads/|^refs/tags/(.*) \1 g")
+        if ($version -match "v[0-9]+\.[0-9]+(\.[0-9]+)?") {
+          $env:EMQX_DEPS_DEFAULT_VSN = $version
+          $regex = "[0-9]+\.[0-9]+(\.[0-9]+)?-(alpha|beta|rc)\.[0-9]"
+          $pkg_name = "emqx-windows-$([regex]::matches($version, $regex).value)).zip"
+          }
+        else {
+          $env:EMQX_DEPS_DEFAULT_VSN = ""
+          $ref = $("${{ github.ref }}" | sed -r 's .*/.*/(.*) \1 g')
+          $pkg_name = "emqx-windows-$ref.zip"
+          }
 
         make deps-emqx
         $rebar3 = $env:USERPROFILE + "\rebar3"
@@ -70,19 +72,20 @@ jobs:
         echo "::add-path::/usr/local/bin"
     - name: set env
       run: |
-        version=$(echo ${{ github.ref }} | gsed -r  "s .*/.*/(.*) \1 g")
-        if [ ! -z $(echo $version | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?") ]; then deps_version=$version; else deps_version=develop; fi
+        version=$(echo ${{ github.ref }} | gsed -r  "s ^refs/heads/|^refs/tags/(.*) \1 g")
+        if [ ! -z $(echo $version | grep -oE "^[ev0-9]+\.[0-9]+(\.[0-9]+)?") ]; then deps_version=$version; else deps_version=""; fi
 
         echo "::set-env name=EMQX_DEPS_DEFAULT_VSN::$deps_version"
         echo "::set-env name=version::$version"
     - name: build
       run: |
+        pkg_name="emqx-macosx-$(echo $(git describe --tags --always) | gsed -r 's/^[e|v](.*)/\1/g').zip"
         make emqx
         mkdir -p _packages/emqx
-        cd ./_build/emqx/rel && zip -rq emqx-macosx-$version.zip emqx && cd - && mv ./_build/emqx/rel/emqx-macosx-$version.zip _packages/emqx
+        cd ./_build/emqx/rel && zip -rq $pkg_name emqx && cd - && mv ./_build/emqx/rel/$pkg_name _packages/emqx
         ./_build/emqx/rel/emqx/bin/emqx start
         ./_build/emqx/rel/emqx/bin/emqx stop
-        openssl dgst -sha256 ./_packages/emqx/emqx-macosx-$version.zip | awk '{print $2}'  > ./_packages/emqx/emqx-macosx-$version.zip.sha256
+        openssl dgst -sha256 ./_packages/emqx/$pkg_name | awk '{print $2}'  > ./_packages/emqx/$pkg_name.sha256
     # - uses: actions/upload-artifact@v1
     #   with:
     #     name: emqx
@@ -128,8 +131,8 @@ jobs:
     - uses: actions/checkout@v1
     - name: get deps
       run: |
-        version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
-        if [ ! -z $(echo $version | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?") ]; then deps_version=$version; else deps_version=develop; fi
+        version=$(echo ${{ github.ref }} | sed -r  "s ^refs/heads/|^refs/tags/(.*) \1 g")
+        if [ ! -z $(echo $version | grep -oE "^[ev0-9]+\.[0-9]+(\.[0-9]+)?") ]; then deps_version=$version; else deps_version=""; fi
 
         echo "::set-env name=EMQX_DEPS_DEFAULT_VSN::$deps_version"
         echo "::set-env name=version::$version"
@@ -225,8 +228,8 @@ jobs:
     - uses: actions/checkout@v1
     - name: set env
       run: |
-        version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
-        if [ ! -z $(echo $version | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?") ]; then deps_version=$version; else deps_version=develop; fi
+        version=$(echo ${{ github.ref }} | sed -r  "s ^refs/heads/|^refs/tags/(.*) \1 g")
+        if [ ! -z $(echo $version | grep -oE "^[ev0-9]+\.[0-9]+(\.[0-9]+)?") ]; then deps_version=$version; else deps_version=""; fi
 
         echo "::set-env name=EMQX_DEPS_DEFAULT_VSN::$deps_version"
         echo "::set-env name=version::$version"
@@ -295,8 +298,8 @@ jobs:
         done
     - name: upload aws s3
       run: |
-        version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
-        if [ ! -z $(echo $version | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?") ]; then
+        version=$(echo ${{ github.ref }} | sed -r  "s ^refs/heads/|^refs/tags/(.*) \1 g")
+        if [ ! -z $(echo $version | grep -oE "^[ev0-9]+\.[0-9]+(\.[0-9]+)?") ]; then
           curl "https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
           unzip awscliv2.zip
           sudo ./aws/install
@@ -317,8 +320,8 @@ jobs:
         path: emqx-rel
     - name: update to github and emqx.io
       run: |
-        version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
-        if [ ! -z $(echo $version | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?") ]; then
+        version=$(echo ${{ github.ref }} | sed -r  "s ^refs/heads/|^refs/tags/(.*) \1 g")
+        if [ ! -z $(echo $version | grep -oE "^[ev0-9]+\.[0-9]+(\.[0-9]+)?") ]; then
           cd packages
           for var in $(ls); do
             ../emqx-rel/.github/workflows/script/upload_github_release_asset.sh owner=emqx repo=emqx tag=$version filename=$var github_api_token=$(echo ${{ secrets.AccessToken }})
@@ -327,8 +330,8 @@ jobs:
         fi
     - name: push docker image to docker hub
       run: |
-        version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
-        if [ ! -z $(echo $version | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?") ]; then
+        version=$(echo ${{ github.ref }} | sed -r  "s ^refs/heads/|^refs/tags/(.*) \1 g")
+        if [ ! -z $(echo $version | grep -oE "^[ev0-9]+\.[0-9]+(\.[0-9]+)?") ]; then
           sudo make -C emqx-rel/deploy/docker prepare
           cd ./packages && for var in $(ls |grep docker |grep -v sha256); do unzip $var; sudo docker load < ${var%.*}; rm -f ${var%.*}; done && cd -
           echo ${{ secrets.DockerHubPassword }} |sudo docker login -u ${{ secrets.DockerHubUser }} --password-stdin
@@ -337,8 +340,8 @@ jobs:
         fi
     - name: update repo.emqx.io
       run: |
-        version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
-        if [ ! -z $(echo $version | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?") ]; then
+        version=$(echo ${{ github.ref }} | sed -r  "s ^refs/heads/|^refs/tags/(.*) \1 g")
+        if [ ! -z $(echo $version | grep -oE "^[ev0-9]+\.[0-9]+(\.[0-9]+)?") ]; then
           curl -H "Authorization: token ${{ secrets.AccessToken }}" -H "Accept: application/vnd.github.everest-preview+json" -H "Content-Type: application/json" -X POST -d "{\"event_type\":\"update_repos\",\"client_payload\":{\"version\": \"$version\",\"emqx_ce\":true,\"emqx_ee\":false}}" https://api.github.com/repos/emqx/emqx-packages-docker/dispatches
         fi
     # - name: update homebrew packages

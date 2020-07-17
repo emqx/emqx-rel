@@ -20,9 +20,9 @@ emqx_test(){
     for var in $(ls $PACKAGE_PATH/${EMQX_NAME}-*);do
         case ${var##*.} in
             "zip")
-                zipname=`basename ${PACKAGE_PATH}/${EMQX_NAME}-${SYSTEM}-*.zip`
+                packagename=`basename ${PACKAGE_PATH}/${EMQX_NAME}-${SYSTEM}-*.zip`
                 mkdir -p ${PACKAGE_PATH}/${SYSTEM}/${EMQX_NAME}
-                unzip -q ${PACKAGE_PATH}/$zipname -d ${PACKAGE_PATH}/${SYSTEM}/${EMQX_NAME}
+                unzip -q ${PACKAGE_PATH}/$packagename -d ${PACKAGE_PATH}/${SYSTEM}/${EMQX_NAME}
                 sed -i "/zone.external.server_keepalive/c zone.external.server_keepalive = 60" ${PACKAGE_PATH}/${SYSTEM}/${EMQX_NAME}/emqx/etc/emqx.conf 
                 sed -i "/mqtt.max_topic_alias/c mqtt.max_topic_alias = 10" ${PACKAGE_PATH}/${SYSTEM}/${EMQX_NAME}/emqx/etc/emqx.conf
 
