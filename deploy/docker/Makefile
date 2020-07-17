@@ -6,8 +6,14 @@ QEMU_VERSION ?= v4.0.0
 OS ?= alpine
 
 ## versioning
-EMQX_DEPS_DEFAULT_VSN ?= develop
-BUILD_VERSION ?= $(EMQX_DEPS_DEFAULT_VSN:v%=%)
+EMQX_DEPS_DEFAULT_VSN ?= ""
+ifeq ($(EMQX_DEPS_DEFAULT_VSN), )
+	BUILD_VERSION := $(patsubst v%,%,$(patsubst e%,%,$(shell git describe --tags --always)))
+else ifeq ($(EMQX_DEPS_DEFAULT_VSN), "")
+	BUILD_VERSION := $(patsubst v%,%,$(patsubst e%,%,$(shell git describe --tags --always)))
+else
+	BUILD_VERSION := $(patsubst v%,%,$(patsubst e%,%,$(EMQX_DEPS_DEFAULT_VSN)))
+endif
 
 EMQX_NAME = $(subst emqx/,,$(TARGET))
 ARCH_LIST = amd64 arm64v8 arm32v7 i386 s390x
@@ -37,7 +43,6 @@ build:
 	## Build Docker image
 	@echo "DOCKER BUILD: Build Docker image."
 	@echo "DOCKER BUILD: build version -> $(BUILD_VERSION)."
-	@echo "DOCKER BUILD: build from -> $(BUILD_FROM)."
 	@echo "DOCKER BUILD: arch - $(ARCH)."
 	@echo "DOCKER BUILD: qemu arch - $(QEMU_ARCH)."
 	@echo "DOCKER BUILD: docker repo - $(TARGET) "

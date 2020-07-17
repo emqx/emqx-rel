@@ -21,13 +21,12 @@ jobs:
         - uses: actions/checkout@v1
         - name: get deps
           run: |
-            if [ ${{ github.event_name}} == 'repository_dispatch' ]; then version=${{ github.event.client_payload.version }}; else version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g"); fi
-            docker run -i --rm -e EMQX_DEPS_DEFAULT_VSN=$version -v $(pwd):/emqx-rel erlang:22.3 bash -c "make -C /emqx-rel deps-emqx"
+            if [ ${{ github.event_name}} = 'repository_dispatch' ]; then version=${{ github.event.client_payload.version }}; else version=$(echo ${{ github.ref }} | sed -r  "s ^refs/heads/|^refs/tags/(.*) \1 g"); fi
+            if [ ! -z $(echo $version | grep -oE "^[ev0-9]+\.[0-9]+(\.[0-9]+)?") ]; then deps_version=$version; else deps_version=""; fi
+            echo "::set-env name=EMQX_DEPS_DEFAULT_VSN::$deps_version"
+            echo "::set-env name=version::$version"
+            EMQX_DEPS_DEFAULT_VSN=$deps_version make deps-emqx
         - name: make emqx image
-          run: |
-            if [ ${{ github.event_name}} == 'repository_dispatch' ]; then version=${{ github.event.client_payload.version }}; else version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g"); fi
-            EMQX_DEPS_DEFAULT_VSN=$version make emqx-docker-build
+          run: make emqx-docker-build
         - name: make paho tests
-          run: |
-            if [ ${{ github.event_name}} == 'repository_dispatch' ]; then version=${{ github.event.client_payload.version }}; else version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g"); fi
-            EMQX_DEPS_DEFAULT_VSN=$version TARGET=emqx/emqx PAHO_BRANCH="develop-4.0" make -C .ci/paho_tests test
+          run: TARGET=emqx/emqx PAHO_BRANCH="develop-4.0" make -C .ci/paho_tests test
