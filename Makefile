@@ -50,7 +50,8 @@ CT_APPS := emqx \
            emqx_web_hook \
            emqx_bridge_mqtt \
            emqx_rule_engine \
-           emqx_extension_hook
+           emqx_extension_hook \
+           emqx_exproto
 
 .PHONY: default
 default: $(REBAR) $(PROFILE)
