@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 ## generate default .appup files for each emqx* application
 ##
 
@@ -14,21 +14,26 @@ if [ -z ${EMQX_DEPS_DEFAULT_VSN} ]; then
     exit 1
 fi
 
-read -d '' appup_text << EOF
+appup_text=$(cat << EOF
 %% appup file
 {"MajorVsn.MinorVsn.PatchVsn", % Current version
  [{<<"MajorVsn\\.MinorVsn(\\.[0-9]+)*">>, []}], % Upgrade from
  [{<<"MajorVsn\\.MinorVsn(\\.[0-9]+)*">>, []}]  % Downgrade to
 }.
 EOF
+)
 
-IFS0=IFS; IFS='.';
-read -ra Vsns <<< "$EMQX_DEPS_DEFAULT_VSN";
-IFS=IFS0;
+MajorV=${EMQX_DEPS_DEFAULT_VSN%%.*}
+Rem=${EMQX_DEPS_DEFAULT_VSN#*.}
+MinorV=${Rem%%.*}
+Rem=${Rem#*.}
+PatchV=$Rem
+#echo ---- $MajorV $MinorV $PatchV
 
-appup_text=${appup_text//MajorVsn/${Vsns[0]}}
-appup_text=${appup_text//MinorVsn/${Vsns[1]}}
-appup_text=${appup_text//PatchVsn/${Vsns[2]}}
+appup_text=$(echo "$appup_text" | sed -e "s/MajorVsn/$MajorV/g")
+appup_text=$(echo "$appup_text" | sed -e "s/MinorVsn/$MinorV/g")
+appup_text=$(echo "$appup_text" | sed -e "s/PatchVsn/$PatchV/g")
+#echo ---- $appup_text
 
 for appdir in _checkouts/emqx* ; do
     mkdir -p "${appdir}/ebin"
