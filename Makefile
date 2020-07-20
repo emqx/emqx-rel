@@ -66,18 +66,57 @@ remove-build-meta-files:
 	@rm -f data/app.*.config data/vm.*.args rebar.lock
 
 .PHONY: $(PROFILES)
-$(PROFILES:%=%) $(PROFILES:%=tar-%): $(REBAR)
+$(PROFILES:%=%) $(PROFILES:%=zip-%): $(REBAR)
 ifneq ($(OS),Windows_NT)
-	@ln -snf _build/$(subst tar-,,$(@))/lib ./_checkouts
+	@ln -snf _build/$(subst zip-,,$(@))/lib ./_checkouts
 endif
 	@if [ $$(echo $(@) |grep edge) ];then export EMQX_DESC="EMQ X Edge";else export EMQX_DESC="EMQ X Broker"; fi; \
-	if [ "$(findstring tar, $(@))" == 'tar' ];\
-	  then $(REBAR) as $(subst tar-,,$(@)) tar;\
-	  else $(REBAR) as $(@) release;\
+	if [ "$(findstring zip, $(@))" == 'zip' ];\
+	then \
+		tard="/tmp/emqx_untar_$$(date +%s)";\
+		prof="$(subst zip-,,$(@))";\
+		relpath="$$(pwd)/_build/$${prof}/rel/emqx";\
+		tarball="$${relpath}/emqx-$${EMQX_DEPS_DEFAULT_VSN}.tar.gz";\
+		zipball="$${relpath}/emqx-$${EMQX_DEPS_DEFAULT_VSN}.zip";\
+		rm -rf "$${tard}" && mkdir -p "$${tard}/emqx";\
+		$(REBAR) as "$${prof}" tar \
+		&& tar zxf "$${tarball}" -C "$${tard}/emqx" \
+		&& cd "$${tard}" \
+		&& zip -q -r "$${zipball}" ./emqx; cd - > /dev/null\
+		&& echo "===> zipball $${zipball} created!";\
+	else $(REBAR) as $(@) release;\
 	fi
 
 .PHONY: $(PROFILES:%=relup-%)
 $(PROFILES:%=relup-%): $(REBAR)
+	@for tarf in $(wildcard _build/$(@:relup-%=%)/rel/emqx/*.tar.gz) $(wildcard _build/$(@:relup-%=%)/rel/emqx/*.zip); do \
+		if echo "$${tarf}" | grep -q $${EMQX_DEPS_DEFAULT_VSN};\
+		then echo >> /dev/null ;\
+		else \
+			tard="/tmp/emqx_untar_$$(date +%s)";\
+			echo "===> unzip $${tarf}";\
+			rm -rf $${tard};\
+			if echo "$${tarf}" | grep -q '.zip';\
+			then \
+				mkdir -p "$${tard}"; \
+				unzip -q $${tarf} -d $${tard}; \
+			else \
+				mkdir -p "$${tard}/emqx"; \
+				tar zxf $${tarf} -C "$${tard}/emqx";\
+			fi;\
+			for d in $${tard}/emqx/lib/*; do \
+				relf="_build/$(@:relup-%=%)/rel/emqx/lib/$$(basename $${d})";\
+				if ! [ -d $${relf} ]; then \
+					cp -nr "$$d" "$${relf}";\
+				fi;\
+			done;\
+			for d in $${tard}/emqx/releases/*; do \
+				if [ -d $${d} ]; then \
+					cp -nr "$$d" "_build/$(@:relup-%=%)/rel/emqx/releases/";\
+				fi;\
+			done;\
+		fi; \
+	done; \
 	$(REBAR) as $(@:relup-%=%) relup
 
 .PHONY: $(PROFILES:%=build-%)
