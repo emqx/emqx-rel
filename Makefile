@@ -7,7 +7,14 @@ REBAR = $(CURDIR)/rebar3
 
 REBAR_URL = https://s3.amazonaws.com/rebar3/rebar3
 
-export EMQX_DEPS_DEFAULT_VSN
+EMQX_DEPS_DEFAULT_VSN ?= ""
+ifeq ($(EMQX_DEPS_DEFAULT_VSN), )
+	BUILD_VERSION := $(patsubst v%,%,$(patsubst e%,%,$(shell git describe --tags --always)))
+else ifeq ($(EMQX_DEPS_DEFAULT_VSN), "")
+	BUILD_VERSION := $(patsubst v%,%,$(patsubst e%,%,$(shell git describe --tags --always)))
+else
+	BUILD_VERSION := $(patsubst v%,%,$(patsubst e%,%,$(EMQX_DEPS_DEFAULT_VSN)))
+endif
 
 PROFILE ?= emqx
 PROFILES := emqx emqx-edge
@@ -76,8 +83,8 @@ endif
 		tard="/tmp/emqx_untar_$$(date +%s)";\
 		prof="$(subst zip-,,$(@))";\
 		relpath="$$(pwd)/_build/$${prof}/rel/emqx";\
-		tarball="$${relpath}/emqx-$${EMQX_DEPS_DEFAULT_VSN}.tar.gz";\
-		zipball="$${relpath}/emqx-$${EMQX_DEPS_DEFAULT_VSN}.zip";\
+		tarball="$${relpath}/emqx-${BUILD_VERSION}.tar.gz";\
+		zipball="$${relpath}/emqx-${BUILD_VERSION}-$$(uname -m).zip";\
 		rm -rf "$${tard}" && mkdir -p "$${tard}/emqx";\
 		$(REBAR) as "$${prof}" tar \
 		&& tar zxf "$${tarball}" -C "$${tard}/emqx" \
@@ -89,35 +96,10 @@ endif
 
 .PHONY: $(PROFILES:%=relup-%)
 $(PROFILES:%=relup-%): $(REBAR)
-	@for tarf in $(wildcard _build/$(@:relup-%=%)/rel/emqx/*.tar.gz) $(wildcard _build/$(@:relup-%=%)/rel/emqx/*.zip); do \
-		if echo "$${tarf}" | grep -q $${EMQX_DEPS_DEFAULT_VSN};\
-		then echo >> /dev/null ;\
-		else \
-			tard="/tmp/emqx_untar_$$(date +%s)";\
-			echo "===> unzip $${tarf}";\
-			rm -rf $${tard};\
-			if echo "$${tarf}" | grep -q '.zip';\
-			then \
-				mkdir -p "$${tard}"; \
-				unzip -q $${tarf} -d $${tard}; \
-			else \
-				mkdir -p "$${tard}/emqx"; \
-				tar zxf $${tarf} -C "$${tard}/emqx";\
-			fi;\
-			for d in $${tard}/emqx/lib/*; do \
-				relf="_build/$(@:relup-%=%)/rel/emqx/lib/$$(basename $${d})";\
-				if ! [ -d $${relf} ]; then \
-					cp -nr "$$d" "$${relf}";\
-				fi;\
-			done;\
-			for d in $${tard}/emqx/releases/*; do \
-				if [ -d $${d} ]; then \
-					cp -nr "$$d" "_build/$(@:relup-%=%)/rel/emqx/releases/";\
-				fi;\
-			done;\
-		fi; \
-	done; \
-	$(REBAR) as $(@:relup-%=%) relup
+#ifneq ($(OS),Windows_NT)
+	@BUILD_VERSION=${BUILD_VERSION} PROFILE=$(@:relup-%=%) ./gen_appups.sh \
+	&& $(REBAR) as $(@:relup-%=%) relup
+#endif
 
 .PHONY: $(PROFILES:%=build-%)
 $(PROFILES:%=build-%): $(REBAR)
