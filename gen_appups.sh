@@ -36,30 +36,30 @@ if echo "${EMQX_DEPS_DEFAULT_VSN}" | grep -q '-'; then
     if echo "${Rem}" | grep -q '\.'; then
         MinorV=${Rem%%.*}
         Rem=${Rem#*.}
-        PatchOrExtV="${Rem}""${PatchOrExtV}"
+        PatchOrExtV=".${Rem}""${PatchOrExtV}"
     else
         MinorV=${Rem}
     fi
 else
     MajorV=${EMQX_DEPS_DEFAULT_VSN%%.*}
     Rem=${EMQX_DEPS_DEFAULT_VSN#*.}
-    echo ++${Rem}
+    #echo ++${Rem}
     if echo "${Rem}" | grep -q '\.'; then
         MinorV=${Rem%%.*}
         Rem=${Rem#*.}
-        PatchOrExtV=$Rem
+        PatchOrExtV=".$Rem"
     else
         MinorV=$Rem
         PatchOrExtV=""
     fi
 fi;
 
-echo ---- $MajorV $MinorV $PatchOrExtV
+#echo ---- $MajorV $MinorV $PatchOrExtV
 
 appup_text=$(echo "$appup_text" | sed -e "s/MajorVsn/$MajorV/g")
 appup_text=$(echo "$appup_text" | sed -e "s/MinorVsn/$MinorV/g")
 appup_text=$(echo "$appup_text" | sed -e "s/PatchOrExtVsn/$PatchOrExtV/g")
-echo ---- $appup_text
+#echo ---- $appup_text
 
 for appdir in _checkouts/emqx* ; do
     mkdir -p "${appdir}/ebin"
