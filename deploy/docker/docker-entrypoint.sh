@@ -182,7 +182,7 @@ if [[ ! -z "$EMQX_LOADED_MODULES" ]]; then
     echo "EMQX_LOADED_MODULES=$EMQX_LOADED_MODULES"
     # Parse module names and place `{module_name, true}.` tuples in `loaded_modules`.
     for var in $(echo "$EMQX_LOADED_MODULES"|sed -e "s/^[^A-Za-z0-9_]\{1,\}//g"|sed -e "s/[^A-Za-z0-9_]\{1,\}/\ /g"); do
-        if [ ! -z "$(grep -oE "\{($var),[ ]*(true|false)\}" ${_EMQX_HOME}/data/loaded_plugins)" ]; then
+        if [ ! -z "$(grep -oE "\{($var),[ ]*(true|false)\}" ${_EMQX_HOME}/data/loaded_modules)" ]; then
             echo "$(sed -r "s/\{($var),[ ]*(true|false)\}./\{\1, true\}./1" ${_EMQX_HOME}/data/loaded_modules)" > ${_EMQX_HOME}/data/loaded_modules
         elif [ ! -z $(grep -o "$var\." ${_EMQX_HOME}/data/loaded_modules) ]; then
             # backward compatible.
