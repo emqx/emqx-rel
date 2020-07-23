@@ -208,12 +208,12 @@ jobs:
         QEMU_ARCH: ${{ matrix.arch[1] }}
       run: |
         sudo docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-        sudo ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH make emqx-docker-build
-        sudo ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH make emqx-docker-save
+        sudo EMQX_DEPS_DEFAULT_VSN=$EMQX_DEPS_DEFAULT_VSN ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH make emqx-docker-build
+        sudo EMQX_DEPS_DEFAULT_VSN=$EMQX_DEPS_DEFAULT_VSN AARCH=$ARCH QEMU_ARCH=$QEMU_ARCH make emqx-docker-save
         cd _packages/emqx && for var in $(ls emqx-docker-* ); do sudo bash -c "echo $(sha256sum $var | awk '{print $1}') > $var.sha256"; done && cd -
         aws s3 cp --recursive _packages/emqx  s3://packages.emqx.io/emqx-ce/$version
-        sudo ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH  make emqx-edge-docker-build
-        sudo ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH  make emqx-edge-docker-save
+        sudo EMQX_DEPS_DEFAULT_VSN=$EMQX_DEPS_DEFAULT_VSN ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH  make emqx-edge-docker-build
+        sudo EMQX_DEPS_DEFAULT_VSN=$EMQX_DEPS_DEFAULT_VSN ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH  make emqx-edge-docker-save
         cd _packages/emqx-edge && for var in $(ls emqx-edge-docker-* ); do sudo bash -c "echo $(sha256sum $var | awk '{print $1}') > $var.sha256"; done && cd -
         aws s3 cp --recursive _packages/emqx-edge s3://packages.emqx.io/emqx-edge/$version
     - name: docker test
