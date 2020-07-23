@@ -86,24 +86,24 @@ endif
 		tarball="$${relpath}/emqx-${BUILD_VERSION}.tar.gz";\
 		zipball="$${relpath}/emqx-${BUILD_VERSION}-$$(uname -m).zip";\
 		rm -rf "$${tard}" && mkdir -p "$${tard}/emqx";\
-		$(REBAR) as "$${prof}" tar \
+		BUILD_VERSION=${BUILD_VERSION} $(REBAR) as "$${prof}" tar \
 		&& tar zxf "$${tarball}" -C "$${tard}/emqx" \
 		&& cd "$${tard}" \
 		&& zip -q -r "$${zipball}" ./emqx; cd - > /dev/null\
 		&& echo "===> zipball $${zipball} created!";\
-	else $(REBAR) as $(@) release;\
+	else BUILD_VERSION=${BUILD_VERSION} $(REBAR) as $(@) release;\
 	fi
 
 .PHONY: $(PROFILES:%=relup-%)
 $(PROFILES:%=relup-%): $(REBAR)
 #ifneq ($(OS),Windows_NT)
-	@BUILD_VERSION=${BUILD_VERSION} PROFILE=$(@:relup-%=%) ./gen_appups.sh \
+	BUILD_VERSION=${BUILD_VERSION} PROFILE=$(@:relup-%=%) ./gen_appups.sh \
 	&& $(REBAR) as $(@:relup-%=%) relup
 #endif
 
 .PHONY: $(PROFILES:%=build-%)
 $(PROFILES:%=build-%): $(REBAR)
-	$(REBAR) as $(@:build-%=%) compile
+	BUILD_VERSION=${BUILD_VERSION} $(REBAR) as $(@:build-%=%) compile
 
 .PHONY: deps-all
 deps-all: $(REBAR) $(PROFILES:%=deps-%) $(PKG_PROFILES:%=deps-%)
@@ -122,7 +122,7 @@ $(PROFILES:%=run-%): $(REBAR)
 ifneq ($(OS),Windows_NT)
 	@ln -snf _build/$(@:run-%=%)/lib ./_checkouts
 endif
-	$(REBAR) as $(@:run-%=%) run
+	BUILD_VERSION=${BUILD_VERSION} $(REBAR) as $(@:run-%=%) run
 
 .PHONY: clean $(PROFILES:%=clean-%)
 clean: $(PROFILES:%=clean-%)
@@ -158,7 +158,7 @@ endif
 $(PKG_PROFILES:%=%): $(REBAR)
 	ln -snf _build/$(@)/lib ./_checkouts
 	@if [ $$(echo $(@) |grep edge) ];then export EMQX_DESC="EMQ X Edge";else export EMQX_DESC="EMQ X Broker"; fi;\
-	$(REBAR) as $(@) release
+	BUILD_VERSION=${BUILD_VERSION} $(REBAR) as $(@) release
 	EMQX_REL=$$(pwd) EMQX_BUILD=$(@) make -C deploy/packages
 
 # Build docker image
