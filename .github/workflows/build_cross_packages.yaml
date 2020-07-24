@@ -22,7 +22,7 @@ jobs:
         scoop bucket add java
         scoop update
         scoop install sudo curl 7zip ojdkbuild8 vcredist2013
-        scoop install erlang@22.3.4
+        scoop install erlang@22.3
 
         $version = $("${{ github.ref }}" | sed -r "s ^refs/heads/|^refs/tags/(.*) \1 g")
         if ($version -match "v[0-9]+\.[0-9]+(\.[0-9]+)?") {
