@@ -4,7 +4,7 @@ FROM ${BUILD_FROM} AS builder
 
 ARG QEMU_ARCH=x86_64
 COPY deploy/docker/tmp/qemu-$QEMU_ARCH-stati* /usr/bin/
-COPY . /emqx_rel 
+COPY . /emqx-rel
 
 RUN apk add git \
     curl \
@@ -22,7 +22,7 @@ RUN apk add git \
 ARG EMQX_DEPS_DEFAULT_VSN=develop
 ARG EMQX_NAME=emqx
 
-RUN cd /emqx_rel && make ${EMQX_NAME}
+RUN cd /emqx-rel && make ${EMQX_NAME}
 
 FROM $RUN_FROM
 
@@ -39,7 +39,7 @@ LABEL org.label-schema.docker.dockerfile="Dockerfile" \
 
 ARG QEMU_ARCH=x86_64
 COPY deploy/docker/docker-entrypoint.sh deploy/docker/start.sh deploy/docker/tmp/qemu-$QEMU_ARCH-stati* /usr/bin/
-COPY --from=builder /emqx_rel/_build/emqx*/rel/emqx /opt/emqx
+COPY --from=builder /emqx-rel/_build/emqx*/rel/emqx /opt/emqx
 
 RUN ln -s /opt/emqx/bin/* /usr/local/bin/ 
 RUN apk add --no-cache curl ncurses-libs openssl sudo libstdc++
