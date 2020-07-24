@@ -23,9 +23,17 @@ jobs:
           run: |
             if [ ${{ github.event_name}} = 'repository_dispatch' ]; then version=${{ github.event.client_payload.version }}; else version=$(echo ${{ github.ref }} | sed -r  "s ^refs/heads/|^refs/tags/(.*) \1 g"); fi
             if [ ! -z $(echo $version | grep -oE "^[ev0-9]+\.[0-9]+(\.[0-9]+)?") ]; then deps_version=$version; else deps_version=""; fi
+
             echo "::set-env name=EMQX_DEPS_DEFAULT_VSN::$deps_version"
             echo "::set-env name=version::$version"
-            EMQX_DEPS_DEFAULT_VSN=$deps_version make deps-emqx
+
+            docker run -i --rm \
+              -e GITHUB_RUN_ID=$GITHUB_RUN_ID \
+              -e GITHUB_REF=$GITHUB_REF \
+              -e EMQX_DEPS_DEFAULT_VSN=$deps_version \
+              -v $(pwd):/emqx-rel \
+              emqx/build-env:erl22.3-debian10 \
+              bash -c "make -C /emqx-rel deps-emqx"
         - name: make emqx image
           run: make emqx-docker-build
         - name: make paho tests
