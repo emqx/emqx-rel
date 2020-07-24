@@ -22,7 +22,7 @@ jobs:
         scoop bucket add java
         scoop update
         scoop install sudo curl 7zip ojdkbuild8 vcredist2013
-        scoop install erlang@22.3.4.3
+        scoop install erlang@22.3.4
 
         $version = $("${{ github.ref }}" | sed -r "s ^refs/heads/|^refs/tags/(.*) \1 g")
         if ($version -match "v[0-9]+\.[0-9]+(\.[0-9]+)?") {
@@ -246,7 +246,7 @@ jobs:
             -e EMQX_DEPS_DEFAULT_VSN=$deps_version \
             -v $(pwd):/emqx-rel \
             emqx/build-env:erl22.3-alpine-amd64 \
-            bash -c "make -C /emqx-rel deps-emqx"
+            sh -c "make -C /emqx-rel deps-emqx"
     - name: build emqx docker image
       env:
         ARCH: ${{ matrix.arch[0] }}
