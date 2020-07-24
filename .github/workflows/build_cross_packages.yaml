@@ -22,7 +22,7 @@ jobs:
         scoop bucket add java
         scoop update
         scoop install sudo curl 7zip ojdkbuild8 vcredist2013
-        scoop install erlang@22.3
+        scoop install erlang@22.3.4.3
 
         $version = $("${{ github.ref }}" | sed -r "s ^refs/heads/|^refs/tags/(.*) \1 g")
         if ($version -match "v[0-9]+\.[0-9]+(\.[0-9]+)?") {
@@ -137,7 +137,13 @@ jobs:
         echo "::set-env name=EMQX_DEPS_DEFAULT_VSN::$deps_version"
         echo "::set-env name=version::$version"
 
-        EMQX_DEPS_DEFAULT_VSN=$deps_version make deps-all
+        docker run -i --rm \
+            -e GITHUB_RUN_ID=$GITHUB_RUN_ID \
+            -e GITHUB_REF=$GITHUB_REF \
+            -e EMQX_DEPS_DEFAULT_VSN=$deps_version \
+            -v $(pwd):/emqx-rel \
+            emqx/build-env:erl22.3-debian10 \
+            bash -c "make -C /emqx-rel deps-all"
     - name: build emqx packages on amd64
       env: 
         ERL_OTP: erl22.3
@@ -226,13 +232,21 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
-    - name: set env
+    - name: get deps
       run: |
         version=$(echo ${{ github.ref }} | sed -r  "s ^refs/heads/|^refs/tags/(.*) \1 g")
         if [ ! -z $(echo $version | grep -oE "^[ev0-9]+\.[0-9]+(\.[0-9]+)?") ]; then deps_version=$version; else deps_version=""; fi
 
         echo "::set-env name=EMQX_DEPS_DEFAULT_VSN::$deps_version"
         echo "::set-env name=version::$version"
+
+        docker run -i --rm \
+            -e GITHUB_RUN_ID=$GITHUB_RUN_ID \
+            -e GITHUB_REF=$GITHUB_REF \
+            -e EMQX_DEPS_DEFAULT_VSN=$deps_version \
+            -v $(pwd):/emqx-rel \
+            emqx/build-env:erl22.3-alpine-amd64 \
+            bash -c "make -C /emqx-rel deps-emqx"
     - name: build emqx docker image
       env:
         ARCH: ${{ matrix.arch[0] }}
