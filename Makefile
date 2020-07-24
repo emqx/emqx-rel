@@ -78,7 +78,7 @@ ifneq ($(OS),Windows_NT)
 	@ln -snf _build/$(subst zip-,,$(@))/lib ./_checkouts
 endif
 	@if [ $$(echo $(@) |grep edge) ];then export EMQX_DESC="EMQ X Edge";else export EMQX_DESC="EMQ X Broker"; fi; \
-	if [ "$(findstring zip, $(@))" == 'zip' ];\
+	if [ "$(findstring zip, $(@))" = 'zip' ];\
 	then \
 		tard="/tmp/emqx_untar_$$(date +%s)";\
 		prof="$(subst zip-,,$(@))";\
