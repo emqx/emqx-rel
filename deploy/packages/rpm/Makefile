@@ -13,8 +13,8 @@ ifeq ($(ARCH),mips64)
 ARCH:=mips64el
 endif
 
+TAR_PKG := $(EMQX_REL)/_build/$(EMQX_BUILD)/rel/emqx/emqx-$(PKG_VSN).tar.gz
 TARGET_PKG := $(EMQX_NAME)-$(SYSTEM)-$(RPM_VSN)-$(RPM_REL).$(ARCH)
-
 ifeq ($(RPM_REL),)
 	# no tail
 	RPM_REL := 1
@@ -34,12 +34,13 @@ PREUN_ADDITION := $(if $(SYSTEMD),%systemd_preun %{_name}.service,echo preun)
 
 .PHONY: all
 all: | $(BUILT)
+	cd $(SRCDIR)
 	rpmbuild -v -bb \
 		--define "_package_name $(EMQX_NAME)" \
 		--define "_name emqx" \
 		--define "_topdir $(TOPDIR)" \
 		--define "_version $(RPM_VSN)" \
-		--define "_reldir $(SRCDIR)/_build/$(EMQX_BUILD)/rel/emqx" \
+		--define "_reldir $(SRCDIR)" \
 		--define "_release $(RPM_REL)" \
 		--define "_service_src $(SERVICE_SRC)" \
 		--define "_service_dst $(SERVICE_DST)" \
@@ -48,13 +49,12 @@ all: | $(BUILT)
 		--define "_ostype -$(SYSTEM)" \
 		--define "_sharedstatedir /var/lib" \
 		emqx.spec
-	mkdir -p $(EMQX_REL)/_packages/$(EMQX_NAME)
-	cp $(TOPDIR)/RPMS/$(ARCH)/$(SOURCE_PKG).rpm $(EMQX_REL)/_packages/$(EMQX_NAME)/$(TARGET_PKG).rpm
+	mkdir -p $(PKG_DIR)
+	cp $(TOPDIR)/RPMS/$(ARCH)/$(SOURCE_PKG).rpm  $(PKG_DIR)/$(TARGET_PKG).rpm
 
 $(BUILT):
-	mkdir -p $(TOPDIR) $(SRCDIR)
-	cp -r $(EMQX_REL)/. $(SRCDIR) 
-	cd $(SRCDIR) && mkdir BUILT 
+	mkdir -p $(TOPDIR) $(SRCDIR) $(SRCDIR)/BUILT
+	tar zxf $(TAR_PKG) -C $(SRCDIR)
 
 clean:
 	rm -rf $(SRCDIR)

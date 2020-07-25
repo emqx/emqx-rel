@@ -7,13 +7,11 @@ REBAR = $(CURDIR)/rebar3
 
 REBAR_URL = https://s3.amazonaws.com/rebar3/rebar3
 
-EMQX_DEPS_DEFAULT_VSN ?= ""
-ifeq ($(EMQX_DEPS_DEFAULT_VSN), )
-	BUILD_VERSION := $(patsubst v%,%,$(patsubst e%,%,$(shell git describe --tags --always)))
-else ifeq ($(EMQX_DEPS_DEFAULT_VSN), "")
-	BUILD_VERSION := $(patsubst v%,%,$(patsubst e%,%,$(shell git describe --tags --always)))
+export EMQX_DEPS_DEFAULT_VSN ?= $(shell ./get_lastest_tag.escript ref)
+ifneq ($(shell echo $(EMQX_DEPS_DEFAULT_VSN) | grep -oE "^[ev0-9]+\.[0-9]+(\.[0-9]+)?"),)
+    export PKG_VSN := $(patsubst v%,%,$(patsubst e%,%,$(EMQX_DEPS_DEFAULT_VSN)))
 else
-	BUILD_VERSION := $(patsubst v%,%,$(patsubst e%,%,$(EMQX_DEPS_DEFAULT_VSN)))
+    export PKG_VSN := $(patsubst v%,%,$(shell ./get_lastest_tag.escript tag))
 endif
 
 PROFILE ?= emqx
@@ -73,37 +71,31 @@ remove-build-meta-files:
 	@rm -f data/app.*.config data/vm.*.args rebar.lock
 
 .PHONY: $(PROFILES)
-$(PROFILES:%=%) $(PROFILES:%=zip-%): $(REBAR)
+$(PROFILES:%=%): $(REBAR)
 ifneq ($(OS),Windows_NT)
-	@ln -snf _build/$(subst zip-,,$(@))/lib ./_checkouts
+	@ln -snf _build/$(@)/lib ./_checkouts
 endif
 	@if [ $$(echo $(@) |grep edge) ];then export EMQX_DESC="EMQ X Edge";else export EMQX_DESC="EMQ X Broker"; fi; \
-	if [ "$(findstring zip, $(@))" = 'zip' ];\
-	then \
-		tard="/tmp/emqx_untar_$$(date +%s)";\
-		prof="$(subst zip-,,$(@))";\
-		relpath="$$(pwd)/_build/$${prof}/rel/emqx";\
-		tarball="$${relpath}/emqx-${BUILD_VERSION}.tar.gz";\
-		zipball="$${relpath}/emqx-${BUILD_VERSION}-$$(uname -m).zip";\
-		rm -rf "$${tard}" && mkdir -p "$${tard}/emqx";\
-		BUILD_VERSION=${BUILD_VERSION} $(REBAR) as "$${prof}" tar \
-		&& tar zxf "$${tarball}" -C "$${tard}/emqx" \
-		&& cd "$${tard}" \
-		&& zip -q -r "$${zipball}" ./emqx; cd - > /dev/null\
-		&& echo "===> zipball $${zipball} created!";\
-	else BUILD_VERSION=${BUILD_VERSION} $(REBAR) as $(@) release;\
-	fi
+	$(REBAR) as $(@) release
+
+.PHONY: $(PROFILES:%=%-tar) $(PKG_PROFILES:%=%-tar)
+$(PROFILES:%=%-tar) $(PKG_PROFILES:%=%-tar): $(REBAR)
+ifneq ($(OS),Windows_NT)
+	@ln -snf _build/$(subst -tar,,$(@))/lib ./_checkouts
+endif
+	@if [ $$(echo $(@) |grep edge) ];then export EMQX_DESC="EMQ X Edge";else export EMQX_DESC="EMQ X Broker"; fi; \
+	$(REBAR) as $(subst -tar,,$(@)) tar
 
 .PHONY: $(PROFILES:%=relup-%)
 $(PROFILES:%=relup-%): $(REBAR)
 #ifneq ($(OS),Windows_NT)
-	BUILD_VERSION=${BUILD_VERSION} PROFILE=$(@:relup-%=%) ./gen_appups.sh \
+	PROFILE=$(@:relup-%=%) ./gen_appups.sh \
 	&& $(REBAR) as $(@:relup-%=%) relup
 #endif
 
 .PHONY: $(PROFILES:%=build-%)
 $(PROFILES:%=build-%): $(REBAR)
-	BUILD_VERSION=${BUILD_VERSION} $(REBAR) as $(@:build-%=%) compile
+	$(REBAR) as $(@:build-%=%) compile
 
 .PHONY: deps-all
 deps-all: $(REBAR) $(PROFILES:%=deps-%) $(PKG_PROFILES:%=deps-%)
@@ -122,7 +114,7 @@ $(PROFILES:%=run-%): $(REBAR)
 ifneq ($(OS),Windows_NT)
 	@ln -snf _build/$(@:run-%=%)/lib ./_checkouts
 endif
-	BUILD_VERSION=${BUILD_VERSION} $(REBAR) as $(@:run-%=%) run
+	$(REBAR) as $(@:run-%=%) run
 
 .PHONY: clean $(PROFILES:%=clean-%)
 clean: $(PROFILES:%=clean-%)
@@ -156,14 +148,39 @@ endif
 # Build packages
 .PHONY: $(PKG_PROFILES)
 $(PKG_PROFILES:%=%): $(REBAR)
-	ln -snf _build/$(@)/lib ./_checkouts
-	@if [ $$(echo $(@) |grep edge) ];then export EMQX_DESC="EMQ X Edge";else export EMQX_DESC="EMQ X Broker"; fi;\
-	BUILD_VERSION=${BUILD_VERSION} $(REBAR) as $(@) release
-	EMQX_REL=$$(pwd) EMQX_BUILD=$(@) make -C deploy/packages
+ifeq ($(shell uname -s),Linux)
+	make $(subst -pkg,,$(@))-tar
+	make $(@)-linux
+endif
+ifeq ($(shell uname -s),Darwin)
+	make $(subst -pkg,,$(@))-tar
+	make $(@)-macos
+endif
+
+.PHONY: $(PKG_PROFILES:%=%-linux)
+$(PKG_PROFILES:%=%-linux):
+	make $(subst -linux,,$(@))-tar
+	EMQX_REL=$$(pwd) EMQX_BUILD=$(subst -linux,,$(@)) make -C deploy/packages
+
+.PHONY: $(PKG_PROFILES:%=%-macos)
+$(PKG_PROFILES:%=%-macos):
+	tard="/tmp/emqx_untar_$(PKG_VSN)";\
+	rm -rf "$${tard}" && mkdir -p "$${tard}/emqx";\
+	prof="$(subst -pkg-macos,,$(@))";\
+	relpath="$$(pwd)/_build/$${prof}/rel/emqx";\
+	pkgpath="$$(pwd)/_packages/$${prof}"; \
+	mkdir -p $${pkgpath}; \
+	tarball="$${relpath}/emqx-$(PKG_VSN).tar.gz";\
+	zipball="$${pkgpath}/emqx-macos-$(PKG_VSN).zip";\
+	tar zxf "$${tarball}" -C "$${tard}/emqx"; \
+	pushd "$${tard}"; \
+	zip -q -r "$${zipball}" ./emqx; \
+	popd
+
 
 # Build docker image
 .PHONY: $(PROFILES:%=%-docker-build)
-$(PROFILES:%=%-docker-build): $(PKG_PROFILES:%=deps-%)
+$(PROFILES:%=%-docker-build): $(PROFILES:%=deps-%)
 	@if [ ! -z `echo $(@) |grep -oE edge` ]; then \
 		TARGET=emqx/emqx-edge make -C deploy/docker; \
 	else \
