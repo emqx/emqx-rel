@@ -5,7 +5,7 @@ ifneq ($(shell uname -s),Linux)
 	exit
 endif
 # The version-release used for package
-ifneq ($(shell echo $(EMQX_DEPS_DEFAULT_VSN) | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?"),)
+ifneq ($(shell echo $(EMQX_DEPS_DEFAULT_VSN) | grep -oE "^[ev0-9]+\.[0-9]+(\.[0-9]+)?"),)
 	PKG_VSN := $(patsubst v%,%,$(patsubst e%,%,$(EMQX_DEPS_DEFAULT_VSN)))
 else
 	PKG_VSN := $(patsubst v%,%,$(patsubst e%,%,$(shell git describe --abbrev=0 --tags)))
@@ -40,15 +40,28 @@ else
 	PKGERDIR := rpm
 endif
 
+UNDIR := /tmp/emqx_untar
+PKG_DIR:= $(EMQX_REL)/_packages/$(EMQX_NAME)
+TAR_PKG := $(EMQX_REL)/_build/$(EMQX_NAME)/rel/emqx/emqx-$(PKG_VSN).tar.gz
+ZIP_PKG := $(PKG_DIR)/$(EMQX_NAME)-$(SYSTEM)-$(PKG_VSN)-$(shell uname -m).zip
+
 .PHONY: all
-all: clean
+all: clean zip
 	$(if $(PKGERDIR),,$(error "Operating system '$(OS)' not supported"))
 	cd $(PKGERDIR) && $(MAKE)
 
 clean:
+	rm -rf $(UNDIR)
 	rm -rf package
 	make -C rpm clean
 	make -C deb clean
+
+.PHONY: zip
+zip:
+	mkdir -p $(PKG_DIR)
+	mkdir -p $(UNDIR)/emqx
+	tar zxf $(TAR_PKG) -C $(UNDIR)/emqx
+	cd $(UNDIR) && zip -q -r $(ZIP_PKG) ./emqx && cd -
 
 .PHONY: deb
 deb:
