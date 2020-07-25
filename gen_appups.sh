@@ -1,6 +1,7 @@
 #!/bin/sh
 ## generate default .appup files for each emqx* application
 ##
+set -e -x -u
 
 write_file() {
     filename=$1
@@ -9,8 +10,8 @@ write_file() {
     echo "$text" > "$filename"
 }
 
-if [ -z ${EMQX_DEPS_DEFAULT_VSN} ]; then
-    echo "error: Enviornment Variable 'EMQX_DEPS_DEFAULT_VSN' is not set"
+if [ -z ${PKG_VSN} ]; then
+    echo "error: Enviornment Variable 'PKG_VSN' is not set"
     exit 1
 fi
 
@@ -28,9 +29,9 @@ appup_text=$(cat << EOF
 EOF
 )
 
-if echo "${EMQX_DEPS_DEFAULT_VSN}" | grep -q '-'; then
-    Vsn=${EMQX_DEPS_DEFAULT_VSN%%-*}
-    PatchOrExtV="-${EMQX_DEPS_DEFAULT_VSN#*-}"
+if echo "${PKG_VSN}" | grep -q '-'; then
+    Vsn=${PKG_VSN%%-*}
+    PatchOrExtV="-${PKG_VSN#*-}"
     MajorV=${Vsn%%.*}
     Rem=${Vsn#*.}
     if echo "${Rem}" | grep -q '\.'; then
@@ -41,8 +42,8 @@ if echo "${EMQX_DEPS_DEFAULT_VSN}" | grep -q '-'; then
         MinorV=${Rem}
     fi
 else
-    MajorV=${EMQX_DEPS_DEFAULT_VSN%%.*}
-    Rem=${EMQX_DEPS_DEFAULT_VSN#*.}
+    MajorV=${PKG_VSN%%.*}
+    Rem=${PKG_VSN#*.}
     #echo ++${Rem}
     if echo "${Rem}" | grep -q '\.'; then
         MinorV=${Rem%%.*}
@@ -67,7 +68,7 @@ for appdir in _checkouts/emqx* ; do
     filename="${appname}.appup"
     filepath="${appdir}/ebin/${filename}"
     if [ -f "$filepath" ]; then
-        if ! grep -q "${EMQX_DEPS_DEFAULT_VSN}" $filepath; then
+        if ! grep -q "${PKG_VSN}" $filepath; then
             write_file "$filepath" "$appup_text"
         fi
     else
@@ -75,8 +76,8 @@ for appdir in _checkouts/emqx* ; do
     fi
 done
 
-for tarf in _build/${PROFILE}/rel/emqx/*.tar.gz _build/${PROFILE}/rel/emqx/*.zip; do
-    if echo "${tarf}" | grep -q ${EMQX_DEPS_DEFAULT_VSN};
+for tarf in $(ls _build/${PROFILE}/rel/emqx | grep -E ".zip|.tar.gz"); do
+    if echo "${tarf}" | grep -q ${PKG_VSN};
     then echo >> /dev/null;
     else
         tard="/tmp/emqx_untar_$(date +%s)";
@@ -85,20 +86,20 @@ for tarf in _build/${PROFILE}/rel/emqx/*.tar.gz _build/${PROFILE}/rel/emqx/*.zip
         if echo "${tarf}" | grep -q '.zip';
         then
             mkdir -p "${tard}";
-            unzip -q ${tarf} -d ${tard};
+            unzip -q _build/${PROFILE}/rel/emqx/${tarf} -d ${tard};
         else
             mkdir -p "${tard}/emqx";
-            tar zxf ${tarf} -C "${tard}/emqx";
+            tar zxf _build/${PROFILE}/rel/emqx/${tarf} -C "${tard}/emqx";
         fi;
         for d in ${tard}/emqx/lib/*; do
             relf="_build/${PROFILE}/rel/emqx/lib/$(basename ${d})";
             if ! [ -d ${relf} ]; then
-                cp -nr "$d" "${relf}";
+                cp -r "$d" "${relf}";
             fi;
         done;
         for d in ${tard}/emqx/releases/*; do
             if [ -d ${d} ]; then
-                cp -nr "$d" "_build/${PROFILE}/rel/emqx/releases/";
+                cp -r "$d" "_build/${PROFILE}/rel/emqx/releases/";
             fi;
         done;
         echo >> /dev/null;
