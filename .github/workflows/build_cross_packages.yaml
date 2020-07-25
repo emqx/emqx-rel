@@ -70,21 +70,16 @@ jobs:
         brew install curl zip unzip gnu-sed erlang@22 openssl@1.1
         echo "::add-path::/usr/local/opt/erlang@22/bin"
         echo "::add-path::/usr/local/bin"
-    - name: set env
-      run: |
-        version=$(echo ${{ github.ref }} | gsed -r  "s ^refs/heads/|^refs/tags/(.*) \1 g")
-        if [ ! -z $(echo $version | grep -oE "^[ev0-9]+\.[0-9]+(\.[0-9]+)?") ]; then deps_version=$version; else deps_version=""; fi
-
-        echo "::set-env name=EMQX_DEPS_DEFAULT_VSN::$deps_version"
-        echo "::set-env name=version::$version"
     - name: build
+      run: make emqx-pkg
+    - name: test
       run: |
-        pkg_name="emqx-macosx-$(echo $(git describe --tags --always) | gsed -r 's/^[e|v](.*)/\1/g').zip"
-        make emqx
-        mkdir -p _packages/emqx
-        cd ./_build/emqx/rel && zip -rq $pkg_name emqx && cd - && mv ./_build/emqx/rel/$pkg_name _packages/emqx
-        ./_build/emqx/rel/emqx/bin/emqx start
-        ./_build/emqx/rel/emqx/bin/emqx stop
+        pkg_name=$(basename _packages/emqx/emqx-macos-*.zip)
+        unzip _packages/emqx/$pkg_name
+        ./emqx/bin/emqx start
+        ./emqx/bin/emqx_ctl status
+        ./emqx/bin/emqx stop
+        rm -rf emqx
         openssl dgst -sha256 ./_packages/emqx/$pkg_name | awk '{print $2}'  > ./_packages/emqx/$pkg_name.sha256
     # - uses: actions/upload-artifact@v1
     #   with:
@@ -97,17 +92,17 @@ jobs:
     strategy:
       matrix:
         os: 
-          - ubuntu20.04
-          - ubuntu18.04
-          - ubuntu16.04
-          - debian10
-          - debian9
-          - opensuse
-          - centos8
-          - centos7
-          - centos6
-          - raspbian10
-          - raspbian9
+        - ubuntu20.04
+        - ubuntu18.04
+        - ubuntu16.04
+        - debian10
+        - debian9
+        - opensuse
+        - centos8
+        - centos7
+        - centos6
+        - raspbian10
+        - raspbian9
 
     steps:
     - name: install docker
@@ -150,6 +145,7 @@ jobs:
         SYSTEM: ${{ matrix.os }}
       if: matrix.os != 'raspbian9' && matrix.os != 'raspbian10'
       run: |
+        set -e -u -x
         for EMQX in emqx emqx-edge; do
           docker buildx build --no-cache \
             --platform=linux/amd64 \
@@ -161,10 +157,13 @@ jobs:
             --build-arg EMQX_DEPS_DEFAULT_VSN=$EMQX_DEPS_DEFAULT_VSN \
             --output type=tar,dest=/tmp/cross-build-$EMQX-for-$SYSTEM.tar .
 
-          mkdir -p _packages/$EMQX
+          mkdir -p /tmp/packages/$EMQX
           tar -xvf /tmp/cross-build-$EMQX-for-$SYSTEM.tar --wildcards emqx-rel/_packages/$EMQX/*
-          mv emqx-rel/_packages/$EMQX/* _packages/$EMQX/
+          mv emqx-rel/_packages/$EMQX/* /tmp/packages/$EMQX/
           rm -rf /tmp/cross-build-$EMQX-for-$SYSTEM.tar
+
+          docker rm -f $(docker ps -a -q)
+          docker volume prune -f
         done
     - name: build emqx packages on arm64
       if: matrix.os != 'centos6'
@@ -172,6 +171,7 @@ jobs:
         ERL_OTP: erl22.3
         SYSTEM: ${{ matrix.os }}
       run: |
+        set -e -u -x
         for EMQX in emqx emqx-edge; do
           if [ "$EMQX" == "emqx" ] && [ ! -z $( echo $SYSTEM | grep -o raspbian) ];then
             continue
@@ -185,24 +185,27 @@ jobs:
             --build-arg SYSTEM=$SYSTEM \
             --build-arg EMQX_NAME=${EMQX} \
             --build-arg EMQX_DEPS_DEFAULT_VSN=$EMQX_DEPS_DEFAULT_VSN \
-            --output type=tar,dest=/tmp/cross-build-$EMQX-for-$SYSTEM.tar .
+            --output type=tar,dest=/tmp/cross-build-$EMQX-for-$SYSTEM.tar . || df -h
 
-          mkdir -p _packages/$EMQX
+          mkdir -p /tmp/packages/$EMQX
           tar -xvf /tmp/cross-build-$EMQX-for-$SYSTEM.tar --wildcards emqx-rel/_packages/$EMQX/*
-          mv emqx-rel/_packages/$EMQX/* _packages/$EMQX/
+          mv emqx-rel/_packages/$EMQX/* /tmp/packages/$EMQX/
           rm -rf /tmp/cross-build-$EMQX-for-$SYSTEM.tar
+
+          docker rm -f $(docker ps -a -q)
+          docker volume prune -f
         done
     - name: create sha256
       run: |
-        if [ -d _packages/emqx ]; then
-          cd _packages/emqx
+        if [ -d /tmp/packages/emqx ]; then
+          cd /tmp/packages/emqx
             for var in $(ls emqx-* ); do
               bash -c "echo $(sha256sum $var | awk '{print $1}') > $var.sha256"
             done
           cd -
         fi
-        if [ -d _packages/emqx-edge ]; then
-          cd _packages/emqx-edge
+        if [ -d /tmp/packages/emqx-edge ]; then
+          cd /tmp/packages/emqx-edge
             for var in $(ls emqx-edge-* ); do
               bash -c "echo $(sha256sum $var | awk '{print $1}') > $var.sha256"
             done
@@ -212,11 +215,11 @@ jobs:
       if: matrix.os != 'raspbian9' && matrix.os != 'raspbian10'
       with:
         name: emqx
-        path: ./_packages/emqx/.
+        path: /tmp/packages/emqx/.
     - uses: actions/upload-artifact@v1
       with:
         name: emqx-edge
-        path: ./_packages/emqx-edge/.
+        path: /tmp/packages/emqx-edge/.
 
   docker:
     runs-on: ubuntu-latest

@@ -8,11 +8,11 @@ OS ?= alpine
 ## versioning
 EMQX_DEPS_DEFAULT_VSN ?= ""
 ifeq ($(EMQX_DEPS_DEFAULT_VSN), )
-	BUILD_VERSION := $(patsubst v%,%,$(patsubst e%,%,$(shell git describe --tags --always)))
+	PKG_VSN := $(patsubst v%,%,$(patsubst e%,%,$(shell git describe --tags --always)))
 else ifeq ($(EMQX_DEPS_DEFAULT_VSN), "")
-	BUILD_VERSION := $(patsubst v%,%,$(patsubst e%,%,$(shell git describe --tags --always)))
+	PKG_VSN := $(patsubst v%,%,$(patsubst e%,%,$(shell git describe --tags --always)))
 else
-	BUILD_VERSION := $(patsubst v%,%,$(patsubst e%,%,$(EMQX_DEPS_DEFAULT_VSN)))
+	PKG_VSN := $(patsubst v%,%,$(patsubst e%,%,$(EMQX_DEPS_DEFAULT_VSN)))
 endif
 
 EMQX_NAME = $(subst emqx/,,$(TARGET))
@@ -42,7 +42,7 @@ prepare:
 build:
 	## Build Docker image
 	@echo "DOCKER BUILD: Build Docker image."
-	@echo "DOCKER BUILD: build version -> $(BUILD_VERSION)."
+	@echo "DOCKER BUILD: build version -> $(PKG_VSN)."
 	@echo "DOCKER BUILD: arch - $(ARCH)."
 	@echo "DOCKER BUILD: qemu arch - $(QEMU_ARCH)."
 	@echo "DOCKER BUILD: docker repo - $(TARGET) "
@@ -75,11 +75,11 @@ tag:
 	@echo "DOCKER TAG: Tag Docker image."
 	@for arch in $(ARCH_LIST); do \
 		if [ -n  "$$(docker images -q $(TARGET):build-$(OS)-$${arch})" ]; then \
-			docker tag $(TARGET):build-$(OS)-$${arch}  $(TARGET):$(BUILD_VERSION)-$(OS)-$${arch}; \
-			echo "DOCKER TAG: $(TARGET):$(BUILD_VERSION)-$(OS)-$${arch}"; \
+			docker tag $(TARGET):build-$(OS)-$${arch}  $(TARGET):$(PKG_VSN)-$(OS)-$${arch}; \
+			echo "DOCKER TAG: $(TARGET):$(PKG_VSN)-$(OS)-$${arch}"; \
 			if [ $${arch} = amd64 ]; then \
-				docker tag $(TARGET):$(BUILD_VERSION)-$(OS)-amd64 $(TARGET):$(BUILD_VERSION); \
-				echo "DOCKER TAG: $(TARGET):$(BUILD_VERSION)"; \
+				docker tag $(TARGET):$(PKG_VSN)-$(OS)-amd64 $(TARGET):$(PKG_VSN); \
+				echo "DOCKER TAG: $(TARGET):$(PKG_VSN)"; \
 			fi; \
 		fi; \
 	done
@@ -90,47 +90,47 @@ save:
 
 	@mkdir -p ../../_packages/$(EMQX_NAME)
 
-	@if [ -n  "$$(docker images -q $(TARGET):$(BUILD_VERSION))" ]; then \
-		docker save $(TARGET):$(BUILD_VERSION) > $(EMQX_NAME)-docker-$(BUILD_VERSION); \
-		zip -r -m $(EMQX_NAME)-docker-$(BUILD_VERSION).zip $(EMQX_NAME)-docker-$(BUILD_VERSION); \
+	@if [ -n  "$$(docker images -q $(TARGET):$(PKG_VSN))" ]; then \
+		docker save $(TARGET):$(PKG_VSN) > $(EMQX_NAME)-docker-$(PKG_VSN); \
+		zip -r -m $(EMQX_NAME)-docker-$(PKG_VSN).zip $(EMQX_NAME)-docker-$(PKG_VSN); \
 		mkdir -p ../../_packages/$(EMQX_NAME); \
-		mv ./$(EMQX_NAME)-docker-$(BUILD_VERSION).zip ../../_packages/$(EMQX_NAME)/$(EMQX_NAME)-docker-$(BUILD_VERSION).zip; \
+		mv ./$(EMQX_NAME)-docker-$(PKG_VSN).zip ../../_packages/$(EMQX_NAME)/$(EMQX_NAME)-docker-$(PKG_VSN).zip; \
 	fi
 	
 	@for arch in $(ARCH_LIST); do \
-		if [ -n  "$$(docker images -q  $(TARGET):$(BUILD_VERSION)-$(OS)-$${arch})" ]; then \
-			docker save  $(TARGET):$(BUILD_VERSION)-$(OS)-$${arch} > $(EMQX_NAME)-docker-$(BUILD_VERSION)-$(OS)-$${arch}; \
-			zip -r -m $(EMQX_NAME)-docker-$(BUILD_VERSION)-$(OS)-$${arch}.zip $(EMQX_NAME)-docker-$(BUILD_VERSION)-$(OS)-$${arch}; \
+		if [ -n  "$$(docker images -q  $(TARGET):$(PKG_VSN)-$(OS)-$${arch})" ]; then \
+			docker save  $(TARGET):$(PKG_VSN)-$(OS)-$${arch} > $(EMQX_NAME)-docker-$(PKG_VSN)-$(OS)-$${arch}; \
+			zip -r -m $(EMQX_NAME)-docker-$(PKG_VSN)-$(OS)-$${arch}.zip $(EMQX_NAME)-docker-$(PKG_VSN)-$(OS)-$${arch}; \
 			mkdir -p ../../_packages/$(EMQX_NAME); \
-			mv ./$(EMQX_NAME)-docker-$(BUILD_VERSION)-$(OS)-$${arch}.zip ../../_packages/$(EMQX_NAME)/$(EMQX_NAME)-docker-$(BUILD_VERSION)-$(OS)-$${arch}.zip; \
+			mv ./$(EMQX_NAME)-docker-$(PKG_VSN)-$(OS)-$${arch}.zip ../../_packages/$(EMQX_NAME)/$(EMQX_NAME)-docker-$(PKG_VSN)-$(OS)-$${arch}.zip; \
 		fi; \
 	done
 
 .PHONY: push
 push:
 	@echo "DOCKER PUSH: Push Docker image."; 
-	@echo "DOCKER PUSH: pushing - $(TARGET):$(BUILD_VERSION)."; 
+	@echo "DOCKER PUSH: pushing - $(TARGET):$(PKG_VSN)."; 
 
-	@if [ -n "$$(docker images -q $(TARGET):$(BUILD_VERSION))" ]; then \
-		docker push $(TARGET):$(BUILD_VERSION); \
-		docker tag $(TARGET):$(BUILD_VERSION) $(TARGET):latest; \
+	@if [ -n "$$(docker images -q $(TARGET):$(PKG_VSN))" ]; then \
+		docker push $(TARGET):$(PKG_VSN); \
+		docker tag $(TARGET):$(PKG_VSN) $(TARGET):latest; \
 		docker push $(TARGET):latest; \
 	fi;
 
 	@for arch in $(ARCH_LIST); do \
-		if [ -n "$$(docker images -q  $(TARGET):$(BUILD_VERSION)-$(OS)-$${arch})" ]; then \
-			docker push  $(TARGET):$(BUILD_VERSION)-$(OS)-$${arch}; \
+		if [ -n "$$(docker images -q  $(TARGET):$(PKG_VSN)-$(OS)-$${arch})" ]; then \
+			docker push  $(TARGET):$(PKG_VSN)-$(OS)-$${arch}; \
 		fi; \
 	done
 
 .PHONY: manifest_list
 manifest_list:
-	version="docker manifest create --amend $(TARGET):$(BUILD_VERSION)"; \
+	version="docker manifest create --amend $(TARGET):$(PKG_VSN)"; \
 	latest="docker manifest create --amend $(TARGET):latest"; \
 	for arch in $(ARCH_LIST); do \
-		if [ -n "$$(docker images -q  $(TARGET):$(BUILD_VERSION)-$(OS)-$${arch})" ];then \
-			version="$${version} $(TARGET):$(BUILD_VERSION)-$(OS)-$${arch} "; \
-			latest="$${latest} $(TARGET):$(BUILD_VERSION)-$(OS)-$${arch} "; \
+		if [ -n "$$(docker images -q  $(TARGET):$(PKG_VSN)-$(OS)-$${arch})" ];then \
+			version="$${version} $(TARGET):$(PKG_VSN)-$(OS)-$${arch} "; \
+			latest="$${latest} $(TARGET):$(PKG_VSN)-$(OS)-$${arch} "; \
 		fi; \
 	done; \
 	eval $$version; \
@@ -139,40 +139,40 @@ manifest_list:
 	for arch in $(ARCH_LIST); do \
 		case $${arch} in \
 			"amd64") \
-				if [ -n "$$(docker images -q  $(TARGET):$(BUILD_VERSION)-$(OS)-$${arch})" ]; then \
-					docker manifest annotate $(TARGET):$(BUILD_VERSION) $(TARGET):$(BUILD_VERSION)-$(OS)-amd64 --os=linux --arch=amd64; \
-					docker manifest annotate $(TARGET):latest $(TARGET):$(BUILD_VERSION)-$(OS)-amd64 --os=linux --arch=amd64; \
+				if [ -n "$$(docker images -q  $(TARGET):$(PKG_VSN)-$(OS)-$${arch})" ]; then \
+					docker manifest annotate $(TARGET):$(PKG_VSN) $(TARGET):$(PKG_VSN)-$(OS)-amd64 --os=linux --arch=amd64; \
+					docker manifest annotate $(TARGET):latest $(TARGET):$(PKG_VSN)-$(OS)-amd64 --os=linux --arch=amd64; \
 				fi; \
 				;; \
 			"arm64v8") \
-				if [ -n "$$(docker images -q  $(TARGET):$(BUILD_VERSION)-$(OS)-$${arch})" ]; then \
-					docker manifest annotate $(TARGET):$(BUILD_VERSION) $(TARGET):$(BUILD_VERSION)-$(OS)-arm64v8 --os=linux --arch=arm64 --variant=v8; \
-					docker manifest annotate $(TARGET):latest $(TARGET):$(BUILD_VERSION)-$(OS)-arm64v8 --os=linux --arch=arm64 --variant=v8; \
+				if [ -n "$$(docker images -q  $(TARGET):$(PKG_VSN)-$(OS)-$${arch})" ]; then \
+					docker manifest annotate $(TARGET):$(PKG_VSN) $(TARGET):$(PKG_VSN)-$(OS)-arm64v8 --os=linux --arch=arm64 --variant=v8; \
+					docker manifest annotate $(TARGET):latest $(TARGET):$(PKG_VSN)-$(OS)-arm64v8 --os=linux --arch=arm64 --variant=v8; \
 				fi; \
 				;; \
 			"arm32v7") \
-				if [ -n "$$(docker images -q  $(TARGET):$(BUILD_VERSION)-$(OS)-$${arch})" ]; then \
-					docker manifest annotate $(TARGET):$(BUILD_VERSION) $(TARGET):$(BUILD_VERSION)-$(OS)-arm32v7 --os=linux --arch=arm --variant=v7; \
-					docker manifest annotate $(TARGET):latest $(TARGET):$(BUILD_VERSION)-$(OS)-arm32v7 --os=linux --arch=arm --variant=v7; \
+				if [ -n "$$(docker images -q  $(TARGET):$(PKG_VSN)-$(OS)-$${arch})" ]; then \
+					docker manifest annotate $(TARGET):$(PKG_VSN) $(TARGET):$(PKG_VSN)-$(OS)-arm32v7 --os=linux --arch=arm --variant=v7; \
+					docker manifest annotate $(TARGET):latest $(TARGET):$(PKG_VSN)-$(OS)-arm32v7 --os=linux --arch=arm --variant=v7; \
 				fi; \
 				;; \
 			"i386") \
-				if [ -n "$$(docker images -q  $(TARGET):$(BUILD_VERSION)-$(OS)-$${arch})" ]; then \
-					docker manifest annotate $(TARGET):$(BUILD_VERSION) $(TARGET):$(BUILD_VERSION)-$(OS)-i386 --os=linux --arch=386; \
-					docker manifest annotate $(TARGET):latest $(TARGET):$(BUILD_VERSION)-$(OS)-i386 --os=linux --arch=386; \
+				if [ -n "$$(docker images -q  $(TARGET):$(PKG_VSN)-$(OS)-$${arch})" ]; then \
+					docker manifest annotate $(TARGET):$(PKG_VSN) $(TARGET):$(PKG_VSN)-$(OS)-i386 --os=linux --arch=386; \
+					docker manifest annotate $(TARGET):latest $(TARGET):$(PKG_VSN)-$(OS)-i386 --os=linux --arch=386; \
 				fi; \
 				;; \
 			"s390x") \
-				if [ -n "$$(docker images -q  $(TARGET):$(BUILD_VERSION)-$(OS)-$${arch})" ]; then \
-					docker manifest annotate $(TARGET):$(BUILD_VERSION) $(TARGET):$(BUILD_VERSION)-$(OS)-s390x --os=linux --arch=s390x; \
-					docker manifest annotate $(TARGET):latest $(TARGET):$(BUILD_VERSION)-$(OS)-s390x --os=linux --arch=s390x; \
+				if [ -n "$$(docker images -q  $(TARGET):$(PKG_VSN)-$(OS)-$${arch})" ]; then \
+					docker manifest annotate $(TARGET):$(PKG_VSN) $(TARGET):$(PKG_VSN)-$(OS)-s390x --os=linux --arch=s390x; \
+					docker manifest annotate $(TARGET):latest $(TARGET):$(PKG_VSN)-$(OS)-s390x --os=linux --arch=s390x; \
 				fi; \
 				;; \
 		esac; \
 	done; 
 
-	docker manifest inspect $(TARGET):$(BUILD_VERSION)
-	docker manifest push $(TARGET):$(BUILD_VERSION); 
+	docker manifest inspect $(TARGET):$(PKG_VSN)
+	docker manifest push $(TARGET):$(PKG_VSN); 
 	docker manifest inspect $(TARGET):latest
 	docker manifest push $(TARGET):latest;
 
@@ -180,10 +180,10 @@ manifest_list:
 clean:
 	@echo "DOCKER CLEAN: Clean Docker image."
 
-	@if [ -n "$$(docker images -q  $(TARGET):$(BUILD_VERSION))" ]; then docker rmi -f $$(docker images -q  $(TARGET):$(BUILD_VERSION)); fi
+	@if [ -n "$$(docker images -q  $(TARGET):$(PKG_VSN))" ]; then docker rmi -f $$(docker images -q  $(TARGET):$(PKG_VSN)); fi
 
 	@for arch in $(ARCH_LIST); do \
-		if [ -n "$$(docker images -q  $(TARGET):$(BUILD_VERSION)-$(OS)-$${arch})" ]; then \
-			docker rmi -f $$(docker images -q  $(TARGET):$(BUILD_VERSION)-$(OS)-$${arch}); \
+		if [ -n "$$(docker images -q  $(TARGET):$(PKG_VSN)-$(OS)-$${arch})" ]; then \
+			docker rmi -f $$(docker images -q  $(TARGET):$(PKG_VSN)-$(OS)-$${arch}); \
 		fi \
 	done

@@ -3,6 +3,7 @@ TOPDIR := /tmp/emqx
 SRCDIR := $(TOPDIR)/$(PKG_VSN)
 BUILT := $(SRCDIR)/BUILT
 
+TAR_PKG := $(EMQX_REL)/_build/$(EMQX_BUILD)/rel/emqx/emqx-$(PKG_VSN).tar.gz
 SOURCE_PKG := $(EMQX_NAME)_$(PKG_VSN)_$(shell dpkg --print-architecture)
 TARGET_PKG := $(EMQX_NAME)-$(SYSTEM)-$(PKG_VSN)_$(shell uname -m)
 
@@ -17,12 +18,12 @@ all: | $(BUILT)
 		sed -i "s/Package: emqx/Package: emqx-edge/1" $(SRCDIR)/debian/control; \
 	fi
 	cd $(SRCDIR) && dpkg-buildpackage -us -uc
-	mkdir -p $(EMQX_REL)/_packages/$(EMQX_NAME)
-	cp $(SRCDIR)/../$(SOURCE_PKG).deb $(EMQX_REL)/_packages/$(EMQX_NAME)/$(TARGET_PKG).deb
+	mkdir -p $(PKG_DIR)
+	cp $(SRCDIR)/../$(SOURCE_PKG).deb $(PKG_DIR)/$(TARGET_PKG).deb
 
 $(BUILT):
 	mkdir -p $(TOPDIR) $(SRCDIR)
-	cp -r $(EMQX_REL)/. $(SRCDIR) 
+	tar zxf $(TAR_PKG) -C $(SRCDIR)
 
 clean:
 	rm -rf $(SRCDIR)
