@@ -8,11 +8,7 @@ REBAR = $(CURDIR)/rebar3
 REBAR_URL = https://s3.amazonaws.com/rebar3/rebar3
 
 export EMQX_DEPS_DEFAULT_VSN ?= $(shell ./get_lastest_tag.escript ref)
-ifneq ($(shell echo $(EMQX_DEPS_DEFAULT_VSN) | grep -oE "^[ev0-9]+\.[0-9]+(\.[0-9]+)?"),)
-    export PKG_VSN := $(patsubst v%,%,$(patsubst e%,%,$(EMQX_DEPS_DEFAULT_VSN)))
-else
-    export PKG_VSN := $(patsubst v%,%,$(shell ./get_lastest_tag.escript tag))
-endif
+export PKG_VSN := $(patsubst v%,%,$(shell ./get_lastest_tag.escript tag))
 
 PROFILE ?= emqx
 PROFILES := emqx emqx-edge
