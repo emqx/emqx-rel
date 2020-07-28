@@ -85,8 +85,7 @@ endif
 .PHONY: $(PROFILES:%=relup-%)
 $(PROFILES:%=relup-%): $(REBAR)
 #ifneq ($(OS),Windows_NT)
-	PROFILE=$(@:relup-%=%) ./gen_appups.sh \
-	&& $(REBAR) as $(@:relup-%=%) relup
+	$(REBAR) as $(@:relup-%=%) relup
 #endif
 
 .PHONY: $(PROFILES:%=build-%)
