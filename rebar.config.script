@@ -144,7 +144,7 @@ Vsn1 = case Vsn0 of
 end,
 RelxElixirApps = Kf(elixir_relx_apps, CONFIG2),
 RelxBaseApps = RelxBaseApps0 ++ RelxElixirApps,
-RelxOverlay = Kf(overlay, Relx0) ++ [{copy,filename:join([code:root_dir(), "releases", erlang:system_info(otp_release), "OTP_VERSION"]),"etc/OTP_VERSION"}],
+RelxOverlay = Kf(overlay, Relx0),
 RelxCloudApps = RelxBaseApps ++ Kf(cloud_relx_apps, CONFIG2),
 RelxEdgeApps = RelxBaseApps ++ Kf(edge_relx_apps, CONFIG2),
 RelxCloudOverlay0 = Kf(cloud_relx_overlay, CONFIG2),
