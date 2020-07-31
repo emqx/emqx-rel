@@ -8,7 +8,7 @@ services:
     ports:
       - "18080:80"
     networks:
-      - emqx-bridge
+      - emqx_bridge
     volumes:
       - ../../tests/logs:/usr/share/nginx/html
 
@@ -22,7 +22,7 @@ services:
       - pgsql_server
       - ldap_server
     networks:
-      - emqx-bridge
+      - emqx_bridge
     volumes:
       - ../../.:/emqx-rel
     tty: true
@@ -30,7 +30,7 @@ services:
   python:
     image: python:3.7.2
     networks:
-      - emqx-bridge
+      - emqx_bridge
     volumes:
       - ../../.:/emqx-rel
     tty: true
@@ -46,7 +46,7 @@ services:
       - ../../_build/emqx/lib/emqx_auth_mysql/test/emqx_auth_mysql_SUITE_data/server-cert.pem:/etc/certs/server-cert.pem
       - ../../_build/emqx/lib/emqx_auth_mysql/test/emqx_auth_mysql_SUITE_data/server-key.pem:/etc/certs/server-key.pem
     networks:
-      - emqx-bridge
+      - emqx_bridge
     command:
       --bind-address 0.0.0.0
       --default-authentication-plugin=mysql_native_password
@@ -65,7 +65,7 @@ services:
     image: emqx-redis:5
     restart: always
     networks:
-      - emqx-bridge
+      - emqx_bridge
 
   mongo_server:
     image: mongo:4.1
@@ -73,7 +73,7 @@ services:
     environment:
       MONGO_INITDB_DATABASE: mqtt
     networks:
-      - emqx-bridge
+      - emqx_bridge
     command: --bind_ip_all
 
   pgsql_server:
@@ -84,17 +84,17 @@ services:
       POSTGRES_USER: root
       POSTGRES_DB: mqtt
     networks:
-      - emqx-bridge
+      - emqx_bridge
 
   ldap_server:
     build: ./emqx-ldap
     image: emqx-ldap:1.0
     restart: always
     networks:
-      - emqx-bridge
+      - emqx_bridge
 
 networks:
-  emqx-bridge:
+  emqx_bridge:
     driver: bridge
 
 volumes:

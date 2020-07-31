@@ -32,9 +32,11 @@ jobs:
             sudo chmod +x /usr/local/bin/docker-compose
         - name: docker-compose build
           run: |
-            cp _build/emqx/lib/emqx_auth_ldap/emqx.io.ldif .ci/deps_tests/emqx-ldap/schema
-            cp _build/emqx/lib/emqx_auth_ldap/emqx.schema .ci/deps_tests/emqx-ldap/schema
+            cp _build/emqx/lib/emqx_auth_ldap/emqx.io.ldif .ci/deps_tests/emqx-ldap
+            cp _build/emqx/lib/emqx_auth_ldap/emqx.schema .ci/deps_tests/emqx-ldap
+            cp _build/emqx/lib/emqx_auth_ldap/test/certs/* .ci/deps_tests/emqx-ldap
             docker-compose -f .ci/deps_tests/docker-compose.yaml build --no-cache
+            docker network create --driver bridge --ipv6 --subnet fd15:555::/64  emqx_auto_func_test_emqx_bridge
         - name: docker-compose up
           run:  docker-compose -p emqx_auto_func_test -f .ci/deps_tests/docker-compose.yaml up -d
         - name: set config files
