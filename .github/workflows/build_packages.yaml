@@ -226,7 +226,7 @@ jobs:
     runs-on: ubuntu-latest
 
     # needs: [windows, mac, linux, docker]
-    needs: [windows, linux, docker]
+    needs: [windows, linux, linux-arm, docker]
 
     steps:
     - name: set aws
