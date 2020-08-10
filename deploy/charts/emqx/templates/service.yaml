@@ -121,6 +121,10 @@ spec:
     port: {{ .Values.service.dashboard | default 18083 }}
     protocol: TCP
     targetPort: dashboard
+  - name: ekka
+    port: 4370
+    protocol: TCP
+    targetPort: ekka
   selector:
     app.kubernetes.io/name: {{ include "emqx.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
