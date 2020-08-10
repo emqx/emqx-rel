@@ -43,6 +43,8 @@ spec:
   template:
     metadata:
       labels:
+        app: {{ include "emqx.name" . }}
+        version: {{ .Chart.AppVersion }}
         app.kubernetes.io/name: {{ include "emqx.name" . }}
         app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
@@ -88,6 +90,8 @@ spec:
             containerPort: {{ .Values.emqxConfig.EMQX_LISTENER__WSS__EXTERNAL | default 8084 }}
           - name: dashboard
             containerPort: {{ .Values.emqxConfig.EMQX_DASHBOARD__LISTENER__HTTP | default 18083 }}
+          - name: ekka
+            containerPort: 4370
           envFrom:
             - configMapRef:
                 name: {{ include "emqx.fullname" . }}-env 

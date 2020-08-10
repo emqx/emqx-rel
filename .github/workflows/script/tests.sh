@@ -34,7 +34,7 @@ emqx_test(){
                 fi
 
                 echo "running ${packagename} start"
-                ${PACKAGE_PATH}/${SYSTEM}/${EMQX_NAME}/emqx/bin/emqx start
+                ${PACKAGE_PATH}/${SYSTEM}/${EMQX_NAME}/emqx/bin/emqx start || tail -f  ${PACKAGE_PATH}/${SYSTEM}/${EMQX_NAME}/emqx/log/erlang.log.1
                 IDLE_TIME=0
                 while [ -z "$(${PACKAGE_PATH}/${SYSTEM}/${EMQX_NAME}/emqx/bin/emqx_ctl status |grep 'is running'|awk '{print $1}')" ]
                 do
@@ -117,7 +117,7 @@ running_test(){
     sed -i "/zone.external.server_keepalive/c zone.external.server_keepalive = 60" /etc/emqx/emqx.conf
     sed -i "/mqtt.max_topic_alias/c mqtt.max_topic_alias = 10" /etc/emqx/emqx.conf
 
-    emqx start
+    emqx start || tail -f /var/log/emqx/erlang.log.1
     IDLE_TIME=0
     while [ -z "$(emqx_ctl status |grep 'is running'|awk '{print $1}')" ]
     do
@@ -135,7 +135,7 @@ running_test(){
     if [ $(sed -n '/^ID=/p' /etc/os-release | sed -r 's/ID=(.*)/\1/g' | sed 's/"//g') = ubuntu ] \
     || [ $(sed -n '/^ID=/p' /etc/os-release | sed -r 's/ID=(.*)/\1/g' | sed 's/"//g') = debian ] \
     || [ $(sed -n '/^ID=/p' /etc/os-release | sed -r 's/ID=(.*)/\1/g' | sed 's/"//g') = raspbian ];then
-        service emqx start
+        service emqx start || tail -f /var/log/emqx/erlang.log/1
         IDLE_TIME=0
         while [ -z "$(emqx_ctl status |grep 'is running'|awk '{print $1}')" ]
         do
