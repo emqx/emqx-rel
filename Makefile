@@ -7,16 +7,16 @@ REBAR = $(CURDIR)/rebar3
 
 REBAR_URL = https://s3.amazonaws.com/rebar3/rebar3
 
+PROFILE ?= emqx
+PROFILES := emqx emqx-edge
+PKG_PROFILES := emqx-pkg emqx-edge-pkg
+
 export EMQX_DEPS_DEFAULT_VSN ?= $(shell ./get_lastest_tag.escript ref)
 ifneq ($(shell echo $(EMQX_DEPS_DEFAULT_VSN) | grep -oE "^[ev0-9]+\.[0-9]+(\.[0-9]+)?"),)
 	export PKG_VSN := $(patsubst v%,%,$(patsubst e%,%,$(EMQX_DEPS_DEFAULT_VSN)))
 else
 	export PKG_VSN := $(patsubst v%,%,$(shell ./get_lastest_tag.escript tag))
 endif
-
-PROFILE ?= emqx
-PROFILES := emqx emqx-edge
-PKG_PROFILES := emqx-pkg emqx-edge-pkg
 
 CT_APPS := emqx \
            emqx_auth_clientid \
@@ -75,37 +75,16 @@ $(PROFILES:%=%): $(REBAR)
 ifneq ($(OS),Windows_NT)
 	@ln -snf _build/$(@)/lib ./_checkouts
 endif
-	@if [ $$(echo $(@) |grep edge) ];then export EMQX_DESC="EMQ X Edge";else export EMQX_DESC="EMQ X Broker"; fi; \
-	$(REBAR) as $(@) release
-
-.PHONY: $(PROFILES:%=%-tar) $(PKG_PROFILES:%=%-tar)
-$(PROFILES:%=%-tar) $(PKG_PROFILES:%=%-tar): $(REBAR)
-ifneq ($(OS),Windows_NT)
-	@ln -snf _build/$(subst -tar,,$(@))/lib ./_checkouts
+ifneq ($(shell echo $(@) |grep edge),)
+	export EMQX_DESC="EMQ X Edge"
+else
+	export EMQX_DESC="EMQ X Broker"
 endif
-	@if [ $$(echo $(@) |grep edge) ];then export EMQX_DESC="EMQ X Edge";else export EMQX_DESC="EMQ X Broker"; fi; \
-	$(REBAR) as $(subst -tar,,$(@)) tar
-
-.PHONY: $(PROFILES:%=relup-%)
-$(PROFILES:%=relup-%): $(REBAR)
-#ifneq ($(OS),Windows_NT)
-	$(REBAR) as $(@:relup-%=%) relup
-#endif
+	$(REBAR) as $(@) release
 
 .PHONY: $(PROFILES:%=build-%)
 $(PROFILES:%=build-%): $(REBAR)
 	$(REBAR) as $(@:build-%=%) compile
-
-.PHONY: deps-all
-deps-all: $(REBAR) $(PROFILES:%=deps-%) $(PKG_PROFILES:%=deps-%)
-
-.PHONY: $(PROFILES:%=deps-%)
-$(PROFILES:%=deps-%): $(REBAR)
-	$(REBAR) as $(@:deps-%=%) get-deps
-
-.PHONY: $(PKG_PROFILES:%=deps-%)
-$(PKG_PROFILES:%=deps-%): $(REBAR) $(PKG_PROFILES:%=deps-%)
-	$(REBAR) as $(@:deps-%=%) get-deps
 
 .PHONY: run $(PROFILES:%=run-%)
 run: run-$(PROFILE)
@@ -144,73 +123,4 @@ ifneq ($(wildcard rebar3),rebar3)
 endif
 	@chmod a+x rebar3
 
-# Build packages
-.PHONY: $(PKG_PROFILES)
-$(PKG_PROFILES:%=%): $(REBAR)
-ifeq ($(shell uname -s),Linux)
-	make $(subst -pkg,,$(@))-tar
-	make $(@)-linux
-endif
-ifeq ($(shell uname -s),Darwin)
-	make $(subst -pkg,,$(@))-tar
-	make $(@)-macos
-endif
-
-.PHONY: $(PKG_PROFILES:%=%-linux)
-$(PKG_PROFILES:%=%-linux):
-	make $(subst -linux,,$(@))-tar
-	EMQX_REL=$$(pwd) EMQX_BUILD=$(subst -linux,,$(@)) make -C deploy/packages
-
-.PHONY: $(PKG_PROFILES:%=%-macos)
-$(PKG_PROFILES:%=%-macos):
-	tard="/tmp/emqx_untar_$(PKG_VSN)";\
-	rm -rf "$${tard}" && mkdir -p "$${tard}/emqx";\
-	prof="$(subst -pkg-macos,,$(@))";\
-	relpath="$$(pwd)/_build/$${prof}/rel/emqx";\
-	pkgpath="$$(pwd)/_packages/$${prof}"; \
-	mkdir -p $${pkgpath}; \
-	tarball="$${relpath}/emqx-$(PKG_VSN).tar.gz";\
-	zipball="$${pkgpath}/emqx-macos-$(PKG_VSN).zip";\
-	tar zxf "$${tarball}" -C "$${tard}/emqx"; \
-	pushd "$${tard}"; \
-	zip -q -r "$${zipball}" ./emqx; \
-	popd
-
-
-# Build docker image
-.PHONY: $(PROFILES:%=%-docker-build)
-$(PROFILES:%=%-docker-build): $(PROFILES:%=deps-%)
-	@if [ ! -z `echo $(@) |grep -oE edge` ]; then \
-		TARGET=emqx/emqx-edge make -C deploy/docker; \
-	else \
-		TARGET=emqx/emqx make -C deploy/docker; \
-	fi;
-
-# Save docker images
-.PHONY: $(PROFILES:%=%-docker-save)
-$(PROFILES:%=%-docker-save):
-	@if [ ! -z `echo $(@) |grep -oE edge` ]; then \
-		TARGET=emqx/emqx-edge make -C deploy/docker save; \
-	else \
-		TARGET=emqx/emqx make -C deploy/docker save; \
-	fi;
-
-# Push docker image
-.PHONY: $(PROFILES:%=%-docker-push)
-$(PROFILES:%=%-docker-push):
-	@if [ ! -z `echo $(@) |grep -oE edge` ]; then \
-		TARGET=emqx/emqx-edge make -C deploy/docker push; \
-		TARGET=emqx/emqx-edge make -C deploy/docker manifest_list; \
-	else \
-		TARGET=emqx/emqx make -C deploy/docker push; \
-		TARGET=emqx/emqx make -C deploy/docker manifest_list; \
-	fi;
-
-# Clean docker image
-.PHONY: $(PROFILES:%=%-docker-clean)
-$(PROFILES:%=%-docker-clean):
-	@if [ ! -z `echo $(@) |grep -oE edge` ]; then \
-		TARGET=emqx/emqx-edge make -C deploy/docker clean; \
-	else \
-		TARGET=emqx/emqx make -C deploy/docker clean; \
-	fi;
+include packages.mk
