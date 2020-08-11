@@ -31,17 +31,14 @@ endif
 # Build packages
 .PHONY: $(PKG_PROFILES)
 $(PKG_PROFILES:%=%): $(REBAR)
-ifneq ($(shell echo $(@) |grep edge),)
-	export EMQX_DESC="EMQ X Edge"
-else
-	export EMQX_DESC="EMQ X Broker"
-endif
 ifeq ($(shell uname -s),Linux)
+	-make $(subst -pkg,,$(@))-relup
 	make $(subst -pkg,,$(@))-tar
 	make $(@)-tar
 	EMQX_REL=$$(pwd) EMQX_BUILD=$(@) make -C deploy/packages
 endif
 ifeq ($(shell uname -s),Darwin)
+	-make $(subst -pkg,,$(@))-relup
 	make $(subst -pkg,,$(@))-tar
 	make $(@)-macos
 endif
