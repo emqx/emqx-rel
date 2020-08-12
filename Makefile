@@ -123,4 +123,5 @@ ifneq ($(wildcard rebar3),rebar3)
 endif
 	@chmod a+x rebar3
 
-include packages.mk
+include deploy/packages/packages.mk
+include deploy/docker/docker.mk

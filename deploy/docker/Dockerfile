@@ -3,7 +3,7 @@ ARG RUN_FROM=alpine:3.11
 FROM ${BUILD_FROM} AS builder
 
 ARG QEMU_ARCH=x86_64
-COPY deploy/docker/tmp/qemu-$QEMU_ARCH-stati* /usr/bin/
+COPY .tmp/qemu-$QEMU_ARCH-stati* /usr/bin/
 COPY . /emqx-rel
 
 RUN apk add git \
