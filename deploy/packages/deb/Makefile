@@ -20,8 +20,8 @@ all: | $(BUILT)
 		sed -i "s/Package: emqx/Package: emqx-edge/1" $(SRCDIR)/debian/control; \
 	fi
 	cd $(SRCDIR) && dpkg-buildpackage -us -uc
-	mkdir -p $(PKG_DIR)
-	cp $(SRCDIR)/../$(SOURCE_PKG).deb $(PKG_DIR)/$(TARGET_PKG).deb
+	mkdir -p $(EMQX_REL)/_packages/$(EMQX_NAME)
+	cp $(SRCDIR)/../$(SOURCE_PKG).deb $(EMQX_REL)/_packages/$(EMQX_NAME)/$(TARGET_PKG).deb
 
 $(BUILT):
 	mkdir -p $(TOPDIR) $(SRCDIR)
