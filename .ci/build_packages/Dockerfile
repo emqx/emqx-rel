@@ -20,4 +20,4 @@ WORKDIR /emqx-rel
 
 RUN make ${EMQX_NAME}-pkg
 
-RUN /emqx-rel/.github/workflows/script/tests.sh
+RUN /emqx-rel/.ci/build_packages/tests.sh

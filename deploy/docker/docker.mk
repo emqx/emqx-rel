@@ -1,28 +1,21 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+
 ## default globals
 TARGET ?= emqx/emqx
 QEMU_ARCH ?= x86_64
 ARCH ?= amd64
-QEMU_VERSION ?= v4.0.0
+QEMU_VERSION ?= v5.0.0-2
 OS ?= alpine
-
-## versioning
-EMQX_DEPS_DEFAULT_VSN ?= ""
-ifeq ($(EMQX_DEPS_DEFAULT_VSN), )
-	PKG_VSN := $(patsubst v%,%,$(patsubst e%,%,$(shell git describe --tags --always)))
-else ifeq ($(EMQX_DEPS_DEFAULT_VSN), "")
-	PKG_VSN := $(patsubst v%,%,$(patsubst e%,%,$(shell git describe --tags --always)))
-else
-	PKG_VSN := $(patsubst v%,%,$(patsubst e%,%,$(EMQX_DEPS_DEFAULT_VSN)))
-endif
 
 EMQX_NAME = $(subst emqx/,,$(TARGET))
 ARCH_LIST = amd64 arm64v8 arm32v7 i386 s390x
 
-.PHONY: all
-all: build tag
+.PHONY: docker
+docker: docker-build docker-tag docker-save
 
-.PHONY: prepare
-prepare:
+.PHONY: docker-prepare
+docker-prepare:
 	## Prepare the machine before any code installation scripts
 	# @echo "PREPARE: Setting up dependencies."
 	# @apt update -y
@@ -38,8 +31,8 @@ prepare:
 	@echo '{ "experimental": true, "storage-driver": "overlay2", "max-concurrent-downloads": 50, "max-concurrent-uploads": 50 }' | tee /etc/docker/daemon.json 
 	@service docker restart
 
-.PHONY: build
-build:
+.PHONY: docker-build
+docker-build:
 	## Build Docker image
 	@echo "DOCKER BUILD: Build Docker image."
 	@echo "DOCKER BUILD: build version -> $(PKG_VSN)."
@@ -53,25 +46,23 @@ build:
 	@echo "PREPARE: Qemu" \
 	&& docker run --rm --privileged multiarch/qemu-user-static:register --reset
   
-	@mkdir -p tmp \
-	&& cd tmp \
+	@mkdir -p .tmp \
+	&& cd .tmp \
 	&& curl -L -o qemu-$(QEMU_ARCH)-static.tar.gz https://github.com/multiarch/qemu-user-static/releases/download/$(QEMU_VERSION)/qemu-$(QEMU_ARCH)-static.tar.gz \
 	&& tar xzf qemu-$(QEMU_ARCH)-static.tar.gz \
 	&& cd -
 
-	@cd ../.. \
-	&& docker build --no-cache \
+	@docker build --no-cache \
 		--build-arg EMQX_DEPS_DEFAULT_VSN=$(EMQX_DEPS_DEFAULT_VSN) \
 		--build-arg BUILD_FROM=emqx/build-env:erl22.3-alpine-$(ARCH)  \
 		--build-arg RUN_FROM=$(ARCH)/alpine:3.11 \
 		--build-arg EMQX_NAME=$(EMQX_NAME) \
 		--build-arg QEMU_ARCH=$(QEMU_ARCH) \
 		--tag $(TARGET):build-$(OS)-$(ARCH) \
-		-f deploy/docker/Dockerfile . \
-	&& cd -
+		-f deploy/docker/Dockerfile .
 
-.PHONY: tag
-tag:
+.PHONY: docker-tag
+docker-tag:
 	@echo "DOCKER TAG: Tag Docker image."
 	@for arch in $(ARCH_LIST); do \
 		if [ -n  "$$(docker images -q $(TARGET):build-$(OS)-$${arch})" ]; then \
@@ -84,30 +75,28 @@ tag:
 		fi; \
 	done
 
-.PHONY: save
-save:
+.PHONY: docker-save
+docker-save:
 	@echo "DOCKER SAVE: Save Docker image." 
 
-	@mkdir -p ../../_packages/$(EMQX_NAME)
+	@mkdir -p _packages/$(EMQX_NAME)
 
 	@if [ -n  "$$(docker images -q $(TARGET):$(PKG_VSN))" ]; then \
 		docker save $(TARGET):$(PKG_VSN) > $(EMQX_NAME)-docker-$(PKG_VSN); \
 		zip -r -m $(EMQX_NAME)-docker-$(PKG_VSN).zip $(EMQX_NAME)-docker-$(PKG_VSN); \
-		mkdir -p ../../_packages/$(EMQX_NAME); \
-		mv ./$(EMQX_NAME)-docker-$(PKG_VSN).zip ../../_packages/$(EMQX_NAME)/$(EMQX_NAME)-docker-$(PKG_VSN).zip; \
+		mv ./$(EMQX_NAME)-docker-$(PKG_VSN).zip _packages/$(EMQX_NAME)/$(EMQX_NAME)-docker-$(PKG_VSN).zip; \
 	fi
 	
 	@for arch in $(ARCH_LIST); do \
 		if [ -n  "$$(docker images -q  $(TARGET):$(PKG_VSN)-$(OS)-$${arch})" ]; then \
 			docker save  $(TARGET):$(PKG_VSN)-$(OS)-$${arch} > $(EMQX_NAME)-docker-$(PKG_VSN)-$(OS)-$${arch}; \
 			zip -r -m $(EMQX_NAME)-docker-$(PKG_VSN)-$(OS)-$${arch}.zip $(EMQX_NAME)-docker-$(PKG_VSN)-$(OS)-$${arch}; \
-			mkdir -p ../../_packages/$(EMQX_NAME); \
-			mv ./$(EMQX_NAME)-docker-$(PKG_VSN)-$(OS)-$${arch}.zip ../../_packages/$(EMQX_NAME)/$(EMQX_NAME)-docker-$(PKG_VSN)-$(OS)-$${arch}.zip; \
+			mv ./$(EMQX_NAME)-docker-$(PKG_VSN)-$(OS)-$${arch}.zip _packages/$(EMQX_NAME)/$(EMQX_NAME)-docker-$(PKG_VSN)-$(OS)-$${arch}.zip; \
 		fi; \
 	done
 
-.PHONY: push
-push:
+.PHONY: docker-push
+docker-push:
 	@echo "DOCKER PUSH: Push Docker image."; 
 	@echo "DOCKER PUSH: pushing - $(TARGET):$(PKG_VSN)."; 
 
@@ -123,8 +112,8 @@ push:
 		fi; \
 	done
 
-.PHONY: manifest_list
-manifest_list:
+.PHONY: docker-manifest-list
+docker-manifest-list:
 	version="docker manifest create --amend $(TARGET):$(PKG_VSN)"; \
 	latest="docker manifest create --amend $(TARGET):latest"; \
 	for arch in $(ARCH_LIST); do \
@@ -176,8 +165,8 @@ manifest_list:
 	docker manifest inspect $(TARGET):latest
 	docker manifest push $(TARGET):latest;
 
-.PHONY: clean
-clean:
+.PHONY: docker-clean
+docker-clean:
 	@echo "DOCKER CLEAN: Clean Docker image."
 
 	@if [ -n "$$(docker images -q  $(TARGET):$(PKG_VSN))" ]; then docker rmi -f $$(docker images -q  $(TARGET):$(PKG_VSN)); fi

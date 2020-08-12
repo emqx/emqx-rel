@@ -18,28 +18,34 @@ https://www.rebar3.org/docs/getting-started#section-installing-from-source
 
 ## Build on Linux/Unix/Mac
 
-```
-git clone -b v4.0.0 https://github.com/emqx/emqx-rel.git emqx-rel
-cd emqx-rel && make
-./_build/emqx/rel/emqx/bin/emqx console
+```shell
+$ git clone https://github.com/emqx/emqx-rel.git emqx-rel
+$ cd emqx-rel
+$ git checkout $(git describe --tags $(git rev-list --tags --max-count=1))
+$ make
+$ ./_build/emqx/rel/emqx/bin/emqx console
 ```
 
 ## Build rpm or deb package on Linux
-```
-git clone -b v4.0.0 https://github.com/emqx/emqx-rel.git emqx-rel
-cd emqx-rel && make emqx-pkg
-ls _packages/emqx
+```shell
+$ git clone https://github.com/emqx/emqx-rel.git emqx-rel
+$ cd emqx-rel
+$ git checkout $(git describe --tags $(git rev-list --tags --max-count=1))
+$ make emqx-pkg
+$ ls _packages/emqx
 ```
 
 ## Build docker image
-```
-git clone -b v4.0.0 https://github.com/emqx/emqx-rel.git emqx-rel
-cd emqx-rel && make emqx-docker-build
+```shell
+$ git clone https://github.com/emqx/emqx-rel.git emqx-rel
+$ cd emqx-rel
+$ git checkout $(git describe --tags $(git rev-list --tags --max-count=1))
+$ TARGET=emqx/emqx make docker
 ```
 
 ## Build on Windows
 
-```
+```powershell
 git clone -b v4.0.0 https://github.com/emqx/emqx-rel.git emqx-rel
 cd emqx-rel
 make
