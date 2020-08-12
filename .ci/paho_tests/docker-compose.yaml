@@ -2,7 +2,7 @@ version: '3'
 
 services:
   emqx1:
-    image: ${IMAGE}
+    image: emqx/emqx:build-alpine-amd64
     environment:
     - "EMQX_NAME=emqx"
     - "EMQX_HOST=node1.emqx.io"
@@ -27,7 +27,7 @@ services:
         - node1.emqx.io
   
   emqx2:
-    image: ${IMAGE}
+    image: emqx/emqx:build-alpine-amd64
     environment:
     - "EMQX_NAME=emqx"
     - "EMQX_HOST=node2.emqx.io"

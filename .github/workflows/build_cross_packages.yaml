@@ -150,7 +150,7 @@ jobs:
           docker buildx build --no-cache \
             --platform=linux/amd64 \
             -t cross_build_emqx_for_$SYSTEM \
-            -f .github/workflows/script/Dockerfile \
+            -f .ci/build_packages/Dockerfile \
             --build-arg BUILD_FROM=emqx/build-env:$ERL_OTP-$SYSTEM \
             --build-arg SYSTEM=$SYSTEM \
             --build-arg EMQX_NAME=${EMQX} \
@@ -180,7 +180,7 @@ jobs:
           docker buildx build --no-cache \
             --platform=linux/arm64 \
             -t cross_build_emqx_for_$SYSTEM \
-            -f .github/workflows/script/Dockerfile \
+            -f .ci/build_packages/Dockerfile \
             --build-arg BUILD_FROM=emqx/build-env:$ERL_OTP-$SYSTEM \
             --build-arg SYSTEM=$SYSTEM \
             --build-arg EMQX_NAME=${EMQX} \
@@ -257,13 +257,11 @@ jobs:
       run: |
         sudo docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
 
-        sudo TARGET=emqx/emqx ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH  make -C deploy/docker
-        sudo TARGET=emqx/emqx ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH make -C deploy/docker save
+        sudo TARGET=emqx/emqx ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH  make docker
 
         cd _packages/emqx && for var in $(ls emqx-docker-* ); do sudo bash -c "echo $(sha256sum $var | awk '{print $1}') > $var.sha256"; done && cd -
 
-        sudo TARGET=emqx/emqx-edge ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH  make -C deploy/docker
-        sudo TARGET=emqx/emqx-edge ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH  make -C deploy/docker save
+        sudo TARGET=emqx/emqx-edge ARCH=$ARCH QEMU_ARCH=$QEMU_ARCH  make docker
 
         cd _packages/emqx-edge && for var in $(ls emqx-edge-docker-* ); do sudo bash -c "echo $(sha256sum $var | awk '{print $1}') > $var.sha256"; done && cd -
     - name: docker test
@@ -341,7 +339,7 @@ jobs:
         if [ ! -z $(echo $version | grep -oE "^[ev0-9]+\.[0-9]+(\.[0-9]+)?") ]; then
           cd packages
           for var in $(ls); do
-            ../emqx-rel/.github/workflows/script/upload_github_release_asset.sh owner=emqx repo=emqx tag=$version filename=$var github_api_token=$(echo ${{ secrets.AccessToken }})
+            ../emqx-rel/.ci/build_packages/upload_github_release_asset.sh owner=emqx repo=emqx tag=$version filename=$var github_api_token=$(echo ${{ secrets.AccessToken }})
           done
           curl -w %{http_code} --insecure -H ${{ secrets.EmqxHeader }} https://admin.emqx.io/api/v1/github_release_callback?tag=$version
         fi
@@ -352,8 +350,10 @@ jobs:
           sudo make -C emqx-rel/deploy/docker prepare
           cd ./packages && for var in $(ls |grep docker |grep -v sha256); do unzip $var; sudo docker load < ${var%.*}; rm -f ${var%.*}; done && cd -
           echo ${{ secrets.DockerHubPassword }} |sudo docker login -u ${{ secrets.DockerHubUser }} --password-stdin
-          sudo EMQX_DEPS_DEFAULT_VSN=$version make -C emqx-rel emqx-docker-push
-          sudo EMQX_DEPS_DEFAULT_VSN=$version make -C emqx-rel emqx-edge-docker-push
+          sudo EMQX_DEPS_DEFAULT_VSN=$version TARGET=emqx/emqx make docker-push
+          sudo EMQX_DEPS_DEFAULT_VSN=$version TARGET=emqx/emqx make docker-manifest-list
+          sudo EMQX_DEPS_DEFAULT_VSN=$version TARGET=emqx/emqx-edge make docker-push
+          sudo EMQX_DEPS_DEFAULT_VSN=$version TARGET=emqx/emqx-edge make docker-manifest-list
         fi
     - name: update repo.emqx.io
       run: |
