@@ -1,8 +1,11 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+
 ## default globals
 TARGET ?= emqx/emqx
 QEMU_ARCH ?= x86_64
 ARCH ?= amd64
-QEMU_VERSION ?= v4.0.0
+QEMU_VERSION ?= v5.0.0-2
 OS ?= alpine
 
 EMQX_NAME = $(subst emqx/,,$(TARGET))

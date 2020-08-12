@@ -1,4 +1,5 @@
-export
+#!/usr/bin/make -f
+# -*- makefile -*-
 
 PROFILES := emqx emqx-edge
 PKG_PROFILES := emqx-pkg emqx-edge-pkg
