@@ -58,7 +58,7 @@ $(PROFILES:%=%-zip): $(REBAR)
 	pkgpath="$$(pwd)/_packages/$${prof}"; \
 	mkdir -p $${pkgpath}; \
 	tarball="$${relpath}/emqx-$(PKG_VSN).tar.gz";\
-	zipball="$${pkgpath}/emqx-$(SYSTEM)-$(PKG_VSN)-$(uname -m).zip";\
+	zipball="$${pkgpath}/$${prof}-$(SYSTEM)-$(PKG_VSN)-$(uname -m).zip";\
 	tar zxf "$${tarball}" -C "$${tard}/emqx"; \
 	pushd "$${tard}"; \
 	zip -q -r "$${zipball}" ./emqx; \
