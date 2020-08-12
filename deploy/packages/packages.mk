@@ -61,9 +61,7 @@ $(PROFILES:%=%-zip): $(REBAR)
 	tarball="$${relpath}/emqx-$(PKG_VSN).tar.gz";\
 	zipball="$${pkgpath}/$${prof}-$(SYSTEM)-$(PKG_VSN)-$(uname -m).zip";\
 	tar zxf "$${tarball}" -C "$${tard}/emqx"; \
-	pushd "$${tard}"; \
-	zip -q -r "$${zipball}" ./emqx; \
-	popd
+	cd "$${tard}" && zip -q -r "$${zipball}" ./emqx && cd -
 
 .PHONY: $(PKG_PROFILES)
 $(PKG_PROFILES:%=%): $(REBAR)

@@ -11,11 +11,11 @@ PROFILE ?= emqx
 PROFILES := emqx emqx-edge
 PKG_PROFILES := emqx-pkg emqx-edge-pkg
 
-export EMQX_DEPS_DEFAULT_VSN ?= $(shell ./get_lastest_tag.escript ref)
+export EMQX_DEPS_DEFAULT_VSN ?= $(shell ./get-lastest-tag.escript ref)
 ifneq ($(shell echo $(EMQX_DEPS_DEFAULT_VSN) | grep -oE "^[ev0-9]+\.[0-9]+(\.[0-9]+)?"),)
 	export PKG_VSN := $(patsubst v%,%,$(patsubst e%,%,$(EMQX_DEPS_DEFAULT_VSN)))
 else
-	export PKG_VSN := $(patsubst v%,%,$(shell ./get_lastest_tag.escript tag))
+	export PKG_VSN := $(patsubst v%,%,$(shell ./get-lastest-tag.escript tag))
 endif
 
 CT_APPS := emqx \
