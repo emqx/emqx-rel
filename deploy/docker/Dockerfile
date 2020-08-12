@@ -3,7 +3,7 @@ ARG RUN_FROM=alpine:3.11
 FROM ${BUILD_FROM} AS builder
 
 ARG QEMU_ARCH=x86_64
-COPY deploy/docker/tmp/qemu-$QEMU_ARCH-stati* /usr/bin/
+COPY .tmp/qemu-$QEMU_ARCH-stati* /usr/bin/
 COPY . /emqx-rel
 
 RUN apk add git \
@@ -22,7 +22,7 @@ RUN apk add git \
 ARG EMQX_DEPS_DEFAULT_VSN=develop
 ARG EMQX_NAME=emqx
 
-RUN cd /emqx-rel && make ${EMQX_NAME}
+RUN cd /emqx-rel && make $EMQX_NAME
 
 FROM $RUN_FROM
 
@@ -38,8 +38,9 @@ LABEL org.label-schema.docker.dockerfile="Dockerfile" \
     maintainer="Raymond M Mouthaan <raymondmmouthaan@gmail.com>, Huang Rui <vowstar@gmail.com>, EMQ X Team <support@emqx.io>"
 
 ARG QEMU_ARCH=x86_64
-COPY deploy/docker/docker-entrypoint.sh deploy/docker/start.sh deploy/docker/tmp/qemu-$QEMU_ARCH-stati* /usr/bin/
-COPY --from=builder /emqx-rel/_build/emqx*/rel/emqx /opt/emqx
+ARG EMQX_NAME=emqx
+COPY deploy/docker/docker-entrypoint.sh deploy/docker/start.sh .tmp/qemu-$QEMU_ARCH-stati* /usr/bin/
+COPY --from=builder /emqx-rel/_build/$EMQX_NAME/rel/emqx /opt/emqx
 
 RUN ln -s /opt/emqx/bin/* /usr/local/bin/ 
 RUN apk add --no-cache curl ncurses-libs openssl sudo libstdc++

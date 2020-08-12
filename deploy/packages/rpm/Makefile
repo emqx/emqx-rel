@@ -13,6 +13,8 @@ ifeq ($(ARCH),mips64)
 ARCH:=mips64el
 endif
 
+EMQX_NAME=$(subst -pkg,,$(EMQX_BUILD))
+
 TAR_PKG := $(EMQX_REL)/_build/$(EMQX_BUILD)/rel/emqx/emqx-$(PKG_VSN).tar.gz
 TARGET_PKG := $(EMQX_NAME)-$(SYSTEM)-$(RPM_VSN)-$(RPM_REL).$(ARCH)
 ifeq ($(RPM_REL),)
@@ -49,8 +51,8 @@ all: | $(BUILT)
 		--define "_ostype -$(SYSTEM)" \
 		--define "_sharedstatedir /var/lib" \
 		emqx.spec
-	mkdir -p $(PKG_DIR)
-	cp $(TOPDIR)/RPMS/$(ARCH)/$(SOURCE_PKG).rpm  $(PKG_DIR)/$(TARGET_PKG).rpm
+	mkdir -p $(EMQX_REL)/_packages/$(EMQX_NAME)
+	cp $(TOPDIR)/RPMS/$(ARCH)/$(SOURCE_PKG).rpm $(EMQX_REL)/_packages/$(EMQX_NAME)/$(TARGET_PKG).rpm
 
 $(BUILT):
 	mkdir -p $(TOPDIR) $(SRCDIR) $(SRCDIR)/BUILT
