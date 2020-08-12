@@ -3,6 +3,8 @@ TOPDIR := /tmp/emqx
 SRCDIR := $(TOPDIR)/$(PKG_VSN)
 BUILT := $(SRCDIR)/BUILT
 
+EMQX_NAME=$(subst -pkg,,$(EMQX_BUILD))
+
 TAR_PKG := $(EMQX_REL)/_build/$(EMQX_BUILD)/rel/emqx/emqx-$(PKG_VSN).tar.gz
 SOURCE_PKG := $(EMQX_NAME)_$(PKG_VSN)_$(shell dpkg --print-architecture)
 TARGET_PKG := $(EMQX_NAME)-$(SYSTEM)-$(PKG_VSN)_$(shell uname -m)

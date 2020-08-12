@@ -13,6 +13,8 @@ ifeq ($(ARCH),mips64)
 ARCH:=mips64el
 endif
 
+EMQX_NAME=$(subst -pkg,,$(EMQX_BUILD))
+
 TAR_PKG := $(EMQX_REL)/_build/$(EMQX_BUILD)/rel/emqx/emqx-$(PKG_VSN).tar.gz
 TARGET_PKG := $(EMQX_NAME)-$(SYSTEM)-$(RPM_VSN)-$(RPM_REL).$(ARCH)
 ifeq ($(RPM_REL),)
