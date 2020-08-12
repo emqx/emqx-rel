@@ -135,5 +135,5 @@ else
 endif
 	$(REBAR) as $(@:deps-%=%) get-deps
 
-include deploy/packages/packages.mk
-include deploy/docker/docker.mk
+include packages.mk
+include docker.mk
