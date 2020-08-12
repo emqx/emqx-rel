@@ -69,7 +69,7 @@ ifneq ($(PKGERDIR),)
 	make $(subst -pkg,,$(@))-zip
 	make $(@)-tar
 	make -C deploy/packages/$(PKGERDIR) clean
-	make -C deploy/packages/$(PKGERDIR)
+	EMQX_REL=$$(pwd) make -C deploy/packages/$(PKGERDIR)
 else
 	make $(subst -pkg,,$(@))-zip
 endif

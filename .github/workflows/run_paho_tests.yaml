@@ -36,6 +36,6 @@ jobs:
               emqx/build-env:erl22.3-debian10 \
               bash -c "make -C /emqx-rel deps-emqx"
         - name: make emqx image
-          run: TARGET=emqx/emqx make docker
+          run: TARGET=emqx/emqx make docker-build
         - name: make paho tests
           run: TARGET=emqx/emqx PAHO_BRANCH="develop-4.0" make -C .ci/paho_tests test
