@@ -123,5 +123,17 @@ ifneq ($(wildcard rebar3),rebar3)
 endif
 	@chmod a+x rebar3
 
+.PHONY: deps-all
+deps-all: $(REBAR) $(PROFILES:%=deps-%) $(PKG_PROFILES:%=deps-%)
+
+.PHONY: $(PROFILES:%=deps-%) $(PKG_PROFILES:%=deps-%)
+$(PROFILES:%=deps-%) $(PKG_PROFILES:%=deps-%): $(REBAR)
+ifneq ($(shell echo $(@) |grep edge),)
+	export EMQX_DESC="EMQ X Edge"
+else
+	export EMQX_DESC="EMQ X Broker"
+endif
+	$(REBAR) as $(@:deps-%=%) get-deps
+
 include deploy/packages/packages.mk
 include deploy/docker/docker.mk
