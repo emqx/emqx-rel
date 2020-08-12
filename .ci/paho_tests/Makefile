@@ -2,13 +2,6 @@
 TARGET ?= emqx/emqx
 EMQX_NAME = $(subst emqx/,,$(TARGET))
 
-export EMQX_DEPS_DEFAULT_VSN ?= $(shell ../../get-lastest-tag.escript ref)
-ifneq ($(shell echo $(EMQX_DEPS_DEFAULT_VSN) | grep -oE "^[ev0-9]+\.[0-9]+(\.[0-9]+)?"),)
-	export PKG_VSN := $(patsubst v%,%,$(patsubst e%,%,$(EMQX_DEPS_DEFAULT_VSN)))
-else
-	export PKG_VSN := $(patsubst v%,%,$(shell ../../get-lastest-tag.escript tag))
-endif
-
 .PHONY: all
 all: test
 
@@ -26,8 +19,6 @@ endef
 
 .PHONY: create_container
 create_container: clean
-	@sed -i "/IMAGE=/c\IMAGE=$(TARGET):$(PKG_VSN)" .env
-
 	@docker-compose -p paho_test up -d
 	
 	$(call wait_emqx)
