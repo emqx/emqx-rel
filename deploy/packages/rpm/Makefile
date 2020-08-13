@@ -16,11 +16,10 @@ endif
 EMQX_NAME=$(subst -pkg,,$(EMQX_BUILD))
 
 TAR_PKG := $(EMQX_REL)/_build/$(EMQX_BUILD)/rel/emqx/emqx-$(PKG_VSN).tar.gz
-TARGET_PKG := $(EMQX_NAME)-$(SYSTEM)-$(RPM_VSN)-$(RPM_REL).$(ARCH)
+TARGET_PKG := $(EMQX_NAME)-$(SYSTEM)-$(PKG_VSN)-$(ARCH)
 ifeq ($(RPM_REL),)
 	# no tail
 	RPM_REL := 1
-	TARGET_PKG := $(EMQX_NAME)-$(SYSTEM)-$(RPM_VSN).$(ARCH)
 endif
 SOURCE_PKG := emqx-$(SYSTEM)-$(RPM_VSN)-$(RPM_REL).$(ARCH)
 
