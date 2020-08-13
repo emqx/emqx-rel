@@ -32,6 +32,8 @@ endif
 .PHONY: $(PROFILES:%=relup-%)
 $(PROFILES:%=relup-%): $(REBAR)
 ifneq ($(OS),Windows_NT)
+	mkdir -p tmp/relup_packages/$(@:relup-%=%)
+	cp $(@:relup-%=%)-$(SYSTEM)-*-$$(uname -m).zip tmp/relup_packages/$(@:relup-%=%)
 	$(REBAR) as $(@:relup-%=%) relup
 endif
 
@@ -59,7 +61,7 @@ $(PROFILES:%=%-zip): $(REBAR)
 	pkgpath="$$(pwd)/_packages/$${prof}"; \
 	mkdir -p $${pkgpath}; \
 	tarball="$${relpath}/emqx-$(PKG_VSN).tar.gz";\
-	zipball="$${pkgpath}/$${prof}-$(SYSTEM)-$(PKG_VSN)-$(uname -m).zip";\
+	zipball="$${pkgpath}/$${prof}-$(SYSTEM)-$(PKG_VSN)-$$(uname -m).zip";\
 	tar zxf "$${tarball}" -C "$${tard}/emqx"; \
 	cd "$${tard}" && zip -q -r "$${zipball}" ./emqx && cd -
 
@@ -69,7 +71,7 @@ ifneq ($(PKGERDIR),)
 	make $(subst -pkg,,$(@))-zip
 	make $(@)-tar
 	make -C deploy/packages/$(PKGERDIR) clean
-	EMQX_REL=$$(pwd) EMQX_BUILD=$(@) PKG_VSN=$(PKG_VSN) make -C deploy/packages/$(PKGERDIR)
+	EMQX_REL=$$(pwd) EMQX_BUILD=$(@) PKG_VSN=$(PKG_VSN) SYSTEM=$(SYSTEM) make -C deploy/packages/$(PKGERDIR)
 else
 	make $(subst -pkg,,$(@))-zip
 endif

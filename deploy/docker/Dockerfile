@@ -3,7 +3,7 @@ ARG RUN_FROM=alpine:3.11
 FROM ${BUILD_FROM} AS builder
 
 ARG QEMU_ARCH=x86_64
-COPY .tmp/qemu-$QEMU_ARCH-stati* /usr/bin/
+COPY tmp/qemu-$QEMU_ARCH-stati* /usr/bin/
 COPY . /emqx-rel
 
 RUN apk add git \
@@ -39,7 +39,7 @@ LABEL org.label-schema.docker.dockerfile="Dockerfile" \
 
 ARG QEMU_ARCH=x86_64
 ARG EMQX_NAME=emqx
-COPY deploy/docker/docker-entrypoint.sh deploy/docker/start.sh .tmp/qemu-$QEMU_ARCH-stati* /usr/bin/
+COPY deploy/docker/docker-entrypoint.sh deploy/docker/start.sh tmp/qemu-$QEMU_ARCH-stati* /usr/bin/
 COPY --from=builder /emqx-rel/_build/$EMQX_NAME/rel/emqx /opt/emqx
 
 RUN ln -s /opt/emqx/bin/* /usr/local/bin/ 

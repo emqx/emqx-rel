@@ -29,6 +29,6 @@ test/
 _checkouts
 _packages
 deploy/docker/tmp
-.tmp
+tmp
 .vscode/settings.json
 .ignore

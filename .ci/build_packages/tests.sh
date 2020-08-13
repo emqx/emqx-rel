@@ -2,6 +2,7 @@
 set -x -e -u
 export EMQX_NAME=${EMQX_NAME:-"emqx"}
 export PACKAGE_PATH="/emqx-rel/_packages/${EMQX_NAME}"
+export RELUP_PACKAGE_PATH="/emqx-rel/relup_packages/${EMQX_NAME}"
 # export EMQX_NODE_NAME="emqx-on-$(uname -m)@127.0.0.1"
 # export EMQX_NODE_COOKIE=$(date +%s%N)
 
@@ -149,6 +150,26 @@ running_test(){
         done
         service emqx stop
     fi
+}
+
+relup_test(){
+    if [ -d ${RELUP_PACKAGE_PATH} ];then
+        cd ${RELUP_PACKAGE_PATH }
+
+        for var in $(ls ${EMQX_NAME}-*-$(uname -m).zip);do
+            packagename=`basename ${var}`
+            unzip $packagename
+            ./emqx/bin/emqx start
+            ./emqx/bin/emqx_ctl status
+            ./emqx/bin/emqx versions
+            cp ${PACKAGE_PATH}/${EMQX_NAME}-${SYSTEM}-${EMQX_DEPS_DEFAULT_VSN#v}-$(uname -m).zip ./emqx/releases
+            ./emqx/bin/emqx install ${EMQX_DEPS_DEFAULT_VSN#v}
+            [ $(./emqx/bin/emqx versions |grep permanent | grep -oE "[0-9].[0-9].[0-9]") = ${EMQX_DEPS_DEFAULT_VSN#v} ] || exit 1
+            ./emqx/bin/emqx_ctl status
+            ./emqx/bin/emqx stop
+            rm -rf emqx
+        done
+   fi
 }
 
 emqx_prepare

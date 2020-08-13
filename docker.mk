@@ -46,8 +46,8 @@ docker-build:
 	@echo "PREPARE: Qemu" \
 	&& docker run --rm --privileged multiarch/qemu-user-static:register --reset
   
-	@mkdir -p .tmp \
-	&& cd .tmp \
+	@mkdir -p tmp \
+	&& cd tmp \
 	&& curl -L -o qemu-$(QEMU_ARCH)-static.tar.gz https://github.com/multiarch/qemu-user-static/releases/download/$(QEMU_VERSION)/qemu-$(QEMU_ARCH)-static.tar.gz \
 	&& tar xzf qemu-$(QEMU_ARCH)-static.tar.gz \
 	&& cd -
