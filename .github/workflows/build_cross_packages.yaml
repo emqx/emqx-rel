@@ -332,6 +332,7 @@ jobs:
       run: sudo apt-get update && sudo apt install -y dos2unix
     - name: get packages
       run: |
+        set -e -x -u
         version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g")
         for EMQX in emqx emqx-edge; do
           cd _packages/$EMQX
@@ -343,6 +344,7 @@ jobs:
         done
     - name: upload aws s3
       run: |
+        set -e -x -u
         version=$(echo ${{ github.ref }} | sed -r  "s ^refs/heads/|^refs/tags/(.*) \1 g")
         if [ ! -z $(echo $version | grep -oE "^[ev0-9]+\.[0-9]+(\.[0-9]+)?") ]; then
           curl "https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
@@ -365,16 +367,19 @@ jobs:
         path: emqx-rel
     - name: update to github and emqx.io
       run: |
+        set -e -x -u
         version=$(echo ${{ github.ref }} | sed -r  "s ^refs/heads/|^refs/tags/(.*) \1 g")
         if [ ! -z $(echo $version | grep -oE "^[ev0-9]+\.[0-9]+(\.[0-9]+)?") ]; then
           cd packages
           for var in $(ls); do
             ../emqx-rel/.ci/build_packages/upload_github_release_asset.sh owner=emqx repo=emqx tag=$version filename=$var github_api_token=$(echo ${{ secrets.AccessToken }})
+            sleep 1
           done
           curl -w %{http_code} --insecure -H ${{ secrets.EmqxHeader }} https://admin.emqx.io/api/v1/github_release_callback?tag=$version
         fi
     - name: push docker image to docker hub
       run: |
+        set -e -x -u
         version=$(echo ${{ github.ref }} | sed -r  "s ^refs/heads/|^refs/tags/(.*) \1 g")
         if [ ! -z $(echo $version | grep -oE "^[ev0-9]+\.[0-9]+(\.[0-9]+)?") ]; then
           sudo make -C emqx-rel/deploy/docker prepare
@@ -387,6 +392,7 @@ jobs:
         fi
     - name: update repo.emqx.io
       run: |
+        set -e -x -u
         version=$(echo ${{ github.ref }} | sed -r  "s ^refs/heads/|^refs/tags/(.*) \1 g")
         if [ ! -z $(echo $version | grep -oE "^[ev0-9]+\.[0-9]+(\.[0-9]+)?") ]; then
           curl -H "Authorization: token ${{ secrets.AccessToken }}" -H "Accept: application/vnd.github.everest-preview+json" -H "Content-Type: application/json" -X POST -d "{\"event_type\":\"update_repos\",\"client_payload\":{\"version\": \"$version\",\"emqx_ce\":true,\"emqx_ee\":false}}" https://api.github.com/repos/emqx/emqx-packages-docker/dispatches
