@@ -382,7 +382,7 @@ jobs:
         set -e -x -u
         version=$(echo ${{ github.ref }} | sed -r  "s ^refs/heads/|^refs/tags/(.*) \1 g")
         if [ ! -z $(echo $version | grep -oE "^[ev0-9]+\.[0-9]+(\.[0-9]+)?") ]; then
-          sudo make -C emqx-rel/deploy/docker prepare
+          sudo make docker-prepare
           cd ./packages && for var in $(ls |grep docker |grep -v sha256); do unzip $var; sudo docker load < ${var%.*}; rm -f ${var%.*}; done && cd -
           echo ${{ secrets.DockerHubPassword }} |sudo docker login -u ${{ secrets.DockerHubUser }} --password-stdin
           sudo EMQX_DEPS_DEFAULT_VSN=$version TARGET=emqx/emqx make docker-push
