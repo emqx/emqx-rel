@@ -32,8 +32,10 @@ endif
 .PHONY: $(PROFILES:%=relup-%)
 $(PROFILES:%=relup-%): $(REBAR)
 ifneq ($(OS),Windows_NT)
-	mkdir -p tmp/relup_packages/$(@:relup-%=%)
-	cp $(@:relup-%=%)-$(SYSTEM)-*-$$(uname -m).zip tmp/relup_packages/$(@:relup-%=%)
+	@if [ -d $(@:relup-%=%)-$(SYSTEM)-*-$$(uname -m).zip ]; then \
+		mkdir -p tmp/relup_packages/$(@:relup-%=%); \
+		cp $(@:relup-%=%)-$(SYSTEM)-*-$$(uname -m).zip tmp/relup_packages/$(@:relup-%=%); \
+	fi
 	$(REBAR) as $(@:relup-%=%) relup
 endif
 
