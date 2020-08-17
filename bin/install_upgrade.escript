@@ -229,6 +229,15 @@ parse_version(V) when is_list(V) ->
     hd(string:tokens(V,"/")).
 
 check_and_install(TargetNode, Vsn) ->
+    {ok, [[CurrAppConf]]} = rpc:call(TargetNode, init, get_argument, [config], ?TIMEOUT),
+    {ok, [[CurrVmArgs]]} = rpc:call(TargetNode, init, get_argument, [vm_args], ?TIMEOUT),
+    case filename:extension(CurrAppConf) of
+        ".config" ->
+            {ok, _} = file:copy(CurrAppConf, filename:join(["releases", Vsn, "sys.config"]));
+        _ ->
+            {ok, _} = file:copy(CurrAppConf++".config", filename:join(["releases", Vsn, "sys.config"]))
+    end,
+    {ok, _} = file:copy(CurrVmArgs, filename:join(["releases", Vsn, "vm.args"])),
     case rpc:call(TargetNode, release_handler,
                   check_install_release, [Vsn], ?TIMEOUT) of
         {ok, _OtherVsn, _Desc} ->
