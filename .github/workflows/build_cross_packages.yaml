@@ -395,7 +395,12 @@ jobs:
         set -e -x -u
         version=$(echo ${{ github.ref }} | sed -r  "s ^refs/heads/|^refs/tags/(.*) \1 g")
         if [ ! -z $(echo $version | grep -oE "^[ev0-9]+\.[0-9]+(\.[0-9]+)?") ]; then
-          curl -H "Authorization: token ${{ secrets.AccessToken }}" -H "Accept: application/vnd.github.everest-preview+json" -H "Content-Type: application/json" -X POST -d "{\"event_type\":\"update_repos\",\"client_payload\":{\"version\": \"$version\",\"emqx_ce\":true,\"emqx_ee\":false}}" https://api.github.com/repos/emqx/emqx-packages-docker/dispatches
+          curl \
+            -H "Authorization: token ${{ secrets.AccessToken }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            -X POST \
+            -d "{\"ref\":\"${{ github.ref }}\",\"inputs\":{\"version\": \"${version}\", \"emqx_ce\": \"true\"}}" \
+            https://api.github.com/repos/emqx/emqx-ci-helper/actions/workflows/update_repos.yaml/dispatches
         fi
     # - name: update homebrew packages
     #   run: |
