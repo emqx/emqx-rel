@@ -40,6 +40,7 @@ CT_APPS := emqx \
            emqx_retainer \
            emqx_sn \
            emqx_stomp \
+           emqx_telemetry \
            emqx_web_hook \
            emqx_bridge_mqtt \
            emqx_rule_engine \
