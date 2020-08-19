@@ -27,8 +27,6 @@ jobs:
                 version=$(echo ${{ github.ref }} | sed -r  "s ^refs/heads/|^refs/tags/(.*) \1 g")
             fi
             docker run -i --rm \
-                -e GITHUB_RUN_ID=$GITHUB_RUN_ID \
-                -e GITHUB_REF=$GITHUB_REF \
                 -e EMQX_DEPS_DEFAULT_VSN=$version \
                 -v $(pwd):/emqx-rel \
                 emqx/build-env:erl22.3-debian10 \

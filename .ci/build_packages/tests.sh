@@ -21,23 +21,22 @@ emqx_test(){
     for var in $(ls $PACKAGE_PATH/${EMQX_NAME}-*);do
         case ${var##*.} in
             "zip")
-                packagename=`basename ${PACKAGE_PATH}/${EMQX_NAME}-${SYSTEM}-*.zip`
-                mkdir -p ${PACKAGE_PATH}/${SYSTEM}/${EMQX_NAME}
-                unzip -q ${PACKAGE_PATH}/$packagename -d ${PACKAGE_PATH}/${SYSTEM}/${EMQX_NAME}
-                sed -i "/zone.external.server_keepalive/c zone.external.server_keepalive = 60" ${PACKAGE_PATH}/${SYSTEM}/${EMQX_NAME}/emqx/etc/emqx.conf 
-                sed -i "/mqtt.max_topic_alias/c mqtt.max_topic_alias = 10" ${PACKAGE_PATH}/${SYSTEM}/${EMQX_NAME}/emqx/etc/emqx.conf
+                packagename=`basename ${PACKAGE_PATH}/${EMQX_NAME}-*.zip`
+                unzip -q ${PACKAGE_PATH}/$packagename
+                sed -i "/zone.external.server_keepalive/c zone.external.server_keepalive = 60" ${PACKAGE_PATH}/emqx/etc/emqx.conf
+                sed -i "/mqtt.max_topic_alias/c mqtt.max_topic_alias = 10" ${PACKAGE_PATH}/emqx/etc/emqx.conf
 
                 if [ ! -z $(echo ${EMQX_DEPS_DEFAULT_VSN#v} | grep -oE "[0-9]+\.[0-9]+(\.[0-9]+)?-(alpha|beta|rc)\.[0-9]") ]; then
-                    if [ ! -d ${PACKAGE_PATH}/${SYSTEM}/${EMQX_NAME}/emqx/lib/emqx-${EMQX_DEPS_DEFAULT_VSN#v} ] || [ ! -d ${PACKAGE_PATH}/${SYSTEM}/${EMQX_NAME}/emqx/releases/${EMQX_DEPS_DEFAULT_VSN#v} ] ;then
+                    if [ ! -d ${PACKAGE_PATH}/emqx/lib/emqx-${EMQX_DEPS_DEFAULT_VSN#v} ] || [ ! -d ${PACKAGE_PATH}/emqx/releases/${EMQX_DEPS_DEFAULT_VSN#v} ] ;then
                         echo "emqx zip version error"
                         exit 1
                     fi
                 fi
 
                 echo "running ${packagename} start"
-                ${PACKAGE_PATH}/${SYSTEM}/${EMQX_NAME}/emqx/bin/emqx start || tail ${PACKAGE_PATH}/${SYSTEM}/${EMQX_NAME}/emqx/log/erlang.log.1
+                ${PACKAGE_PATH}/emqx/bin/emqx start || tail ${PACKAGE_PATH}/emqx/log/erlang.log.1
                 IDLE_TIME=0
-                while [ -z "$(${PACKAGE_PATH}/${SYSTEM}/${EMQX_NAME}/emqx/bin/emqx_ctl status |grep 'is running'|awk '{print $1}')" ]
+                while [ -z "$(${PACKAGE_PATH}/emqx/bin/emqx_ctl status |grep 'is running'|awk '{print $1}')" ]
                 do
                     if [ $IDLE_TIME -gt 10 ]
                     then
@@ -48,17 +47,12 @@ emqx_test(){
                     IDLE_TIME=$((IDLE_TIME+1))
                 done
                 pytest -v /paho-mqtt-testing/interoperability/test_client/V5/test_connect.py::test_basic
-                ${PACKAGE_PATH}/${SYSTEM}/${EMQX_NAME}/emqx/bin/emqx stop
+                ${PACKAGE_PATH}/emqx/bin/emqx stop
                 echo "running ${packagename} stop"
-                rm -rf ${PACKAGE_PATH}/${SYSTEM}/${EMQX_NAME}/emqx
-                rm -rf ${PACKAGE_PATH}/${SYSTEM}
+                rm -rf ${PACKAGE_PATH}/emqx
             ;;
             "deb")
-                if [ $SYSTEM == 'debian7' ];then
-                    echo "Skip the debian7 deb package test"
-                    continue
-                fi
-                packagename=`basename ${PACKAGE_PATH}/${EMQX_NAME}-${SYSTEM}-*.deb`
+                packagename=`basename ${PACKAGE_PATH}/${EMQX_NAME}-*.deb`
                 dpkg -i ${PACKAGE_PATH}/$packagename
                 if [ $(dpkg -l |grep emqx |awk '{print $1}') != "ii" ]
                 then
@@ -85,7 +79,7 @@ emqx_test(){
                 fi
             ;;
             "rpm")
-                packagename=`basename ${PACKAGE_PATH}/${EMQX_NAME}-${SYSTEM}-*.rpm`
+                packagename=`basename ${PACKAGE_PATH}/${EMQX_NAME}-*.rpm`
                 rpm -ivh ${PACKAGE_PATH}/$packagename
                 if [ -z $(rpm -q emqx | grep -o emqx) ];then
                     echo "package install error"
@@ -162,7 +156,7 @@ relup_test(){
             ./emqx/bin/emqx start
             ./emqx/bin/emqx_ctl status
             ./emqx/bin/emqx versions
-            cp ${PACKAGE_PATH}/${EMQX_NAME}-${SYSTEM}-${EMQX_DEPS_DEFAULT_VSN#v}-$(uname -m).zip ./emqx/releases
+            cp ${PACKAGE_PATH}/${EMQX_NAME}-*-${EMQX_DEPS_DEFAULT_VSN#v}-$(uname -m).zip ./emqx/releases
             ./emqx/bin/emqx install ${EMQX_DEPS_DEFAULT_VSN#v}
             [ $(./emqx/bin/emqx versions |grep permanent | grep -oE "[0-9].[0-9].[0-9]") = ${EMQX_DEPS_DEFAULT_VSN#v} ] || exit 1
             ./emqx/bin/emqx_ctl status
@@ -174,3 +168,4 @@ relup_test(){
 
 emqx_prepare
 emqx_test
+relup_test
