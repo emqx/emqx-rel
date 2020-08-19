@@ -357,7 +357,7 @@ jobs:
             ../emqx-rel/.ci/build_packages/upload_github_release_asset.sh owner=emqx repo=emqx tag=$version filename=$var github_api_token=$(echo ${{ secrets.AccessToken }})
             sleep 1
           done
-          curl -w %{http_code} --insecure -H ${{ secrets.EmqxHeader }} https://admin.emqx.io/api/v1/github_release_callback?tag=$version
+          curl -w %{http_code} --insecure -H ${{ secrets.EmqxHeader }} https://admin.emqx.io/admin_api/v1/github_release_callback?tag=$version
         fi
     - name: push docker image to docker hub
       run: |
