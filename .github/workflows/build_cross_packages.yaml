@@ -126,16 +126,9 @@ jobs:
     - uses: actions/checkout@v1
     - name: get deps
       run: |
-        version=$(echo ${{ github.ref }} | sed -r  "s ^refs/heads/|^refs/tags/(.*) \1 g")
-        if [ ! -z $(echo $version | grep -oE "^[ev0-9]+\.[0-9]+(\.[0-9]+)?") ]; then deps_version=$version; else deps_version=""; fi
-
-        echo "::set-env name=EMQX_DEPS_DEFAULT_VSN::$deps_version"
-        echo "::set-env name=version::$version"
-
         docker run -i --rm \
             -e GITHUB_RUN_ID=$GITHUB_RUN_ID \
             -e GITHUB_REF=$GITHUB_REF \
-            -e EMQX_DEPS_DEFAULT_VSN=$deps_version \
             -v $(pwd):/emqx-rel \
             emqx/build-env:erl22.3-debian10 \
             bash -c "make -C /emqx-rel deps-all"
@@ -182,9 +175,7 @@ jobs:
             -t cross_build_emqx_for_$SYSTEM \
             -f .ci/build_packages/Dockerfile \
             --build-arg BUILD_FROM=emqx/build-env:$ERL_OTP-$SYSTEM \
-            --build-arg SYSTEM=$SYSTEM \
             --build-arg EMQX_NAME=${EMQX} \
-            --build-arg EMQX_DEPS_DEFAULT_VSN=$EMQX_DEPS_DEFAULT_VSN \
             --output type=tar,dest=/tmp/cross-build-$EMQX-for-$SYSTEM.tar .
 
           mkdir -p /tmp/packages/$EMQX
@@ -212,9 +203,7 @@ jobs:
             -t cross_build_emqx_for_$SYSTEM \
             -f .ci/build_packages/Dockerfile \
             --build-arg BUILD_FROM=emqx/build-env:$ERL_OTP-$SYSTEM \
-            --build-arg SYSTEM=$SYSTEM \
             --build-arg EMQX_NAME=${EMQX} \
-            --build-arg EMQX_DEPS_DEFAULT_VSN=$EMQX_DEPS_DEFAULT_VSN \
             --output type=tar,dest=/tmp/cross-build-$EMQX-for-$SYSTEM.tar . || df -h
 
           mkdir -p /tmp/packages/$EMQX
@@ -267,16 +256,9 @@ jobs:
     - uses: actions/checkout@v1
     - name: get deps
       run: |
-        version=$(echo ${{ github.ref }} | sed -r  "s ^refs/heads/|^refs/tags/(.*) \1 g")
-        if [ ! -z $(echo $version | grep -oE "^[ev0-9]+\.[0-9]+(\.[0-9]+)?") ]; then deps_version=$version; else deps_version=""; fi
-
-        echo "::set-env name=EMQX_DEPS_DEFAULT_VSN::$deps_version"
-        echo "::set-env name=version::$version"
-
         docker run -i --rm \
             -e GITHUB_RUN_ID=$GITHUB_RUN_ID \
             -e GITHUB_REF=$GITHUB_REF \
-            -e EMQX_DEPS_DEFAULT_VSN=$deps_version \
             -v $(pwd):/emqx-rel \
             emqx/build-env:erl22.3-alpine-amd64 \
             sh -c "make -C /emqx-rel deps-emqx"
@@ -395,7 +377,12 @@ jobs:
         set -e -x -u
         version=$(echo ${{ github.ref }} | sed -r  "s ^refs/heads/|^refs/tags/(.*) \1 g")
         if [ ! -z $(echo $version | grep -oE "^[ev0-9]+\.[0-9]+(\.[0-9]+)?") ]; then
-          curl -H "Authorization: token ${{ secrets.AccessToken }}" -H "Accept: application/vnd.github.everest-preview+json" -H "Content-Type: application/json" -X POST -d "{\"event_type\":\"update_repos\",\"client_payload\":{\"version\": \"$version\",\"emqx_ce\":true,\"emqx_ee\":false}}" https://api.github.com/repos/emqx/emqx-packages-docker/dispatches
+          curl \
+          -H "Authorization: token ${{ secrets.AccessToken }}" \
+          -H "Accept: application/vnd.github.v3+json" \
+          -X POST \
+          -d "{\"ref\":\"${{ github.ref }}\",\"inputs\":{\"version\": \"${version}\", \"emqx_ce\": \"true\"}}" \
+          https://api.github.com/repos/emqx/emqx-ci-helper/actions/workflows/update_repos.yaml/dispatches
         fi
     # - name: update homebrew packages
     #   run: |
