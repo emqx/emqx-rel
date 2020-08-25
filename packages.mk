@@ -32,7 +32,7 @@ endif
 .PHONY: $(PROFILES:%=relup-%)
 $(PROFILES:%=relup-%): $(REBAR)
 ifneq ($(OS),Windows_NT)
-	@ln -snf _build/$(subst -tar,,$(@))/lib ./_checkouts
+	@ln -snf _build/$(@:relup-%=%)/lib ./_checkouts
 	@if [ -f $(@:relup-%=%)-$(SYSTEM)-*-$$(uname -m).zip ]; then \
 		mkdir -p tmp/relup_packages/$(@:relup-%=%); \
 		cp $(@:relup-%=%)-$(SYSTEM)-*-$$(uname -m).zip tmp/relup_packages/$(@:relup-%=%); \
