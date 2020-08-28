@@ -10,6 +10,7 @@ REL_NAME="emqx"
 RUNNER_ROOT_DIR="{{ runner_root_dir }}"
 ERTS_VSN="{{ erts_vsn }}"
 RUNNER_ETC_DIR="{{ runner_etc_dir }}"
+ERTS_PATH=$RUNNER_ROOT_DIR/erts-$ERTS_VSN/bin
 
 # Echo to stderr on errors
 echoerr() { echo "$@" 1>&2; }
