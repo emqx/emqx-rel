@@ -203,9 +203,11 @@ nodename(Name) ->
 append_node_suffix(Name, Suffix) ->
     case re:split(Name, "@", [{return, list}, unicode]) of
         [Node, Host] ->
-            list_to_atom(lists:concat([Node, Suffix, os:getpid(), "@", Host]));
+            PidRemNum = integer_to_list(list_to_integer(os:getpid()) rem 1000),
+            list_to_atom(lists:concat([Node, Suffix, PidRemNum, "@", Host]));
         [Node] ->
-            list_to_atom(lists:concat([Node, Suffix, os:getpid()]))
+            PidRemNum = integer_to_list(list_to_integer(os:getpid()) rem 1000),
+            list_to_atom(lists:concat([Node, Suffix, PidRemNum]))
     end.
 
 %% For windows???
