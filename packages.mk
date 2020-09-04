@@ -54,19 +54,21 @@ endif
 
 .PHONY: $(PROFILES:%=%-zip)
 $(PROFILES:%=%-zip): $(REBAR)
-	-make relup-$(subst -zip,,$(@))
+ifneq ($(shell echo $(PKG_VSN) | grep -oE "^[0-9]+\.[0-9]+\.[1-9]+?"),)
+	make relup-$(subst -zip,,$(@))
+endif
 	make $(subst -zip,,$(@))-tar
 
-	tard="/tmp/emqx_untar_$(PKG_VSN)";\
-	rm -rf "$${tard}" && mkdir -p "$${tard}/emqx";\
-	prof="$(subst -zip,,$(@))";\
-	relpath="$$(pwd)/_build/$${prof}/rel/emqx";\
-	pkgpath="$$(pwd)/_packages/$${prof}"; \
-	mkdir -p $${pkgpath}; \
-	tarball="$${relpath}/emqx-$(PKG_VSN).tar.gz";\
-	zipball="$${pkgpath}/$${prof}-$(SYSTEM)-$(PKG_VSN)-$$(uname -m).zip";\
-	tar zxf "$${tarball}" -C "$${tard}/emqx"; \
-	cd "$${tard}" && zip -q -r "$${zipball}" ./emqx && cd -
+	@tard="/tmp/emqx_untar_$(PKG_VSN)" \
+	&& rm -rf "$${tard}" && mkdir -p "$${tard}/emqx" \
+	&& prof="$(subst -zip,,$(@))" \
+	&& relpath="$$(pwd)/_build/$${prof}/rel/emqx" \
+	&& pkgpath="$$(pwd)/_packages/$${prof}" \
+	&& mkdir -p $${pkgpath} \
+	&& tarball="$${relpath}/emqx-$(PKG_VSN).tar.gz" \
+	&& zipball="$${pkgpath}/$${prof}-$(SYSTEM)-$(PKG_VSN)-$$(uname -m).zip" \
+	&& tar zxf "$${tarball}" -C "$${tard}/emqx" \
+	&& cd "$${tard}" && zip -q -r "$${zipball}" ./emqx && cd -
 
 .PHONY: $(PKG_PROFILES)
 $(PKG_PROFILES:%=%): $(REBAR)
