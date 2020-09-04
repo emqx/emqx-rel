@@ -1,0 +1,54 @@
+[doc Test of join cluster]
+
+[global tmpdir=/tmp/lux/]
+
+[shell pretest]
+    [timeout 20]
+    !mkdir -p $tmpdir/emqx
+    !cd $tmpdir/emqx
+    !cp /Users/emqer/code/emqx-rel/_build/emqx/rel/emqx/emqx-4.2.0.tar.gz .
+    !tar zxf emqx-4.2.0.tar.gz
+    !rm -f emqx-4.2.0.tar.gz
+    !cd $tmpdir
+    !cp ~/Downloads/one_more_emqx.sh .
+    !./one_more_emqx.sh emqx2
+    !./one_more_emqx.sh emqx3
+    ?SH-PROMPT:
+    !echo ==$$?==
+    ?^==0==
+
+[shell emqx1]
+    [timeout 30]
+    !cd $tmpdir/emqx
+    !./bin/emqx console
+    ?EMQ X Broker .* is running now!
+
+[shell emqx2]
+    [timeout 30]
+    !cd $tmpdir/emqx2
+    !./bin/emqx console
+    ?EMQ X Broker .* is running now!
+
+[shell emqx3]
+    [timeout 30]
+    !cd $tmpdir/emqx3
+    !./bin/emqx console
+    ?EMQ X Broker .* is running now!
+
+[shell emqx2_ctl]
+    ## let emqx2 join the cluster [emqx]
+    !cd $tmpdir/emqx2
+    !./bin/emqx_ctl cluster join 'emqx@127.0.0.1'
+    ?Join the cluster successfully
+
+[shell emqx3_ctl]
+    ## let emqx3 join the cluster [emqx, emqx1]
+    !cd $tmpdir/emqx3
+    !./bin/emqx_ctl cluster join 'emqx@127.0.0.1'
+    ?Join the cluster successfully
+
+[cleanup]
+    !rm -rf $tmpdir
+    ?SH-PROMPT:
+    !echo ==$$?==
+    ?^==0==

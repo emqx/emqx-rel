@@ -5,6 +5,10 @@ export REBAR_GIT_CLONE_OPTIONS
 
 REBAR = $(CURDIR)/rebar3
 
+LUX = $(CURDIR)/lux
+ONE_MORE_EMQX = $(CURDIR)/one_more_emqx.sh
+ONE_MORE_EMQX_URL = https://raw.githubusercontent.com/terry-xiaoyu/one_more_emqx/master/one_more_emqx.sh
+
 REBAR_URL = https://s3.amazonaws.com/rebar3/rebar3
 
 PROFILE ?= emqx
@@ -118,11 +122,26 @@ $(CT_APPS:%=ct-%): checkout-$(PROFILE)
 	@mkdir -p tests/logs/$(@:ct-%=%)
 	@if [ -d _build/emqx/lib/$(@:ct-%=%)/_build/test/logs ]; then cp -r _build/emqx/lib/$(@:ct-%=%)/_build/test/logs/* tests/logs/$(@:ct-%=%); fi
 
+# Run integration testing using lux
+it: $(LUX) $(ONE_MORE_EMQX) all
+	@$(LUX) ./test
+
 $(REBAR):
 ifneq ($(wildcard rebar3),rebar3)
 	@curl -Lo rebar3 $(REBAR_URL) || wget $(REBAR_URL)
 endif
 	@chmod a+x rebar3
+
+LUXTMP = /tmp/lux_repo
+$(LUX):
+	@rm -rf $(LUXTMP)
+	@git clone https://github.com/hawk/lux.git $(LUXTMP)
+	@cd $(LUXTMP) \
+	 && autoconf && ./configure && make \
+	 && cp ./bin/lux $(CURDIR) && cd -
+
+$(ONE_MORE_EMQX):
+	@wget $(ONE_MORE_EMQX_URL)
 
 .PHONY: deps-all
 deps-all: $(REBAR) $(PROFILES:%=deps-%) $(PKG_PROFILES:%=deps-%)
