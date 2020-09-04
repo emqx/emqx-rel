@@ -473,7 +473,7 @@ case "$1" in
             exit 1
         fi
 
-        COMMAND="$1"; TO_VERSION="$2"; shift
+        COMMAND="$1"; shift
 
         # Make sure a node IS running
         if ! relx_nodetool "ping" > /dev/null; then
@@ -481,17 +481,6 @@ case "$1" in
             exit 1
         fi
 
-        ZipFile="$(pwd)/releases/${REL_NAME}-*${TO_VERSION}*.zip";
-        GzFile="$(pwd)/releases/${REL_NAME}-${TO_VERSION}.tar.gz"
-        if ls ${ZipFile} 1> /dev/null 2>&1; then
-            zipf=$(ls ${ZipFile})
-            echo "find zipball $zipf"
-            tard="/tmp/emqx_untar_$(date +%s)";
-            rm -rf ${tard} && mkdir -p "${tard}"
-            unzip -q ${zipf} -d ${tard}
-            cd ${tard}/emqx && tar zcf ${GzFile} *
-            cd -
-        fi
         ERL_FLAGS="$ERL_FLAGS $EPMD_ARG" \
         exec "$BINDIR/escript" "$ROOTDIR/bin/install_upgrade.escript" \
              "$COMMAND" "{'$REL_NAME', \"$NAME_TYPE\", '$NAME', '$COOKIE'}" "$@"
