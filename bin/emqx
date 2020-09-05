@@ -4,22 +4,10 @@
 
 set -e
 
-REL_NAME="emqx"
-
-## constants from relx template
-RUNNER_ROOT_DIR="{{ runner_root_dir }}"
-RUNNER_BIN_DIR="{{ runner_bin_dir }}"
-REL_VSN="{{ rel_vsn }}"
-ERTS_VSN="{{ erts_vsn }}"
-ERL_OPTS="{{ erl_opts }}"
-RUNNER_LOG_DIR="{{ runner_log_dir }}"
-RUNNER_LIB_DIR="{{ runner_lib_dir }}"
-RUNNER_ETC_DIR="{{ runner_etc_dir }}"
-RUNNER_DATA_DIR="{{ runner_data_dir }}"
-RUNNER_USER="{{ runner_user }}"
+ROOT_DIR="$(cd $(dirname $(readlink $0 || echo $0))/..; pwd -P)"
+. $ROOT_DIR/releases/emqx_vars
 
 RUNNER_SCRIPT="$RUNNER_BIN_DIR/$REL_NAME"
-ERTS_PATH=$RUNNER_ROOT_DIR/erts-$ERTS_VSN/bin
 CODE_LOADING_MODE="${CODE_LOADING_MODE:-embedded}"
 REL_DIR="$RUNNER_ROOT_DIR/releases/$REL_VSN"
 
@@ -392,10 +380,10 @@ case "$1" in
             fi
             sleep 1
             if relx_nodetool "ping" >/dev/null 2>&1; then
-                echo "{{ emqx_description }} $REL_VSN is started successfully!"
+                echo "$EMQX_DISCR $REL_VSN is started successfully!"
                 exit 0
             fi
-        done && echo "{{ emqx_description }} $REL_VSN failed to start within ${WAIT_FOR_ERLANG:-15} seconds,"
+        done && echo "$EMQX_DISCR $REL_VSN failed to start within ${WAIT_FOR_ERLANG:-15} seconds,"
         echo "see the output of '$0 console' for more information."
         echo "If you want to wait longer, set the environment variable"
         echo "WAIT_FOR_ERLANG to the number of seconds to wait."
@@ -414,7 +402,7 @@ case "$1" in
         ;;
 
     restart|reboot)
-        echo "{{ emqx_description }} $REL_VSN is stopped: $($RUNNER_BIN_DIR/emqx stop)"
+        echo "$EMQX_DISCR $REL_VSN is stopped: $($RUNNER_BIN_DIR/emqx stop)"
         $RUNNER_BIN_DIR/emqx start
         ;;
 

@@ -4,13 +4,8 @@
 
 set -e
 
-REL_NAME="emqx"
-
-## constants from relx template
-RUNNER_ROOT_DIR="{{ runner_root_dir }}"
-ERTS_VSN="{{ erts_vsn }}"
-RUNNER_ETC_DIR="{{ runner_etc_dir }}"
-ERTS_PATH=$RUNNER_ROOT_DIR/erts-$ERTS_VSN/bin
+ROOT_DIR="$(cd $(dirname $(readlink $0 || echo $0))/..; pwd -P)"
+. $ROOT_DIR/releases/emqx_vars
 
 # Echo to stderr on errors
 echoerr() { echo "$@" 1>&2; }
