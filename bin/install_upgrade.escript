@@ -4,7 +4,7 @@
 %% ex: ft=erlang ts=4 sw=4 et
 
 -define(TIMEOUT, 300000).
--define(INFO(Fmt,Args), io:format(Fmt,Args)).
+-define(INFO(Fmt,Args), io:format(Fmt++"~n",Args)).
 
 main([Command0, DistInfoStr | CommandArgs]) ->
     %% convert the distribution info arguments string to an erlang term
@@ -23,7 +23,7 @@ main([Command0, DistInfoStr | CommandArgs]) ->
     end,
     F(DistInfo, Opts);
 main(Args) ->
-    ?INFO("unknown args: ~p\n", [Args]),
+    ?INFO("unknown args: ~p", [Args]),
     erlang:halt(1).
 
 unpack({RelName, NameTypeArg, NodeName, Cookie}, Opts) ->
@@ -31,49 +31,49 @@ unpack({RelName, NameTypeArg, NodeName, Cookie}, Opts) ->
     Version = proplists:get_value(version, Opts),
     case unpack_release(RelName, TargetNode, Version) of
         {ok, Vsn} ->
-            ?INFO("Unpacked successfully: ~p~n", [Vsn]);
+            ?INFO("Unpacked successfully: ~p", [Vsn]);
         old ->
             %% no need to unpack, has been installed previously
-            ?INFO("Release ~s is marked old.~n",[Version]);
+            ?INFO("Release ~s is marked old.",[Version]);
         unpacked ->
-            ?INFO("Release ~s is already unpacked.~n",[Version]);
+            ?INFO("Release ~s is already unpacked.",[Version]);
         current ->
-            ?INFO("Release ~s is already installed and current.~n",[Version]);
+            ?INFO("Release ~s is already installed and current.",[Version]);
         permanent ->
-            ?INFO("Release ~s is already installed and set permanent.~n",[Version]);
+            ?INFO("Release ~s is already installed and set permanent.",[Version]);
         {error, Reason} ->
-            ?INFO("Unpack failed: ~p~n",[Reason]),
+            ?INFO("Unpack failed: ~p.",[Reason]),
             print_existing_versions(TargetNode),
             erlang:halt(2)
     end;
 unpack(_, Args) ->
-    ?INFO("unpack: unknown args ~p\n", [Args]).
+    ?INFO("unpack: unknown args ~p", [Args]).
 
 install({RelName, NameTypeArg, NodeName, Cookie}, Opts) ->
     TargetNode = start_distribution(NodeName, NameTypeArg, Cookie),
     Version = proplists:get_value(version, Opts),
     case unpack_release(RelName, TargetNode, Version) of
         {ok, Vsn} ->
-            ?INFO("Unpacked successfully: ~p~n", [Vsn]),
+            ?INFO("Unpacked successfully: ~p.", [Vsn]),
             check_and_install(TargetNode, Vsn),
             maybe_permafy(TargetNode, RelName, Vsn, Opts);
         old ->
             %% no need to unpack, has been installed previously
-            ?INFO("Release ~s is marked old, switching to it.~n",[Version]),
+            ?INFO("Release ~s is marked old, switching to it.",[Version]),
             check_and_install(TargetNode, Version),
             maybe_permafy(TargetNode, RelName, Version, Opts);
         unpacked ->
-            ?INFO("Release ~s is already unpacked, now installing.~n",[Version]),
+            ?INFO("Release ~s is already unpacked, now installing.",[Version]),
             check_and_install(TargetNode, Version),
             maybe_permafy(TargetNode, RelName, Version, Opts);
         current ->
             case proplists:get_value(permanent, Opts, true) of
                 true ->
-                    ?INFO("Release ~s is already installed and current, making permanent.~n",
+                    ?INFO("Release ~s is already installed and current, making permanent.",
                         [Version]),
                     permafy(TargetNode, RelName, Version);
                 false ->
-                    ?INFO("Release ~s is already installed and current.~n",
+                    ?INFO("Release ~s is already installed and current.",
                         [Version])
             end;
         permanent ->
@@ -81,21 +81,21 @@ install({RelName, NameTypeArg, NodeName, Cookie}, Opts) ->
             %% one currently running
             case current_release_version(TargetNode) of
                 Version ->
-                    ?INFO("Release ~s is already installed, running and set permanent.~n",
+                    ?INFO("Release ~s is already installed, running and set permanent.",
                         [Version]);
                 CurrentVersion ->
-                    ?INFO("Release ~s is the currently running version.~n",
+                    ?INFO("Release ~s is the currently running version.",
                         [CurrentVersion]),
                     check_and_install(TargetNode, Version),
                     maybe_permafy(TargetNode, RelName, Version, Opts)
             end;
         {error, Reason} ->
-            ?INFO("Unpack failed: ~p~n",[Reason]),
+            ?INFO("Unpack failed: ~p",[Reason]),
             print_existing_versions(TargetNode),
             erlang:halt(2)
     end;
 install(_, Args) ->
-    ?INFO("install: unknown args ~p\n", [Args]).
+    ?INFO("install: unknown args ~p", [Args]).
 
 upgrade(DistInfo, Args) ->
     install(DistInfo, Args).
@@ -109,23 +109,23 @@ uninstall({_RelName, NameTypeArg, NodeName, Cookie}, Opts) ->
     Version = proplists:get_value(version, Opts),
     case proplists:get_value(Version, WhichReleases) of
         undefined ->
-            ?INFO("Release ~s is already uninstalled.~n", [Version]);
+            ?INFO("Release ~s is already uninstalled.", [Version]);
         old ->
-            ?INFO("Release ~s is marked old, uninstalling it.~n", [Version]),
+            ?INFO("Release ~s is marked old, uninstalling it.", [Version]),
             remove_release(TargetNode, Version);
         unpacked ->
-            ?INFO("Release ~s is marked unpacked, uninstalling it~n",
+            ?INFO("Release ~s is marked unpacked, uninstalling it",
                 [Version]),
             remove_release(TargetNode, Version);
         current ->
-            ?INFO("Uninstall failed: Release ~s is marked current.~n", [Version]),
+            ?INFO("Uninstall failed: Release ~s is marked current.", [Version]),
             erlang:halt(2);
         permanent ->
-            ?INFO("Uninstall failed: Release ~s is running.~n", [Version]),
+            ?INFO("Uninstall failed: Release ~s is running.", [Version]),
             erlang:halt(2)
     end;
 uninstall(_, Args) ->
-    ?INFO("uninstall: unknown args ~p\n", [Args]).
+    ?INFO("uninstall: unknown args ~p", [Args]).
 
 versions({_RelName, NameTypeArg, NodeName, Cookie}, []) ->
     TargetNode = start_distribution(NodeName, NameTypeArg, Cookie),
@@ -154,7 +154,7 @@ unpack_release(RelName, TargetNode, Version) ->
                 {_, undefined} ->
                     {error, release_package_not_found};
                 {ReleasePackage, ReleasePackageLink} ->
-                    ?INFO("Release ~s not found, attempting to unpack ~s~n",
+                    ?INFO("Release ~s not found, attempting to unpack ~s",
                         [Version, ReleasePackage]),
                     case rpc:call(TargetNode, release_handler, unpack_release,
                                   [ReleasePackageLink], ?TIMEOUT) of
@@ -223,7 +223,7 @@ unpack_zipballs(RelNameStr, Version) ->
     {ok, Cwd} = file:get_cwd(),
     GzFile = filename:absname(filename:join(["releases", RelNameStr ++ "-" ++ Version ++ ".tar.gz"])),
     ZipFiles = filelib:wildcard(filename:join(["releases", RelNameStr ++ "-*" ++ Version ++ "*.zip"])),
-    ?INFO("unzip ~p~n", [ZipFiles]),
+    ?INFO("unzip ~p", [ZipFiles]),
     [begin
         TmdTarD="/tmp/emqx_untar_" ++ integer_to_list(erlang:system_time()),
         ok = filelib:ensure_dir(filename:join([TmdTarD, "dummy"])),
@@ -262,31 +262,31 @@ check_and_install(TargetNode, Vsn) ->
         {ok, _OtherVsn, _Desc} ->
             ok;
         {error, Reason} ->
-            ?INFO("ERROR: release_handler:check_install_release failed: ~p~n",[Reason]),
+            ?INFO("ERROR: release_handler:check_install_release failed: ~p.",[Reason]),
             erlang:halt(3)
     end,
     case rpc:call(TargetNode, release_handler, install_release,
                   [Vsn, [{update_paths, true}]], ?TIMEOUT) of
         {ok, _, _} ->
-            ?INFO("Installed Release: ~s~n", [Vsn]),
+            ?INFO("Installed Release: ~s.", [Vsn]),
             ok;
         {error, {no_such_release, Vsn}} ->
             VerList =
                 iolist_to_binary(
                     [io_lib:format("* ~s\t~s~n",[V,S]) ||  {V,S} <- which_releases(TargetNode)]),
             ?INFO("Installed versions:~n~s", [VerList]),
-            ?INFO("ERROR: Unable to revert to '~s' - not installed.~n", [Vsn]),
+            ?INFO("ERROR: Unable to revert to '~s' - not installed.", [Vsn]),
             erlang:halt(2);
         %% as described in http://erlang.org/doc/man/appup.html, when performing a relup
         %% with soft purge:
         %%      If the value is soft_purge, release_handler:install_release/1
         %%      returns {error,{old_processes,Mod}}
         {error, {old_processes, Mod}} ->
-            ?INFO("ERROR: unable to install '~s' - old processes still running code from module ~p~n",
+            ?INFO("ERROR: unable to install '~s' - old processes still running code from module ~p",
                 [Vsn, Mod]),
             erlang:halt(3);
         {error, Reason1} ->
-            ?INFO("ERROR: release_handler:install_release failed: ~p~n",[Reason1]),
+            ?INFO("ERROR: release_handler:install_release failed: ~p",[Reason1]),
             erlang:halt(4)
     end.
 
@@ -298,20 +298,27 @@ maybe_permafy(TargetNode, RelName, Vsn, Opts) ->
     end.
 
 permafy(TargetNode, RelName, Vsn) ->
+    RelNameStr = atom_to_list(RelName),
     ok = rpc:call(TargetNode, release_handler,
                   make_permanent, [Vsn], ?TIMEOUT),
-    file:copy(filename:join(["bin", atom_to_list(RelName)++"-"++Vsn]),
-              filename:join(["bin", atom_to_list(RelName)])),
-    ?INFO("Made release permanent: ~p~n", [Vsn]),
-    ok.
+    ?INFO("Made release permanent: ~p", [Vsn]),
+    %% upgrade/downgrade the scripts by replacing them
+    Scripts = [RelNameStr, RelNameStr++"_ctl", "cuttlefish", "nodetool",
+               "install_upgrade.escript"],
+    [{ok, _} = file:copy(filename:join(["bin", File++"-"++Vsn]),
+                         filename:join(["bin", File]))
+     || File <- Scripts],
+    %% update the vars
+    UpdatedVars = io_lib:format("REL_VSN=\"~s\"~nERTS_VSN=\"~s\"~n", [Vsn, erts_vsn()]),
+    file:write_file(filename:absname(filename:join(["releases", "emqx_vars"])), UpdatedVars, [append]).
 
 remove_release(TargetNode, Vsn) ->
     case rpc:call(TargetNode, release_handler, remove_release, [Vsn], ?TIMEOUT) of
         ok ->
-            ?INFO("Uninstalled Release: ~s~n", [Vsn]),
+            ?INFO("Uninstalled Release: ~s", [Vsn]),
             ok;
         {error, Reason} ->
-            ?INFO("ERROR: release_handler:remove_release failed: ~p~n", [Reason]),
+            ?INFO("ERROR: release_handler:remove_release failed: ~p", [Reason]),
             erlang:halt(3)
     end.
 
@@ -344,7 +351,7 @@ start_distribution(TargetNode, NameTypeArg, Cookie) ->
         {true, pong} ->
             ok;
         {_, pang} ->
-            ?INFO("Node ~p not responding to pings.\n", [TargetNode]),
+            ?INFO("Node ~p not responding to pings.", [TargetNode]),
             erlang:halt(1)
     end,
     {ok, Cwd} = file:get_cwd(),
@@ -363,3 +370,8 @@ get_name_type(NameTypeArg) ->
 		_ ->
 			longnames
 	end.
+
+erts_vsn() ->
+    {ok, Str} = file:read_file(filename:join(["releases", "start_erl.data"])),
+    [ErtsVsn, _] = string:tokens(binary_to_list(Str), " "),
+    ErtsVsn.
