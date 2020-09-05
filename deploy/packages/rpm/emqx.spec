@@ -82,11 +82,11 @@ exit 0
 %files
 %defattr(-,root,root)
 %{_service_dst}
-%{_lib_home}
-%attr(0700,%{_user},%{_group}) %dir %{_var_home}
-%attr(0700,%{_user},%{_group}) %config(noreplace) %{_var_home}/*
-%attr(0755,%{_user},%{_group}) %dir %{_log_dir}
-%attr(0755,%{_user},%{_group}) %config(noreplace) %{_conf_dir}/*
+%attr(-,%{_user},%{_group}) %{_lib_home}/*
+%attr(-,%{_user},%{_group}) %dir %{_var_home}
+%attr(-,%{_user},%{_group}) %config(noreplace) %{_var_home}/*
+%attr(-,%{_user},%{_group}) %dir %{_log_dir}
+%attr(-,%{_user},%{_group}) %config(noreplace) %{_conf_dir}/*
 
 %clean
 rm -rf %{buildroot}
