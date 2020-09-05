@@ -4,7 +4,8 @@
 
 set -e
 
-source $(dirname "$0")/emqx_vars
+ROOT_DIR="$(cd $(dirname $(readlink $0 || echo $0))/..; pwd -P)"
+source $ROOT_DIR/releases/emqx_vars
 
 RUNNER_SCRIPT="$RUNNER_BIN_DIR/$REL_NAME"
 CODE_LOADING_MODE="${CODE_LOADING_MODE:-embedded}"

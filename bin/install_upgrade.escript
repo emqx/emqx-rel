@@ -308,7 +308,7 @@ permafy(TargetNode, RelName, Vsn) ->
      || File <- [RelNameStr, RelNameStr++"_ctl", "install_upgrade.escript"]],
     %% update the vars
     UpdatedVars = io_lib:format("REL_VSN=\"~s\"~nERTS_VSN=\"~s\"~n", [Vsn, erts_vsn()]),
-    file:write_file(filename:absname(filename:join(["bin", "emqx_vars"])), UpdatedVars, [append]).
+    file:write_file(filename:absname(filename:join(["releases", "emqx_vars"])), UpdatedVars, [append]).
 
 remove_release(TargetNode, Vsn) ->
     case rpc:call(TargetNode, release_handler, remove_release, [Vsn], ?TIMEOUT) of
