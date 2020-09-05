@@ -303,9 +303,11 @@ permafy(TargetNode, RelName, Vsn) ->
                   make_permanent, [Vsn], ?TIMEOUT),
     ?INFO("Made release permanent: ~p", [Vsn]),
     %% upgrade/downgrade the scripts by replacing them
+    Scripts = [RelNameStr, RelNameStr++"_ctl", "cuttlefish", "nodetool",
+               "install_upgrade.escript"],
     [{ok, _} = file:copy(filename:join(["bin", File++"-"++Vsn]),
                          filename:join(["bin", File]))
-     || File <- [RelNameStr, RelNameStr++"_ctl", "install_upgrade.escript"]],
+     || File <- Scripts],
     %% update the vars
     UpdatedVars = io_lib:format("REL_VSN=\"~s\"~nERTS_VSN=\"~s\"~n", [Vsn, erts_vsn()]),
     file:write_file(filename:absname(filename:join(["releases", "emqx_vars"])), UpdatedVars, [append]).
