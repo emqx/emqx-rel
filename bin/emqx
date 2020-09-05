@@ -163,18 +163,13 @@ relx_rem_sh() {
     # Generate a unique id used to allow multiple remsh to the same node
     # transparently
     id="remsh$(relx_gen_id)-${NAME}"
-    if [ -z "$WITH_EPMD" ]; then
-        EPMD_REMOTE_ARG="-start_epmd false -epmd_module ekka_epmd"
-    else
-        EPMD_REMOTE_ARG="-start_epmd true"
-    fi
     # Get the node's ticktime so that we use the same thing.
     TICKTIME="$(relx_nodetool rpcterms net_kernel get_net_ticktime)"
 
     # Setup remote shell command to control node
     exec "$BINDIR/erl" "$NAME_TYPE" "$id" -remsh "$NAME" -boot start_clean \
          -boot_var ERTS_LIB_DIR "$ERTS_LIB_DIR" \
-         -setcookie "$COOKIE" -hidden -kernel net_ticktime $TICKTIME $EPMD_REMOTE_ARG
+         -setcookie "$COOKIE" -hidden -kernel net_ticktime $TICKTIME $EPMD_ARG
 }
 
 # Generate a random id
