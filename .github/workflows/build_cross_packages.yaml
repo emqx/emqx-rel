@@ -381,7 +381,7 @@ jobs:
           -H "Authorization: token ${{ secrets.AccessToken }}" \
           -H "Accept: application/vnd.github.v3+json" \
           -X POST \
-          -d "{\"ref\":\"${{ github.ref }}\",\"inputs\":{\"version\": \"${version}\", \"emqx_ce\": \"true\"}}" \
+          -d "{\"ref\":\"v1.0.0\",\"inputs\":{\"version\": \"${version}\", \"emqx_ce\": \"true\"}}" \
           https://api.github.com/repos/emqx/emqx-ci-helper/actions/workflows/update_repos.yaml/dispatches
         fi
     # - name: update homebrew packages
