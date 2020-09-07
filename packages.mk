@@ -33,7 +33,7 @@ endif
 $(PROFILES:%=relup-%): $(REBAR)
 ifneq ($(OS),Windows_NT)
 	@ln -snf _build/$(@:relup-%=%)/lib ./_checkouts
-	@if [ -f $(@:relup-%=%)-$(SYSTEM)-*-$$(uname -m).zip ]; then \
+	@if [ ! -z $$(ls | grep -E "$(@:relup-%=%)-$(SYSTEM)-(.*)-$$(uname -m).zip" | head -1 ) ]; then \
 		mkdir -p tmp/relup_packages/$(@:relup-%=%); \
 		cp $(@:relup-%=%)-$(SYSTEM)-*-$$(uname -m).zip tmp/relup_packages/$(@:relup-%=%); \
 	fi
