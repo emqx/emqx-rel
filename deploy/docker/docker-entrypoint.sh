@@ -196,7 +196,7 @@ fi
 
 if [[ ! -z "$EMQX_DISCOVERY_MODE" ]]; then
   echo "EMQX_DISCOVERY_MODE=$EMQX_DISCOVERY_MODE"
-  echo "$(sed "s/^cluster.discovery.*$/cluster.discovery = dns/g" $CONFIG)" > $CONFIG
+  echo "$(sed "s/^cluster.discovery.*$/cluster.discovery = $EMQX_DISCOVERY_MODE /g" $CONFIG)" > $CONFIG
 
   if [[ ! -z "$EMQX_DNS_NAME" ]]; then
     echo "$(sed "s/^## cluster.dns.name.*$/cluster.dns.name = $EMQX_DNS_NAME/g" $CONFIG)" > $CONFIG
