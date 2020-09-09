@@ -207,7 +207,7 @@ if [[ ! -z "$EMQX_DISCOVERY_MODE" ]]; then
   fi
 
   if [[ ! -z "$DNS_RESOLVE_ADDRESS" ]]; then
-    echo $DNS_RESOLVE_ADDRESS > /etc/resolv.conf
+    echo $DNS_RESOLVE_ADDRESS | sudo tee /etc/resolv.conf
   fi
 fi
 
