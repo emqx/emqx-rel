@@ -196,7 +196,7 @@ fi
 
 if [[ ! -z "$EMQX_DISCOVERY_MODE" ]]; then
   echo "EMQX_DISCOVERY_MODE=$EMQX_DISCOVERY_MODE"
-  echo "$(sed "s/^cluster.discovery.*$/cluster.discovery = dns/g" $CONFIG)" > $CONFIG
+  echo "$(sed "s/^cluster.discovery.*$/cluster.discovery = $EMQX_DISCOVERY_MODE /g" $CONFIG)" > $CONFIG
 
   if [[ ! -z "$EMQX_DNS_NAME" ]]; then
     echo "$(sed "s/^## cluster.dns.name.*$/cluster.dns.name = $EMQX_DNS_NAME/g" $CONFIG)" > $CONFIG
@@ -204,6 +204,10 @@ if [[ ! -z "$EMQX_DISCOVERY_MODE" ]]; then
 
   if [[ ! -z "$EMQX_DNS_APP" ]]; then
     echo "$(sed "s/^## cluster.dns.app.*$/cluster.dns.app = $EMQX_NAME/g" $CONFIG)" > $CONFIG
+  fi
+
+  if [[ ! -z "$DNS_RESOLVE_ADDRESS" ]]; then
+    echo $DNS_RESOLVE_ADDRESS > /etc/resolv.conf
   fi
 fi
 
