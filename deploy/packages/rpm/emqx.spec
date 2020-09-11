@@ -63,6 +63,7 @@ if [ -e %{_initddir}/%{_name} ] ; then
 else
     systemctl enable %{_name}.service
 fi
+chown -R %{_user}:%{_group} %{_lib_home}
 
 %preun
 %{_preun_addition}
