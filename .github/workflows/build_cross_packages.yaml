@@ -24,16 +24,15 @@ jobs:
         scoop install sudo curl 7zip ojdkbuild8 vcredist2013
         scoop install erlang@22.3
 
-        $version = $("${{ github.ref }}" | sed -r "s ^refs/heads/|^refs/tags/(.*) \1 g")
-        if ($version -match "v[0-9]+\.[0-9]+(\.[0-9]+)?") {
+        $version = $( "${{ github.ref }}" -replace "^(.*)/(.*)/" )
+        if ($version -match "^v[0-9]+\.[0-9]+(\.[0-9]+)?") {
           $env:EMQX_DEPS_DEFAULT_VSN = $version
-          $regex = "[0-9]+\.[0-9]+(\.[0-9]+)?-(alpha|beta|rc)\.[0-9]"
+          $regex = "[0-9]+\.[0-9]+(-alpha|-beta|-rc)?\.[0-9]"
           $pkg_name = "emqx-windows-$([regex]::matches($version, $regex).value).zip"
           }
         else {
           $env:EMQX_DEPS_DEFAULT_VSN = ""
-          $ref = $("${{ github.ref }}" | sed -r 's .*/.*/(.*) \1 g')
-          $pkg_name = "emqx-windows-$ref.zip"
+          $pkg_name = "emqx-windows-$($version -replace '/').zip"
           }
 
         make deps-emqx
