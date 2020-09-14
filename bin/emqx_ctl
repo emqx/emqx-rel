@@ -4,7 +4,8 @@
 
 set -e
 
-ROOT_DIR="$(cd $(dirname $(readlink $0 || echo $0))/..; pwd -P)"
+LINK_DIR="$(dirname $0)"
+ROOT_DIR="$(cd $LINK_DIR/$(dirname $(readlink $0 || echo $0))/..; pwd -P)"
 . $ROOT_DIR/releases/emqx_vars
 
 # Echo to stderr on errors
