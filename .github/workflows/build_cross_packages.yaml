@@ -142,7 +142,7 @@ jobs:
            for tag in ${tags[@]};do
              for arch in x86_64 aarch64; do
                 mkdir -p tmp/relup_packages/emqx
-                cd tmp/packages/emqx
+                cd tmp/relup_packages/emqx
                 if [ ! -z "$(echo  $(curl -I -m 10 -o /dev/null -s -w %{http_code} https://www.emqx.io/downloads/broker/${tag#[e|v]}/emqx-$SYSTEM-${tag#[e|v]}-$arch.zip) | grep -oE "^[23]+")" ];then
                   wget https://www.emqx.io/downloads/broker/${tag#[e|v]}/emqx-$SYSTEM-${tag#[e|v]}-$arch.zip
                   wget https://www.emqx.io/downloads/broker/${tag#[e|v]}/emqx-$SYSTEM-${tag#[e|v]}-$arch.zip.sha256
