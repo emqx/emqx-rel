@@ -151,7 +151,7 @@ jobs:
                 cd -
 
                 mkdir -p tmp/relup_packages/emqx-edge
-                cd tmp/packages/emqx-edge
+                cd tmp/relup_packages/emqx-edge
                 if [ ! -z "$(echo  $(curl -I -m 10 -o /dev/null -s -w %{http_code} https://www.emqx.io/downloads/edge/${tag#[e|v]}/emqx-edge-$SYSTEM-${tag#[e|v]}-$arch.zip) | grep -oE "^[23]+")" ];then
                   wget https://www.emqx.io/downloads/edge/v${tag#[e|v]}/emqx-edge-$SYSTEM-${tag#[e|v]}-$arch.zip
                   wget https://www.emqx.io/downloads/edge/v${tag#[e|v]}/emqx-edge-$SYSTEM-${tag#[e|v]}-$arch.zip.sha256
