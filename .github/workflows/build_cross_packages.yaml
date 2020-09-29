@@ -143,7 +143,7 @@ jobs:
              for arch in x86_64 aarch64; do
                 mkdir -p tmp/relup_packages/emqx
                 cd tmp/relup_packages/emqx
-                if [ ! -z "$(echo  $(curl -I -m 10 -o /dev/null -s -w %{http_code} https://www.emqx.io/downloads/broker/${tag#[e|v]}/emqx-$SYSTEM-${tag#[e|v]}-$arch.zip) | grep -oE "^[23]+")" ];then
+                if [ ! -z "$(echo  $(curl -I -m 10 -o /dev/null -s -w %{http_code} https://packages.emqx.io/emqx-ce/v${tag#[e|v]}/emqx-$SYSTEM-${tag#[e|v]}-$arch.zip) | grep -oE "^[23]+")" ];then
                   wget https://www.emqx.io/downloads/broker/v${tag#[e|v]}/emqx-$SYSTEM-${tag#[e|v]}-$arch.zip
                   wget https://www.emqx.io/downloads/broker/v${tag#[e|v]}/emqx-$SYSTEM-${tag#[e|v]}-$arch.zip.sha256
                   echo "$(cat emqx-$SYSTEM-${tag#[e|v]}-$arch.zip.sha256) emqx-$SYSTEM-${tag#[e|v]}-$arch.zip" | sha256sum -c || exit 1
@@ -152,7 +152,7 @@ jobs:
 
                 mkdir -p tmp/relup_packages/emqx-edge
                 cd tmp/relup_packages/emqx-edge
-                if [ ! -z "$(echo  $(curl -I -m 10 -o /dev/null -s -w %{http_code} https://www.emqx.io/downloads/edge/${tag#[e|v]}/emqx-edge-$SYSTEM-${tag#[e|v]}-$arch.zip) | grep -oE "^[23]+")" ];then
+                if [ ! -z "$(echo  $(curl -I -m 10 -o /dev/null -s -w %{http_code} https://packages.emqx.io/emqx-edge/v${tag#[e|v]}/emqx-edge-$SYSTEM-${tag#[e|v]}-$arch.zip) | grep -oE "^[23]+")" ];then
                   wget https://www.emqx.io/downloads/edge/v${tag#[e|v]}/emqx-edge-$SYSTEM-${tag#[e|v]}-$arch.zip
                   wget https://www.emqx.io/downloads/edge/v${tag#[e|v]}/emqx-edge-$SYSTEM-${tag#[e|v]}-$arch.zip.sha256
                   echo "$(cat emqx-edge-$SYSTEM-${tag#[e|v]}-$arch.zip.sha256) emqx-edge-$SYSTEM-${tag#[e|v]}-$arch.zip" | sha256sum -c || exit 1
