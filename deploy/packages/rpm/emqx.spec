@@ -80,6 +80,12 @@ if [ $1 = 0 ]; then
 fi
 exit 0
 
+%postun
+if [ $1 = 0 ]; then
+   rm -rf %{_lib_home}
+fi
+exit 0
+
 %files
 %defattr(-,root,root)
 %{_service_dst}
