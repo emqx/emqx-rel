@@ -334,8 +334,8 @@ jobs:
           aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws configure set default.region us-west-2
 
-          aws s3 cp --recursive _packages/emqx s3://packages.emqx.io/emqx-ce/$version
-          aws s3 cp --recursive _packages/emqx-edge s3://packages.emqx.io/emqx-edge/$version
+          aws s3 cp --recursive _packages/emqx s3://packages.emqx/emqx-ce/$version
+          aws s3 cp --recursive _packages/emqx-edge s3://packages.emqx/emqx-edge/$version
           aws cloudfront create-invalidation --distribution-id E170YEULGLT8XB --paths "/emqx-ce/$version/*,/emqx-edge/$version/*"
 
           mkdir packages
