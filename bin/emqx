@@ -4,6 +4,19 @@
 
 set -e
 
+maybe_enable_debug() {
+    if [ "${BOOTSTRAP_DEBUG:-0}" = '1' ]; then
+        set -x
+        echo 'debug_enabled'
+    fi
+}
+
+disable_debug() {
+    set +x
+}
+
+maybe_enable_debug
+
 ROOT_DIR="$(cd $(dirname $(readlink $0 || echo $0))/..; pwd -P)"
 . $ROOT_DIR/releases/emqx_vars
 
@@ -154,6 +167,7 @@ relx_rem_sh() {
     # Get the node's ticktime so that we use the same thing.
     TICKTIME="$(relx_nodetool rpcterms net_kernel get_net_ticktime)"
 
+    disable_debug
     # Setup remote shell command to control node
     exec "$BINDIR/erl" "$NAME_TYPE" "$id" -remsh "$NAME" -boot start_clean \
          -boot_var ERTS_LIB_DIR "$ERTS_LIB_DIR" \
@@ -169,9 +183,13 @@ relx_gen_id() {
 relx_nodetool() {
     command="$1"; shift
 
+    disable_debug
     ERL_FLAGS="$ERL_FLAGS $EPMD_ARG" \
     "$ERTS_DIR/bin/escript" "$ROOTDIR/bin/nodetool" "$NAME_TYPE" "$NAME" \
                                 -setcookie "$COOKIE" "$command" $@
+    result=$?
+    maybe_enable_debug
+    return $result
 }
 
 # Run an escript in the node's environment
@@ -209,6 +227,7 @@ generate_config() {
         TMP_ARG_FILE="$RUNNER_DATA_DIR/configs/vm.args.tmp"
         cp "$RUNNER_ETC_DIR/vm.args" "$TMP_ARG_FILE"
         echo "" >> "$TMP_ARG_FILE"
+        disable_debug
         sed '/^#/d' $CUTTLE_GEN_ARG_FILE | sed '/^$/d' | while IFS='' read -r ARG_LINE || [ -n "$ARG_LINE" ]; do
             ARG_KEY=`echo "$ARG_LINE" | awk '{$NF="";print}'`
             ARG_VALUE=`echo "$ARG_LINE" | awk '{print $NF}'`
@@ -221,6 +240,7 @@ generate_config() {
                 fi
             fi
         done
+        maybe_enable_debug
         mv -f "$TMP_ARG_FILE" "$CUTTLE_GEN_ARG_FILE"
     fi
 
@@ -271,6 +291,7 @@ NAME="$(echo "$NAME_ARG" | awk '{print $2}')"
 
 PIPE_DIR="${PIPE_DIR:-/$RUNNER_DATA_DIR/${WHOAMI}_erl_pipes/$NAME/}"
 
+disable_debug
 # Extract the target cookie
 if [ -z "$COOKIE_ARG" ]; then
     if [ ! -z "$EMQX_NODE_COOKIE" ]; then
@@ -291,6 +312,7 @@ fi
 
 # Extract cookie name from COOKIE_ARG
 COOKIE="$(echo "$COOKIE_ARG" | awk '{print $2}')"
+maybe_enable_debug
 
 # Support for IPv6 Dist. See: https://github.com/emqtt/emqttd/issues/1460
 PROTO_DIST=`egrep '^[ \t]*cluster.proto_dist[ \t]*=[ \t]*' "$RUNNER_ETC_DIR/emqx.conf" 2> /dev/null | tail -1 | cut -d = -f 2-`
@@ -469,6 +491,7 @@ case "$1" in
             exit 1
         fi
 
+        disable_debug
         ERL_FLAGS="$ERL_FLAGS $EPMD_ARG" \
         exec "$BINDIR/escript" "$ROOTDIR/bin/install_upgrade.escript" \
              "$COMMAND" "{'$REL_NAME', \"$NAME_TYPE\", '$NAME', '$COOKIE'}" "$@"
@@ -483,6 +506,7 @@ case "$1" in
 
         COMMAND="$1"; shift
 
+        disable_debug
         ERL_FLAGS="$ERL_FLAGS $EPMD_ARG" \
         exec "$BINDIR/escript" "$ROOTDIR/bin/install_upgrade.escript" \
              "versions" "{'$REL_NAME', \"$NAME_TYPE\", '$NAME', '$COOKIE'}" "$@"
