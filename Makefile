@@ -2,6 +2,7 @@
 
 REBAR_GIT_CLONE_OPTIONS += --depth 1
 export REBAR_GIT_CLONE_OPTIONS
+export LC_ALL=en_US.UTF-8
 
 REBAR = $(CURDIR)/rebar3
 
