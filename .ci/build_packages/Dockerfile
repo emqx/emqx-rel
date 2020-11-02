@@ -7,6 +7,6 @@ COPY . /emqx-rel
 
 WORKDIR /emqx-rel
 
-RUN make ${EMQX_NAME}-pkg
+RUN sed -i "/^export LC_ALL=.*$/d" Makefile && make ${EMQX_NAME}-pkg
 
 RUN /emqx-rel/.ci/build_packages/tests.sh
