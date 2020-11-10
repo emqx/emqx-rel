@@ -103,20 +103,11 @@ jobs:
         - raspbian9
 
     steps:
-    - name: install docker
-      run: |
-        sudo apt-get remove docker docker-engine docker.io containerd runc
-        sudo apt-get update
-        sudo apt-get install apt-transport-https ca-certificates curl gnupg-agent software-properties-common
-        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-        sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-        sudo apt-get update
-        sudo apt-get install docker-ce docker-ce-cli containerd.io
     - name: prepare docker
       run: |
         mkdir -p $HOME/.docker
         echo '{ "experimental": "enabled" }' | tee $HOME/.docker/config.json
-        echo '{ "experimental": true, "storage-driver": "overlay2", "max-concurrent-downloads": 50, "max-concurrent-uploads": 50, "graph": "/mnt/docker" }' | sudo tee /etc/docker/daemon.json
+        echo '{ "experimental": true, "storage-driver": "overlay2", "max-concurrent-downloads": 50, "max-concurrent-uploads": 50}' | sudo tee /etc/docker/daemon.json
         sudo systemctl restart docker
         docker info
         docker buildx create --use --name mybuild
@@ -355,7 +346,13 @@ jobs:
             ../emqx-rel/.ci/build_packages/upload_github_release_asset.sh owner=emqx repo=emqx tag=$version filename=$var github_api_token=$(echo ${{ secrets.AccessToken }})
             sleep 1
           done
-          curl -w %{http_code} --insecure -H ${{ secrets.EmqxHeader }} https://admin.emqx.io/admin_api/v1/github_release_callback?tag=$version
+          curl -w %{http_code} \
+               --insecure \
+               -H "Content-Type: application/json" \
+               -H "token: ${{ secrets.EMQX_IO_TOKEN }}" \
+               -X POST \
+               -d "{\"repo\":\"emqx/emqx\", \"tag\": \"${version}\" }" \
+               ${{ secrets.EMQX_IO_RELEASE_API }}
         fi
     - name: push docker image to docker hub
       run: |
