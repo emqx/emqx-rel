@@ -73,6 +73,10 @@ spec:
       serviceAccountName:  {{ include "emqx.fullname" . }}
       securityContext:
         fsGroup: 1000
+      {{- if .Values.initContainers }}
+      initContainers:
+{{ toYaml .Values.initContainers | indent 8 }}
+      {{- end }}
       containers:
         - name: emqx
           image: "{{ .Values.image.repository }}:{{ .Chart.AppVersion }}"
