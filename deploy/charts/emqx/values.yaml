@@ -28,6 +28,7 @@ resources: {}
   #   cpu: 500m
   #   memory: 512Mi
 
+# Containers that run before the creation of EMQX containers. They can contain utilities or setup scripts.
 initContainers: {}
   # - name: mysql-probe
   #   image: alpine
