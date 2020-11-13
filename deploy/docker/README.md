@@ -41,7 +41,11 @@ The emqx broker runs as linux user `emqx` in the docker container.
 
 Use the environment variable to configure the EMQ X docker container.
 
-The environment variables which with ``EMQX_`` prefix are mapped to configuration file, ``.`` get replaced by ``__``.
+The environment variables which with ``EMQX_`` prefix are mapped to configuration fils.
+
++ Prefix ``EMQX_`` is removed
++ All upper case letters is replaced with lower case letters
++ ``__`` is replaced with ``.``
 
 Example:
 
@@ -103,13 +107,14 @@ For example, set mqtt tcp port to 1883
 
 Default environment variable ``EMQX_LOADED_MODULES``, including
 
-- ``emqx_mod_acl_internal``
-- ``emqx_mod_presence``
++ ``emqx_mod_acl_internal``
++ ``emqx_mod_presence``
 
 ```bash
 # The default EMQX_LOADED_MODULES env
 EMQX_LOADED_MODULES="emqx_mod_acl_internal,emqx_mod_acl_internal"
 ```
+
 For example, set ``EMQX_LOADED_MODULES=emqx_mod_delayed,emqx_mod_rewrite`` to load these two modules.
 
 You can use comma, space or other separator that you want.
@@ -130,15 +135,16 @@ EMQX_LOADED_MODULES="emqx_mod_delayed | emqx_mod_rewrite"
 
 Default environment variable ``EMQX_LOADED_PLUGINS``, including
 
-- ``emqx_recon``
-- ``emqx_retainer``
-- ``emqx_management``
-- ``emqx_dashboard``
++ ``emqx_recon``
++ ``emqx_retainer``
++ ``emqx_management``
++ ``emqx_dashboard``
 
 ```bash
 # The default EMQX_LOADED_PLUGINS env
 EMQX_LOADED_PLUGINS="emqx_recon,emqx_retainer,emqx_management,emqx_dashboard"
 ```
+
 For example, set ``EMQX_LOADED_PLUGINS= emqx_auth_redis,emqx_auth_mysql`` to load these two plugins.
 
 You can use comma, space or other separator that you want.
@@ -179,7 +185,26 @@ docker run -d --name emqx -p 18083:18083 -p 1883:1883 -p 4369:4369 \
     -e EMQX_AUTH__REDIS__PASSWORD="password_for_redis" \
     -e EMQX_AUTH__REDIS__PASSWORD_HASH=plain \
     emqx/emqx:latest
+```
 
+For numbered configuration options where the number is next to a ``.`` such as:
+
++ backend.redis.pool1.server
++ backend.redis.hook.message.publish.1
+
+You can configure an arbitrary number of them as long as each has a uniq unber for it's own configuration option:
+
+```bash
+docker run -d --name emqx -p 18083:18083 -p 1883:1883 -p 4369:4369 \
+    -e EMQX_BACKEND_REDIS_POOL1__SERVER=127.0.0.1:6379
+    [...]
+    -e EMQX_BACKEND__REDIS__POOL5__SERVER=127.0.0.5:6379
+    -e EMQX_BACKEND__REDIS__HOOK_MESSAGE__PUBLISH__1='{"topic": "persistant/topic1", "action": {"function": "on_message_publish"}, "pool": "pool1"}'
+    -e EMQX_BACKEND__REDIS__HOOK_MESSAGE__PUBLISH__2='{"topic": "persistant/topic2", "action": {"function": "on_message_publish"}, "pool": "pool1"}'
+    -e EMQX_BACKEND__REDIS__HOOK_MESSAGE__PUBLISH__3='{"topic": "persistant/topic3", "action": {"function": "on_message_publish"}, "pool": "pool1"}'
+    [...]
+    -e EMQX_BACKEND__REDIS__HOOK_MESSAGE__PUBLISH__13='{"topic": "persistant/topic13", "action": {"function": "on_message_publish"}, "pool": "pool1"}'
+    emqx/emqx:latest
 ```
 
 #### Mask Sensitive Configuration
@@ -192,7 +217,7 @@ By default emqx masks the configuration using following filter `"password|passwd
 
 The configuration should match whole word (after splitting it by '.') with `MASK_CONFIG_FILTER`. You can use commas, spaces or other required separators to separate different words.
 
-### Cluster 
+### Cluster
 
 EMQ X supports a variety of clustering methods, see our [documentation](https://docs.emqx.io/broker/latest/en/advanced/cluster.html#emqx-service-discovery) for details.
 
@@ -200,7 +225,7 @@ Let's create a static node list cluster from docker-compose.
 
 + Create `docker-compose.yaml`:
 
-  ```
+  ```yaml
   version: '3'
 
   services:
@@ -215,7 +240,7 @@ Let's create a static node list cluster from docker-compose.
         emqx-bridge:
           aliases:
           - node1.emqx.io
-    
+
     emqx2:
       image: emqx/emqx:v4.0.0
       environment:
@@ -236,13 +261,13 @@ Let's create a static node list cluster from docker-compose.
 
 + Start the docker-compose cluster
 
-  ```
-  $ docker-compose -p my_emqx up -d
+  ```bash
+  docker-compose -p my_emqx up -d
   ```
 
 + View cluster
 
-  ```
+  ```bash
   $ docker exec -it my_emqx_emqx1_1 sh -c "emqx_ctl cluster status"
   Cluster status: #{running_nodes => ['emqx@node1.emqx.io','emqx@node2.emqx.io'],
                     stopped_nodes => []}
@@ -260,7 +285,7 @@ Since data in these folders are partially stored under the `/opt/emqx/data/mnesi
 
 In if you use docker-compose, the configuration would look something like this:
 
-```
+```YAML
 volumes:
   vol-emqx-data:
     name: foo-emqx-data
