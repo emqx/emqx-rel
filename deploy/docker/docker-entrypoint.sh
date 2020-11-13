@@ -146,6 +146,15 @@ do
                 else
                     echo "$(sed -r "s/(^#*\s*)($VAR_NAME)\s*=\s*(.*)/\2 = $(eval echo \$$VAR_FULL_NAME|sed -e 's/\//\\\//g')/g" $CONFIG_PLUGINS/$CONFIG_PLUGINS_FILE)" > $CONFIG_PLUGINS/$CONFIG_PLUGINS_FILE
                 fi
+            # Check if config has a numbering system, but no existing configuration line in file
+            elif [[ ! -z "$(echo "$VAR_NAME" | grep '\(\.[0-9]\|[0-9]\.\)')" ]]; then
+                if [[ ! -z "$(eval echo \$$VAR_FULL_NAME)" ]]; then
+                    VAR_TEMPLATE_NAME="$(echo "$VAR_NAME" | sed -r -e 's|[.]|\\.|g' -e 's|\\.[0-9]+|\\.[0-9]|' -e 's|[0-9]+\\.|[0-9]\\.|')"
+                    if [[ ! -z "$(grep "$VAR_TEMPLATE_NAME" "$CONFIG_PLUGINS/$CONFIG_PLUGINS_FILE")" ]]; then
+                        echo_value
+                        echo "$VAR_NAME = $(eval echo \$$VAR_FULL_NAME)" >> $CONFIG_PLUGINS/$CONFIG_PLUGINS_FILE
+                    fi
+                fi
             fi 
         done
     fi
