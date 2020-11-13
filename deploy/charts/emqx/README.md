@@ -41,6 +41,7 @@ The following table lists the configurable parameters of the emqx chart and thei
 | `persistence.existingClaim` | EMQ X data Persistent Volume existing claim name, evaluated as a template |""|
 | `persistence.accessMode` | PVC Access Mode for EMQX volume |ReadWriteOnce|
 | `persistence.size` | PVC Storage Request for EMQX volume |20Mi|
+| `initContainers` | Containers that run before the creation of EMQX containers. They can contain utilities or setup scripts. |`{}`|
 | `resources` | CPU/Memory resource requests/limits |{}|
 | `nodeSelector` | Node labels for pod assignment |`{}`|
 | `tolerations` | Toleration labels for pod assignment |`[]`|
