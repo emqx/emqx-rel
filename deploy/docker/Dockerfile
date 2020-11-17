@@ -43,7 +43,7 @@ COPY deploy/docker/docker-entrypoint.sh deploy/docker/start.sh tmp/qemu-$QEMU_AR
 COPY --from=builder /emqx-rel/_build/$EMQX_NAME/rel/emqx /opt/emqx
 
 RUN ln -s /opt/emqx/bin/* /usr/local/bin/ 
-RUN apk add --no-cache curl ncurses-libs openssl sudo libstdc++
+RUN apk add --no-cache curl ncurses-libs openssl sudo libstdc++ bash perl
 
 WORKDIR /opt/emqx
 
