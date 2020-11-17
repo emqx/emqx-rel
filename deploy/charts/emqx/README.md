@@ -41,6 +41,7 @@ The following table lists the configurable parameters of the emqx chart and thei
 | `persistence.existingClaim` | EMQ X data Persistent Volume existing claim name, evaluated as a template |""|
 | `persistence.accessMode` | PVC Access Mode for EMQX volume |ReadWriteOnce|
 | `persistence.size` | PVC Storage Request for EMQX volume |20Mi|
+| `initContainers` | Containers that run before the creation of EMQX containers. They can contain utilities or setup scripts. |`{}`|
 | `resources` | CPU/Memory resource requests/limits |{}|
 | `nodeSelector` | Node labels for pod assignment |`{}`|
 | `tolerations` | Toleration labels for pod assignment |`[]`|
@@ -61,5 +62,15 @@ The following table lists the configurable parameters of the emqx chart and thei
 | `service.loadBalancerIP`  | loadBalancerIP for Service |	nil |
 | `service.loadBalancerSourceRanges` |	Address(es) that are allowed when service is LoadBalancer |	[] |
 | `service.annotations` |	Service annotations |	{}(evaluated as a template)|
+| `ingress.dashboard.enabled` |	Enable ingress for EMQX Dashboard |	false |
+| `ingress.dashboard.path` | Ingress path for EMQX Dashboard |	/ |
+| `ingress.dashboard.hosts` | Ingress hosts for EMQX Mgmt API |	dashboard.emqx.local |
+| `ingress.dashboard.tls` | Ingress tls for EMQX Mgmt API |	[] |
+| `ingress.dashboard.annotations` | Ingress annotations for EMQX Mgmt API |	{} |
+| `ingress.mgmt.enabled` |	Enable ingress for EMQX Mgmt API |	false |
+| `ingress.mgmt.path` | Ingress path for EMQX Mgmt API |	/ |
+| `ingress.mgmt.hosts` | Ingress hosts for EMQX Mgmt API |	api.emqx.local |
+| `ingress.mgmt.tls` | Ingress tls for EMQX Mgmt API |	[] |
+| `ingress.mgmt.annotations` | Ingress annotations for EMQX Mgmt API |	{} |
 | `emqxConfig` | Emqx configuration item, see the [documentation](https://hub.docker.com/r/emqx/emqx) | |
 | `emqxAclConfig` | Emqx acl configuration item, see the [documentation](https://docs.emqx.io/broker/latest/en/advanced/acl-file.html) | |

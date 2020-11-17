@@ -28,6 +28,12 @@ resources: {}
   #   cpu: 500m
   #   memory: 512Mi
 
+# Containers that run before the creation of EMQX containers. They can contain utilities or setup scripts.
+initContainers: {}
+  # - name: mysql-probe
+  #   image: alpine
+  #   command: ["sh", "-c", "for i in $(seq 1 300); do nc -zvw1 mysql 3306 && exit 0 || sleep 3; done; exit 1"]
+
 ## EMQX configuration item, see the documentation (https://github.com/emqx/emqx-docker#emq-x-configuration)
 emqxConfig:
   EMQX_CLUSTER__K8S__APISERVER: "https://kubernetes.default.svc:443"
@@ -120,18 +126,27 @@ tolerations: []
 
 affinity: {}
 
-## TODO:
 ingress:
-  enabled: false
-  annotations: {}
-    # kubernetes.io/ingress.class: nginx
-    # kubernetes.io/tls-acme: "true"
-  path: /
-  hosts:
-    - chart-example.local
-  tls: []
-  #  - secretName: chart-example-tls
-  #    hosts:
-  #      - chart-example.local
+  ## ingress for EMQX Dashboard
+  dashboard:
+    enabled: false
+    annotations: {}
+      # kubernetes.io/ingress.class: nginx
+      # kubernetes.io/tls-acme: "true"
+    path: /
+    hosts:
+    - dashboard.emqx.local
+    tls: []
+
+  ## ingress for EMQX Mgmt API
+  mgmt:
+    enabled: false
+    annotations: {}
+      # kubernetes.io/ingress.class: nginx
+      # kubernetes.io/tls-acme: "true"
+    path: /
+    hosts:
+    - api.emqx.local
+    tls: []
 
 
