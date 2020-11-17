@@ -66,8 +66,8 @@ jobs:
     - name: prepare
       run: |
         brew install curl zip unzip gnu-sed erlang@22 openssl@1.1
-        echo "::add-path::/usr/local/opt/erlang@22/bin"
-        echo "::add-path::/usr/local/bin"
+        echo "/usr/local/opt/erlang@22/bin" >> $GITHUB_PATH
+        echo "/usr/local/bin" >> $GITHUB_PATH
     - name: build
       run: make emqx-pkg
     - name: test
