@@ -106,10 +106,10 @@ if [[ -n "$EMQX_ADMIN_PASSWORD" ]]; then
 fi
 
 # echo value of $VAR hiding secrets if any
-echo_value () {
+echo_value() {
     # get MASK_CONFIG
     MASK_CONFIG_FILTER="$MASK_CONFIG_FILTER|password|passwd|key|token|secret"
-    FORMAT_MASK_CONFIG_FILTER=$(echo "$MASK_CONFIG_FILTER" | sed -E -e 's/^[^A-Za-z0-9_]+//' -e 's/[^A-Za-z0-9_]+$//' -e 's/[^A-Za-z0-9_]+/|/g')
+    FORMAT_MASK_CONFIG_FILTER=$(echo "$MASK_CONFIG_FILTER" | sed -r -e 's/^[^A-Za-z0-9_]+//' -e 's/[^A-Za-z0-9_]+$//' -e 's/[^A-Za-z0-9_]+/|/g')
 
     # check if contains sensitive value
     if echo "$VAR_NAME" | grep -iqwE "$FORMAT_MASK_CONFIG_FILTER"; then
@@ -127,31 +127,42 @@ for VAR in $(compgen -e); do
     if echo "$VAR" | grep -q '^EMQX_'; then
         VAR_NAME=$(echo "$VAR" | sed -e 's/^EMQX_//' -e 's/__/./g' | tr '[:upper:]' '[:lower:]')
         VAR_VALUE=${!VAR}
-        # Config in emq.conf
-        if [[ -n "$(perl -sne 'print if /^[#\s]*\Q$var_name\E\s*=/' -- -var_name="$VAR_NAME" "$CONFIG")" ]]; then
+        # Config in emqx.conf
+        if grep -qE "^[#\s]*$VAR_NAME\s*=" "$CONFIG"; then
             echo_value
             if [[ -z "$VAR_VALUE" ]]; then
                 perl -i -spe 's/^[#\s]*(\Q$var_name\E)\s*=\s*(.*)/# \1 = \2/' -- -var_name="$VAR_NAME" "$CONFIG"
             else
                 perl -i -spe 's/^[#\s]*(\Q$var_name\E)\s*=\s*(.*)/\1 = $var_value/' -- -var_name="$VAR_NAME" -var_value="$VAR_VALUE" "$CONFIG"
             fi
+        # Check if config has a numbering system, but no existing configuration line in file
+        elif echo "$VAR_NAME" | grep -qE '\.\d+|\d+\.'; then
+            if [[ -n "$VAR_VALUE" ]]; then
+                VAR_TEMPLATE_NAME="$(echo "$VAR_NAME" | sed -r -e 's/\.[0-9]+/.[0-9]+/g' -e 's/[0-9]+\./[0-9]+./g' -e 's/\./\\./g')"
+                if grep -qE "$VAR_TEMPLATE_NAME" "$CONFIG"; then
+                    echo_value
+                    sed -i '$a'\\ "$CONFIG"
+                    echo "$VAR_NAME = $VAR_VALUE" >>"$CONFIG"
+                fi
+            fi
         fi
         # Config in plugins/*
         for CONFIG_PLUGINS_FILE in "$CONFIG_PLUGINS"/*; do
-            if [[ -n "$(perl -sne 'print if /^[#\s]*\Q$var_name\E\s*=/' -- -var_name="$VAR_NAME" "$CONFIG_PLUGINS/$CONFIG_PLUGINS_FILE")" ]]; then
+            if grep -qE "^[#\s]*$VAR_NAME\s*=" "$CONFIG_PLUGINS_FILE"; then
                 echo_value
                 if [[ -z "$VAR_VALUE" ]]; then
-                    perl -i -spe 's/^[#\s]*(\Q$var_name\E)\s*=\s*(.*)/# \1 = \2/' -- -var_name="$VAR_NAME" "$CONFIG_PLUGINS/$CONFIG_PLUGINS_FILE"
+                    perl -i -spe 's/^[#\s]*(\Q$var_name\E)\s*=\s*(.*)/# \1 = \2/' -- -var_name="$VAR_NAME" "$CONFIG_PLUGINS_FILE"
                 else
-                    perl -i -spe 's/^[#\s]*(\Q$var_name\E)\s*=\s*(.*)/\1 = $var_value/' -- -var_name="$VAR_NAME" -var_value="$VAR_VALUE" "$CONFIG_PLUGINS/$CONFIG_PLUGINS_FILE"
+                    perl -i -spe 's/^[#\s]*(\Q$var_name\E)\s*=\s*(.*)/\1 = $var_value/' -- -var_name="$VAR_NAME" -var_value="$VAR_VALUE" "$CONFIG_PLUGINS_FILE"
                 fi
             # Check if config has a numbering system, but no existing configuration line in file
-            elif [[ ! -z "$(echo "$VAR_NAME" | grep '\(\.[0-9]\|[0-9]\.\)')" ]]; then
-                if [[ ! -z "$(eval echo \$$VAR_FULL_NAME)" ]]; then
-                    VAR_TEMPLATE_NAME="$(echo "$VAR_NAME" | sed -r -e 's|[.]|\\.|g' -e 's|\\.[0-9]+|\\.[0-9]|' -e 's|[0-9]+\\.|[0-9]\\.|')"
-                    if [[ ! -z "$(grep "$VAR_TEMPLATE_NAME" "$CONFIG_PLUGINS/$CONFIG_PLUGINS_FILE")" ]]; then
+            elif echo "$VAR_NAME" | grep -qE '\.\d+|\d+\.'; then
+                if [[ -n "$VAR_VALUE" ]]; then
+                    VAR_TEMPLATE_NAME="$(echo "$VAR_NAME" | sed -r -e 's/\.[0-9]+/.[0-9]+/g' -e 's/[0-9]+\./[0-9]+./g' -e 's/\./\\./g')"
+                    if grep -qE "$VAR_TEMPLATE_NAME" "$CONFIG_PLUGINS_FILE"; then
                         echo_value
-                        echo "$VAR_NAME = $(eval echo \$$VAR_FULL_NAME)" >> $CONFIG_PLUGINS/$CONFIG_PLUGINS_FILE
+                        sed -i '$a'\\ "$CONFIG_PLUGINS_FILE"
+                        echo "$VAR_NAME = $VAR_VALUE" >>"$CONFIG_PLUGINS_FILE"
                     fi
                 fi
             fi
@@ -169,16 +180,16 @@ done
 LOADED_PLUGINS="$_EMQX_HOME/data/loaded_plugins"
 if [[ -n "$EMQX_LOADED_PLUGINS" ]]; then
     echo "EMQX_LOADED_PLUGINS=$EMQX_LOADED_PLUGINS"
-    # Parse plugin names and place `{plugin_name, true}.` tuples in `loaded_plugins`.
-    for var in $(echo "$EMQX_LOADED_PLUGINS" | sed -E -e 's/^[^A-Za-z0-9_]+//g' -e 's/[^A-Za-z0-9_]+$//g' -e 's/[^A-Za-z0-9_]+/ /g'); do
-        if grep -qE "^\s*\{($var),\s*(true|false)\}\s*\.\s*$" $LOADED_PLUGINS; then
-            sed -iE "s/^\s*\{($var),\s*(true|false)\}\s*\.\s*$/\{\1, true\}./1" $LOADED_PLUGINS
-        elif grep -q "^\s*$var\s*\.\s*$" $LOADED_PLUGINS; then
+    # Parse module names and place `{module_name, true}.` tuples in `loaded_modules`.
+    for var in $(echo "$EMQX_LOADED_PLUGINS" | sed -r -e 's/^[^A-Za-z0-9_]+//g' -e 's/[^A-Za-z0-9_]+$//g' -e 's/[^A-Za-z0-9_]+/ /g'); do
+        if grep -qE "\{\s*$var\s*,\s*(true|false)\s*\}\s*\." "$LOADED_PLUGINS"; then
+            sed -i -r "s/\{\s*($var)\s*,\s*(true|false)\s*\}\s*\./{\1, true}./1" "$LOADED_PLUGINS"
+        elif grep -q "$var\s*\." "$LOADED_PLUGINS"; then
             # backward compatible.
-            sed -iE "s/^\s*$var\s*\.\s*$/\{\1, true\}./1" $LOADED_PLUGINS
+            sed -i -r "s/($var)\s*\./{\1, true}./1" "$LOADED_PLUGINS"
         else
-            sed -i '$a'\\ $LOADED_PLUGINS
-            echo "{$var, true}." >> $LOADED_PLUGINS
+            sed -i '$a'\\ "$LOADED_PLUGINS"
+            echo "{$var, true}." >>"$LOADED_PLUGINS"
         fi
     done
 fi
@@ -189,15 +200,15 @@ LOADED_MODULES="$_EMQX_HOME/data/loaded_modules"
 if [[ -n "$EMQX_LOADED_MODULES" ]]; then
     echo "EMQX_LOADED_MODULES=$EMQX_LOADED_MODULES"
     # Parse module names and place `{module_name, true}.` tuples in `loaded_modules`.
-    for var in $(echo "$EMQX_LOADED_MODULES" | sed -E -e 's/^[^A-Za-z0-9_]+//g' -e 's/[^A-Za-z0-9_]+$//g' -e 's/[^A-Za-z0-9_]+/ /g'); do
-        if grep -qE "^\s*\{($var),\s*(true|false)\}\s*\.\s*$" $LOADED_MODULES; then
-            sed -iE "s/^\s*\{($var),\s*(true|false)\}\s*\.\s*$/\{\1, true\}./1" $LOADED_MODULES
-        elif grep -q "^\s*$var\s*\.\s*$" $LOADED_MODULES; then
+    for var in $(echo "$EMQX_LOADED_MODULES" | sed -r -e 's/^[^A-Za-z0-9_]+//g' -e 's/[^A-Za-z0-9_]+$//g' -e 's/[^A-Za-z0-9_]+/ /g'); do
+        if grep -qE "\{\s*$var\s*,\s*(true|false)\s*\}\s*\." "$LOADED_MODULES"; then
+            sed -i -r "s/\{\s*($var)\s*,\s*(true|false)\s*\}\s*\./{\1, true}./1" "$LOADED_MODULES"
+        elif grep -q "$var\s*\." "$LOADED_MODULES"; then
             # backward compatible.
-            sed -iE "s/^\s*$var\s*\.\s*$/\{\1, true\}./1" $LOADED_MODULES
+            sed -i -r "s/($var)\s*\./{\1, true}./1" "$LOADED_MODULES"
         else
-            sed -i '$a'\\ $LOADED_MODULES
-            echo "{$var, true}." >> $LOADED_MODULES
+            sed -i '$a'\\ "$LOADED_MODULES"
+            echo "{$var, true}." >>"$LOADED_MODULES"
         fi
     done
 fi
