@@ -128,7 +128,7 @@ for VAR in $(compgen -e); do
         VAR_NAME=$(echo "$VAR" | sed -e 's/^EMQX_//' -e 's/__/./g' | tr '[:upper:]' '[:lower:]')
         VAR_VALUE=${!VAR}
         # Config in emqx.conf
-        if grep -qE "^[#\s]*$VAR_NAME\s*=" "$CONFIG"; then
+        if [[ -n "$(perl -sne 'print if /^[#\s]*\Q$var_name\E\s*=/' -- -var_name="$VAR_NAME" "$CONFIG")" ]]; then
             echo_value
             if [[ -z "$VAR_VALUE" ]]; then
                 perl -i -spe 's/^[#\s]*(\Q$var_name\E)\s*=\s*(.*)/# \1 = \2/' -- -var_name="$VAR_NAME" "$CONFIG"
@@ -148,7 +148,7 @@ for VAR in $(compgen -e); do
         fi
         # Config in plugins/*
         for CONFIG_PLUGINS_FILE in "$CONFIG_PLUGINS"/*; do
-            if grep -qE "^[#\s]*$VAR_NAME\s*=" "$CONFIG_PLUGINS_FILE"; then
+            if [[ -n "$(perl -sne 'print if /^[#\s]*\Q$var_name\E\s*=/' -- -var_name="$VAR_NAME" "$CONFIG_PLUGINS_FILE")" ]]; then
                 echo_value
                 if [[ -z "$VAR_VALUE" ]]; then
                     perl -i -spe 's/^[#\s]*(\Q$var_name\E)\s*=\s*(.*)/# \1 = \2/' -- -var_name="$VAR_NAME" "$CONFIG_PLUGINS_FILE"
