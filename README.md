@@ -8,13 +8,9 @@ NOTICE: Requires Erlang/OTP 21.3 to build since EMQ X 3.2
 
 There are 4 target profiles for building emqx-rel: emqx, emqx-pkg, emqx-edge,and emqx-edge-pkg. The default target profile is emqx. User can build specified target release by execute command `make ${target-release}` in emqx_rel.
 
-## Install Erlang/OTP-R21.3 and rebar3
+## rebar3
 
-Read the section below and install rebar3
-
-```
-https://www.rebar3.org/docs/getting-started#section-installing-from-source
-```
+This project has rebar3 (compiled from OTP 21.3) included.
 
 ## Build on Linux/Unix/Mac
 
