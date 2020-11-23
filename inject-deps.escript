@@ -1,6 +1,6 @@
 #!/usr/bin/env escript
 
-%% This script injects implicit dependencies for emqx applications.
+%% This script injects implicit relup dependencies for emqx applications.
 %%
 %% By 'implicit', it means that it is not feasible to define application
 %% dependencies in .app.src files.
@@ -12,7 +12,7 @@
 %%
 %% This script is to be executed after compile, with the profile given as the
 %% first argument. For each dependency overlay, it modifies the .app file to
-%% have the 'applications' list extended.
+%% have the 'relup_deps' list extended.
 
 -mode(compile).
 
@@ -61,10 +61,13 @@ inject(App0, DepsToAdd, LibDir, AppNames) ->
   [AppFile0] = filelib:wildcard("*.app", AppEbinDir),
   AppFile = filename:join(AppEbinDir, AppFile0),
   {ok, [{application, AppName, Props}]} = file:consult(AppFile),
-  {_, Deps0} = lists:keyfind(applications, 1, Props),
+  Deps0 = case lists:keyfind(relup_deps, 1, Props) of
+              {_, X} -> X;
+              false -> []
+          end,
   %% merge extra deps, but do not self-include
   Deps = merge_deps(Deps0, DepsToAdd, AppNames) -- [App0],
-  NewProps = lists:keystore(applications, 1, Props, {applications, Deps}),
+  NewProps = lists:keystore(relup_deps, 1, Props, {relup_deps, Deps}),
   AppSpec = {application, AppName, NewProps},
   AppSpecIoData = io_lib:format("~p.", [AppSpec]),
   io:format(user, "updated_dependency_applications for ~p~n", [App]),
