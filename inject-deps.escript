@@ -27,6 +27,9 @@ usage() ->
 -spec deps(string()) -> [{app(), [deps_overlay()]}].
 deps(_Profile) ->
   [ {emqx_dashboard, [{re, "emqx_.*"}]}
+  , {emqx_management, [{re, "emqx_.*"}]}
+  , {{re, "emqx_.*"}, [emqx]}
+  , {{re, "emqx_auth_.*"}, [emqx_passwd]}
   ].
 
 main([Profile | _]) ->
@@ -35,10 +38,21 @@ main(_Args) ->
   io:format(standard_error, "~s", [usage()]),
   erlang:halt(1).
 
+expand({Name, Deps}, AppNames) ->
+  Names = match_pattern(Name, AppNames),
+  NewDeps = expand_deps(Deps, AppNames, []),
+  [{N, NewDeps} || N <- Names].
+
+expand_deps([], _AppNames, Acc) -> Acc;
+expand_deps([Dep | Deps], AppNames, Acc) ->
+  NewAcc = add_to_list(Acc, match_pattern(Dep, AppNames)),
+  expand_deps(Deps, AppNames, NewAcc).
+
 inject(Profile) ->
   LibDir = lib_dir(Profile),
   AppNames = list_apps(LibDir),
-  lists:foreach(fun({App, Deps}) -> inject(App, Deps, LibDir, AppNames) end, deps(Profile)).
+  Deps0 = lists:flatmap(fun(Dep) -> expand(Dep, AppNames) end, deps(Profile)),
+  lists:foreach(fun({App, Deps}) -> inject(App, Deps, LibDir) end, Deps0).
 
 %% list the profile/lib dir to get all apps
 list_apps(LibDir) ->
@@ -55,7 +69,7 @@ lib_dir(Profile) ->
 
 ebin_dir(LibDir, AppName) -> filename:join([LibDir, AppName, "ebin"]).
 
-inject(App0, DepsToAdd, LibDir, AppNames) ->
+inject(App0, DepsToAdd, LibDir) ->
   App = str(App0),
   AppEbinDir = ebin_dir(LibDir, App),
   [AppFile0] = filelib:wildcard("*.app", AppEbinDir),
@@ -66,7 +80,7 @@ inject(App0, DepsToAdd, LibDir, AppNames) ->
               false -> []
           end,
   %% merge extra deps, but do not self-include
-  Deps = merge_deps(Deps0, DepsToAdd, AppNames) -- [App0],
+  Deps = add_to_list(Deps0, DepsToAdd) -- [App0],
   NewProps = lists:keystore(relup_deps, 1, Props, {relup_deps, Deps}),
   AppSpec = {application, AppName, NewProps},
   AppSpecIoData = io_lib:format("~p.", [AppSpec]),
@@ -75,22 +89,17 @@ inject(App0, DepsToAdd, LibDir, AppNames) ->
 
 str(A) when is_atom(A) -> atom_to_list(A).
 
-merge_deps(Deps, [], _AppNames) -> Deps;
-merge_deps(Deps0, [Dep | DepsToAdd], AppNames) ->
-  Deps = do_merge(Deps0, Dep, AppNames),
-  merge_deps(Deps, DepsToAdd, AppNames).
-
-do_merge(Deps, {re, Re}, AppNames) ->
+match_pattern({re, Re}, AppNames) ->
   Match = fun(AppName) -> re:run(AppName, Re) =/= nomatch end,
   AppNamesToAdd = lists:filter(Match, AppNames),
   AppsToAdd = lists:map(fun(N) -> list_to_atom(N) end, AppNamesToAdd),
   case AppsToAdd =:= [] of
     true  -> error({nomatch, Re});
-    false -> add_to_list(Deps, AppsToAdd)
+    false -> AppsToAdd
   end;
-do_merge(Deps, NameAtom, AppNames) ->
+match_pattern(NameAtom, AppNames) ->
   case lists:member(str(NameAtom), AppNames) of
-    true  -> add_to_list(Deps, [NameAtom]);
+    true  -> [NameAtom];
     false -> error({notfound, NameAtom})
   end.
 
