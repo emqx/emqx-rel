@@ -17,7 +17,7 @@
 -mode(compile).
 
 usage() ->
-  "Usage: " ++ escript:script_name() ++ " emqx|edge".
+  "Usage: " ++ escript:script_name() ++ " emqx|emqx-edge".
 
 -type app() :: atom().
 -type deps_overlay() :: {re, string()} | app().
@@ -25,9 +25,15 @@ usage() ->
 %% deps/0 returns the dependency overlays.
 %% {re, Pattern} to match application names using regexp pattern
 -spec deps(string()) -> [{app(), [deps_overlay()]}].
+deps("emqx-edge" ++ _) ->
+  %% special case for edge
+  base_deps() ++ [{{re, ".+"}, [{exclude, emqx_reloader}]}];
 deps(_Profile) ->
+  base_deps().
+
+base_deps() ->
   [ {emqx_dashboard, [{re, "emqx_.*"}]}
-  , {emqx_management, [{re, "emqx_.*"}]}
+  , {emqx_management, [{re, "emqx_.*"}, {exclude, emqx_dashboard}]}
   , {{re, "emqx_.*"}, [emqx]}
   , {{re, "emqx_auth_.*"}, [emqx_passwd]}
   ].
@@ -38,12 +44,24 @@ main(_Args) ->
   io:format(standard_error, "~s", [usage()]),
   erlang:halt(1).
 
-expand({Name, Deps}, AppNames) ->
+expand_names({Name, Deps}, AppNames) ->
   Names = match_pattern(Name, AppNames),
-  NewDeps = expand_deps(Deps, AppNames, []),
-  [{N, NewDeps} || N <- Names].
+  [{N, Deps} || N <- Names].
+
+%% merge k-v pairs with v1 ++ v2
+merge([], Acc) -> Acc;
+merge([{K, V0} | Rest], Acc) ->
+  V = case lists:keyfind(K, 1, Acc) of
+        {K, V1} -> V1 ++ V0;
+        false -> V0
+      end,
+  NewAcc = lists:keystore(K, 1, Acc, {K, V}),
+  merge(Rest, NewAcc).
 
 expand_deps([], _AppNames, Acc) -> Acc;
+expand_deps([{exclude, Dep} | Deps], AppNames, Acc) ->
+  Matches = expand_deps([Dep], AppNames, []),
+  expand_deps(Deps, AppNames, Acc -- Matches);
 expand_deps([Dep | Deps], AppNames, Acc) ->
   NewAcc = add_to_list(Acc, match_pattern(Dep, AppNames)),
   expand_deps(Deps, AppNames, NewAcc).
@@ -51,8 +69,13 @@ expand_deps([Dep | Deps], AppNames, Acc) ->
 inject(Profile) ->
   LibDir = lib_dir(Profile),
   AppNames = list_apps(LibDir),
-  Deps0 = lists:flatmap(fun(Dep) -> expand(Dep, AppNames) end, deps(Profile)),
-  lists:foreach(fun({App, Deps}) -> inject(App, Deps, LibDir) end, Deps0).
+  Deps0 = lists:flatmap(fun(Dep) -> expand_names(Dep, AppNames) end, deps(Profile)),
+  Deps1 = merge(Deps0, []),
+  Deps2 = lists:map(fun({Name, DepsX}) ->
+                        NewDeps = expand_deps(DepsX, AppNames, []),
+                        {Name, NewDeps}
+                    end, Deps1),
+  lists:foreach(fun({App, Deps}) -> inject(App, Deps, LibDir) end, Deps2).
 
 %% list the profile/lib dir to get all apps
 list_apps(LibDir) ->
@@ -84,7 +107,7 @@ inject(App0, DepsToAdd, LibDir) ->
   NewProps = lists:keystore(relup_deps, 1, Props, {relup_deps, Deps}),
   AppSpec = {application, AppName, NewProps},
   AppSpecIoData = io_lib:format("~p.", [AppSpec]),
-  io:format(user, "updated_dependency_applications for ~p~n", [App]),
+  io:format(user, "updated_relup_deps for ~p~n", [App]),
   file:write_file(AppFile, AppSpecIoData).
 
 str(A) when is_atom(A) -> atom_to_list(A).
