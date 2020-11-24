@@ -179,10 +179,10 @@ Profiles =
     , {post_hooks, [{compile, "./inject-deps.escript emqx"}]}
     ]}
 , {'emqx-pkg',
-   [ {deps, MakeDeps(CloudDeps, DefaultDepRef, [])}
-   , {relx, RelxCloud([cloud, pkg])}
-   , {post_hooks, [{compile, "./inject-deps.escript emqx-pkg"}]}
-   ]}
+    [ {deps, MakeDeps(CloudDeps, DefaultDepRef, [])}
+    , {relx, RelxCloud([cloud, pkg])}
+    , {post_hooks, [{compile, "./inject-deps.escript emqx-pkg"}]}
+    ]}
 , {'emqx-edge',
     [ {deps, MakeDeps(EdgeDeps, DefaultDepRef, [])}
     , {relx, RelxEdge([edge, bin])}
