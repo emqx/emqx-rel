@@ -104,11 +104,15 @@ inject(App0, DepsToAdd, LibDir) ->
           end,
   %% merge extra deps, but do not self-include
   Deps = add_to_list(Deps0, DepsToAdd) -- [App0],
-  NewProps = lists:keystore(relup_deps, 1, Props, {relup_deps, Deps}),
-  AppSpec = {application, AppName, NewProps},
-  AppSpecIoData = io_lib:format("~p.", [AppSpec]),
-  io:format(user, "updated_relup_deps for ~p~n", [App]),
-  file:write_file(AppFile, AppSpecIoData).
+  case Deps =:= [] of
+    true -> ok;
+    _ ->
+      NewProps = lists:keystore(relup_deps, 1, Props, {relup_deps, Deps}),
+      AppSpec = {application, AppName, NewProps},
+      AppSpecIoData = io_lib:format("~p.", [AppSpec]),
+      io:format(user, "updated_relup_deps for ~p~n", [App]),
+      file:write_file(AppFile, AppSpecIoData)
+  end.
 
 str(A) when is_atom(A) -> atom_to_list(A).
 
