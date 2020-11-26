@@ -165,8 +165,8 @@ done
 
 # fill tuples on specific file
 # SYNOPSIS
-#     try_fill_tuples FILE [ELEMENTS ...]
-try_fill_tuples() {
+#     fill_tuples FILE [ELEMENTS ...]
+fill_tuples() {
     local file=$1
     local elements=${*:2}
     for var in $elements; do
@@ -189,7 +189,7 @@ if [[ -n "$EMQX_LOADED_PLUGINS" ]]; then
     EMQX_LOADED_PLUGINS=$(echo "$EMQX_LOADED_PLUGINS" | tr -d '[:cntrl:]' | sed -r -e 's/^[^A-Za-z0-9_]+//g' -e 's/[^A-Za-z0-9_]+$//g' -e 's/[^A-Za-z0-9_]+/ /g')
     echo "EMQX_LOADED_PLUGINS=$EMQX_LOADED_PLUGINS"
     # Parse module names and place `{module_name, true}.` tuples in `loaded_plugins`.
-    try_fill_tuples "$LOADED_PLUGINS" "$EMQX_LOADED_PLUGINS"
+    fill_tuples "$LOADED_PLUGINS" "$EMQX_LOADED_PLUGINS"
 fi
 
 ## EMQX Modules load settings
@@ -199,7 +199,7 @@ if [[ -n "$EMQX_LOADED_MODULES" ]]; then
     EMQX_LOADED_MODULES=$(echo "$EMQX_LOADED_MODULES" | tr -d '[:cntrl:]' | sed -r -e 's/^[^A-Za-z0-9_]+//g' -e 's/[^A-Za-z0-9_]+$//g' -e 's/[^A-Za-z0-9_]+/ /g')
     echo "EMQX_LOADED_MODULES=$EMQX_LOADED_MODULES"
     # Parse module names and place `{module_name, true}.` tuples in `loaded_modules`.
-    try_fill_tuples "$LOADED_MODULES" "$EMQX_LOADED_MODULES"
+    fill_tuples "$LOADED_MODULES" "$EMQX_LOADED_MODULES"
 fi
 
 exec "$@"
