@@ -20,14 +20,6 @@ LOCAL_IP=$(hostname -i |grep -E -oh '((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.
 
 _EMQX_HOME="/opt/emqx"
 
-if [[ -z "$PLATFORM_ETC_DIR" ]]; then
-    export PLATFORM_ETC_DIR="$_EMQX_HOME/etc"
-fi
-
-if [[ -z "$PLATFORM_LOG_DIR" ]]; then
-    export PLATFORM_LOG_DIR="$_EMQX_HOME/log"
-fi
-
 if [[ -z "$EMQX_NAME" ]]; then
     export EMQX_NAME="$(hostname)"
 fi
@@ -155,14 +147,8 @@ do
                         echo "$VAR_NAME = $(eval echo \$$VAR_FULL_NAME)" >> $CONFIG_PLUGINS/$CONFIG_PLUGINS_FILE
                     fi
                 fi
-            fi 
+            fi
         done
-    fi
-    # Config template such like {{ platform_etc_dir }}
-    if [[ ! -z "$(echo $VAR | grep -E '^PLATFORM_')" ]]; then
-        VAR_NAME=$(echo "$VAR" | sed -r "s/([^=]*)=.*/\1/g"| tr '[:upper:]' '[:lower:]')
-        VAR_FULL_NAME=$(echo "$VAR" | sed -r "s/([^=]*)=.*/\1/g")
-        echo "$(sed -r "s@\{\{\s*$VAR_NAME\s*\}\}@$(eval echo \$$VAR_FULL_NAME|sed -e 's/\//\\\//g')@g" $CONFIG)" > $CONFIG
     fi
 done
 
