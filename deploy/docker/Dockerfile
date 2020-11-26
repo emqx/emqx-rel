@@ -3,10 +3,9 @@ ARG RUN_FROM=alpine:3.11
 FROM ${BUILD_FROM} AS builder
 
 ARG QEMU_ARCH=x86_64
-COPY tmp/qemu-$QEMU_ARCH-stati* /usr/bin/
-COPY . /emqx-rel
 
-RUN apk add git \
+RUN apk add --no-cache \
+    git \
     curl \
     gcc \
     g++ \
@@ -18,6 +17,9 @@ RUN apk add git \
     bsd-compat-headers \
     libc-dev \
     libstdc++
+
+COPY tmp/qemu-$QEMU_ARCH-stati* /usr/bin/
+COPY . /emqx-rel
 
 ARG EMQX_DEPS_DEFAULT_VSN=develop
 ARG EMQX_NAME=emqx
@@ -39,11 +41,12 @@ LABEL org.label-schema.docker.dockerfile="Dockerfile" \
 
 ARG QEMU_ARCH=x86_64
 ARG EMQX_NAME=emqx
+
+RUN apk add --no-cache curl ncurses-libs openssl sudo libstdc++ bash
+
 COPY deploy/docker/docker-entrypoint.sh deploy/docker/start.sh tmp/qemu-$QEMU_ARCH-stati* /usr/bin/
 COPY --from=builder /emqx-rel/_build/$EMQX_NAME/rel/emqx /opt/emqx
-
-RUN ln -s /opt/emqx/bin/* /usr/local/bin/ 
-RUN apk add --no-cache curl ncurses-libs openssl sudo libstdc++
+RUN ln -s /opt/emqx/bin/* /usr/local/bin/
 
 WORKDIR /opt/emqx
 
