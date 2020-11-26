@@ -54,12 +54,6 @@ EMQX_LISTENER__SSL__EXTERNAL__ACCEPTORS <--> listener.ssl.external.acceptors
 EMQX_MQTT__MAX_PACKET_SIZE              <--> mqtt.max_packet_size
 ```
 
-Also the environment variables which with ``PLATFORM_`` prefix are mapped to template string in configuration file.
-
-```bash
-PLATFORM_ETC_DIR                   <--> {{ platform_etc_dir }}
-```
-
 Non mapped environment variables:
 
 ```bash
@@ -78,8 +72,6 @@ These environment variables will ignore for configuration file.
 | EMQX_NAME                   | container name     | none                      | emqx node short name                   |
 | EMQX_HOST                   | container IP       | none                      | emqx node host, IP or FQDN             |
 | EMQX_WAIT_TIME              | 5                  | none                      | wait time in sec before timeout       |
-| PLATFORM_ETC_DIR            | /opt/emqx/etc      | {{ platform_etc_dir }}    | The etc directory                     |
-| PLATFORM_LOG_DIR            | /opt/emqx/log      | {{ platform_log_dir }}    | The log directory                     |
 | EMQX_NODE__NAME             | EMQX_NAME@EMQX_HOST| node.name                 | Erlang node name, name@ipaddress/host |
 | EMQX_NODE__COOKIE           | emqx_dist_cookie    | node.cookie               | cookie for cluster                    |
 | EMQX_LOG__CONSOLE           | console            | log.console               | log console output method             |
