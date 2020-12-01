@@ -2,7 +2,8 @@
 set -x -e -u
 export EMQX_NAME=${EMQX_NAME:-"emqx"}
 export PACKAGE_PATH="/emqx-rel/_packages/${EMQX_NAME}"
-export RELUP_PACKAGE_PATH="/emqx-rel/relup_packages/${EMQX_NAME}"
+export RELUP_PACKAGE_PATH="/emqx-rel/tmp/relup_packages/${EMQX_NAME}"
+export EMQX_DEPS_DEFAULT_VSN=${EMQX_DEPS_DEFAULT_VSN:-$(/emqx-rel/get-lastest-tag.escript ref)}
 # export EMQX_NODE_NAME="emqx-on-$(uname -m)@127.0.0.1"
 # export EMQX_NODE_COOKIE=$(date +%s%N)
 
@@ -148,11 +149,11 @@ running_test(){
 
 relup_test(){
     if [ -d ${RELUP_PACKAGE_PATH} ];then
-        cd ${RELUP_PACKAGE_PATH }
+        cd ${RELUP_PACKAGE_PATH}
 
         for var in $(ls ${EMQX_NAME}-*-$(uname -m).zip);do
             packagename=`basename ${var}`
-            unzip $packagename
+            unzip -q $packagename
             ./emqx/bin/emqx start
             ./emqx/bin/emqx_ctl status
             ./emqx/bin/emqx versions
