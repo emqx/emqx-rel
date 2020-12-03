@@ -3,6 +3,7 @@ ARG RUN_FROM=alpine:3.11
 FROM ${BUILD_FROM} AS builder
 
 ARG QEMU_ARCH=x86_64
+COPY tmp/qemu-$QEMU_ARCH-stati* /usr/bin/
 
 RUN apk add --no-cache \
     git \
@@ -18,7 +19,6 @@ RUN apk add --no-cache \
     libc-dev \
     libstdc++
 
-COPY tmp/qemu-$QEMU_ARCH-stati* /usr/bin/
 COPY . /emqx-rel
 
 ARG EMQX_DEPS_DEFAULT_VSN=develop
