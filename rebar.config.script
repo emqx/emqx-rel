@@ -1,8 +1,8 @@
 %%-*- mode: erlang -*-
 
-%% ==============================================================================
+%% =============================================================================
 %% maybe upload coverdata
-%% ==============================================================================
+%% =============================================================================
 
 CONFIG0 = case os:getenv("TRAVIS") of
               "true" ->
@@ -14,9 +14,9 @@ CONFIG0 = case os:getenv("TRAVIS") of
                   CONFIG
           end,
 
-%% ==============================================================================
+%% =============================================================================
 %% Dependencies
-%% ==============================================================================
+%% =============================================================================
 PluginsNeededByElixir = [rebar_mix, 
                          {rebar3_elixir_compile,
                           {git, "https://github.com/barrel-db/rebar3_elixir_compile.git",
@@ -125,9 +125,9 @@ DefaultDepRef =
             end
     end,
 
-%% ==============================================================================
+%% =============================================================================
 %% Relx configs
-%% ==============================================================================
+%% =============================================================================
 
 GitDescribe = begin
                 T = case DefaultDepRef of
@@ -169,22 +169,30 @@ TestDeps = [ {meck, "0.8.13"} % hex
            , {emqx_ct_helpers, {git, "https://github.com/emqx/emqx-ct-helpers", {tag, "v1.1.1"}}}
            ],
 
-%% ==============================================================================
+%% =============================================================================
 %% Profiles
-%% ==============================================================================
+%% =============================================================================
 Profiles =
-[ {emqx, [ {deps, MakeDeps(CloudDeps, DefaultDepRef, [])}
-         , {relx, RelxCloud([cloud, bin])}
-         ]}
-, {'emqx-pkg', [ {deps, MakeDeps(CloudDeps, DefaultDepRef, [])}
-             , {relx, RelxCloud([cloud, pkg])}
-             ]}
-, {'emqx-edge', [ {deps, MakeDeps(EdgeDeps, DefaultDepRef, [])}
-              , {relx, RelxEdge([edge, bin])}
-              ]}
-, {'emqx-edge-pkg', [ {deps, MakeDeps(EdgeDeps, DefaultDepRef, [])}
-                  , {relx, RelxEdge([edge, pkg])}
-                  ]}
+[ {emqx,
+    [ {deps, MakeDeps(CloudDeps, DefaultDepRef, [])}
+    , {relx, RelxCloud([cloud, bin])}
+    , {post_hooks, [{compile, "./inject-deps.escript emqx"}]}
+    ]}
+, {'emqx-pkg',
+    [ {deps, MakeDeps(CloudDeps, DefaultDepRef, [])}
+    , {relx, RelxCloud([cloud, pkg])}
+    , {post_hooks, [{compile, "./inject-deps.escript emqx-pkg"}]}
+    ]}
+, {'emqx-edge',
+    [ {deps, MakeDeps(EdgeDeps, DefaultDepRef, [])}
+    , {relx, RelxEdge([edge, bin])}
+    , {post_hooks, [{compile, "./inject-deps.escript emqx-edge"}]}
+    ]}
+, {'emqx-edge-pkg',
+    [ {deps, MakeDeps(EdgeDeps, DefaultDepRef, [])}
+    , {relx, RelxEdge([edge, pkg])}
+    , {post_hooks, [{compile, "./inject-deps.escript emqx-edge-pkg"}]}
+    ]}
 ],
 
 Deletes = [ deps
