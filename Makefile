@@ -1,6 +1,8 @@
 ## shallow clone for speed
 
 REBAR_GIT_CLONE_OPTIONS += --depth 1
+LOCALDEP_DIR = emqx
+export LOCALDEP_DIR
 export REBAR_GIT_CLONE_OPTIONS
 export LC_ALL=en_US.UTF-8
 
@@ -74,8 +76,9 @@ remove-build-meta-files:
 .PHONY: emqx
 emqx: $(REBAR)
 ifneq ($(OS),Windows_NT)
-	ln -snf _build/$(@)/lib ./_checkouts
+	@ln -snf _build/$(@)/lib ./_checkouts
 endif
+	@git submodule update --init
 	EMQX_DESC="EMQ X Broker" $(REBAR) as $(@) release
 
 .PHONY: emqx-edge
