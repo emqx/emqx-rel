@@ -32,3 +32,5 @@ deploy/docker/tmp
 tmp
 .vscode/settings.json
 .ignore
+/rebar3
+/.tool-versions
