@@ -112,8 +112,13 @@ $(CT_APPS:%=ct-%):
 	@mkdir -p tests/logs/$(@:ct-%=%)
 	@if [ -d _build/emqx/lib/$(@:ct-%=%)/_build/test/logs ]; then cp -r _build/emqx/lib/$(@:ct-%=%)/_build/test/logs/* tests/logs/$(@:ct-%=%); fi
 
-$(REBAR):
+.PHONY: $(REBAR)
+$(REBAR): submodule
 	@./ensure-rebar3.sh $(REBAR_VERSION)
+
+.PHONY: submodule
+submodule:
+	@git submodule update --init
 
 .PHONY: deps-all
 deps-all: $(REBAR) $(PROFILES:%=deps-%) $(PKG_PROFILES:%=deps-%)
