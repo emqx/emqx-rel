@@ -152,7 +152,7 @@ jobs:
            done
         fi
     - name: build emqx packages on amd64
-      env: 
+      env:
         ERL_OTP: erl22.3
         SYSTEM: ${{ matrix.os }}
       if: matrix.os != 'raspbian9' && matrix.os != 'raspbian10'

@@ -32,7 +32,7 @@ endif
 .PHONY: relup-emqx
 relup-emqx: $(REBAR)
 ifneq ($(OS),Windows_NT)
-	@ln -snf _build/$(@:relup-%=%)/lib ./_checkouts
+	@ln -snf _build/$(@:relup-%=%)/lib
 	@if [ ! -z $$(ls | grep -E "$(@:relup-%=%)-$(SYSTEM)-(.*)-$$(uname -m).zip" | head -1 ) ]; then \
 		mkdir -p tmp/relup_packages/$(@:relup-%=%); \
 		cp $(@:relup-%=%)-$(SYSTEM)-*-$$(uname -m).zip tmp/relup_packages/$(@:relup-%=%); \
@@ -42,7 +42,7 @@ endif
 .PHONY: relup-emqx-edge
 relup-emqx-edge: $(REBAR)
 ifneq ($(OS),Windows_NT)
-	@ln -snf _build/$(@:relup-%=%)/lib ./_checkouts
+	@ln -snf _build/$(@:relup-%=%)/lib
 	@if [ ! -z $$(ls | grep -E "$(@:relup-%=%)-$(SYSTEM)-(.*)-$$(uname -m).zip" | head -1 ) ]; then \
 		mkdir -p tmp/relup_packages/$(@:relup-%=%); \
 		cp $(@:relup-%=%)-$(SYSTEM)-*-$$(uname -m).zip tmp/relup_packages/$(@:relup-%=%); \
@@ -53,14 +53,14 @@ endif
 .PHONY: emqx-tar emqx-pkg-tar
 emqx-tar emqx-pkg-tar: $(REBAR)
 ifneq ($(OS),Windows_NT)
-	@ln -snf _build/$(subst -tar,,$(@))/lib ./_checkouts
+	@ln -snf _build/$(subst -tar,,$(@))/lib
 endif
 	EMQX_DESC="EMQ X Broker" $(REBAR) as $(subst -tar,,$(@)) tar
 
 .PHONY: emqx-edge-tar emqx-edge-pkg-tar
 emqx-edge-tar emqx-edge-pkg-tar: $(REBAR)
 ifneq ($(OS),Windows_NT)
-	@ln -snf _build/$(subst -tar,,$(@))/lib ./_checkouts
+	@ln -snf _build/$(subst -tar,,$(@))/lib
 endif
 	EMQX_DESC="EMQ X Edge" $(REBAR) as $(subst -tar,,$(@)) tar
 
@@ -92,4 +92,3 @@ ifneq ($(PKGERDIR),)
 else
 	make $(subst -pkg,,$(@))-zip
 endif
-

@@ -45,7 +45,7 @@ docker-build:
 	## Prepare qemu to build images other then x86_64 on travis
 	@echo "PREPARE: Qemu" \
 	&& docker run --rm --privileged multiarch/qemu-user-static:register --reset
-  
+
 	@mkdir -p tmp \
 	&& cd tmp \
 	&& curl -L -o qemu-$(QEMU_ARCH)-static.tar.gz https://github.com/multiarch/qemu-user-static/releases/download/$(QEMU_VERSION)/qemu-$(QEMU_ARCH)-static.tar.gz \
@@ -77,7 +77,7 @@ docker-tag:
 
 .PHONY: docker-save
 docker-save:
-	@echo "DOCKER SAVE: Save Docker image." 
+	@echo "DOCKER SAVE: Save Docker image."
 
 	@mkdir -p _packages/$(EMQX_NAME)
 
@@ -86,7 +86,7 @@ docker-save:
 		zip -r -m $(EMQX_NAME)-docker-$(PKG_VSN).zip $(EMQX_NAME)-docker-$(PKG_VSN); \
 		mv ./$(EMQX_NAME)-docker-$(PKG_VSN).zip _packages/$(EMQX_NAME)/$(EMQX_NAME)-docker-$(PKG_VSN).zip; \
 	fi
-	
+
 	@for arch in $(ARCH_LIST); do \
 		if [ -n  "$$(docker images -q  $(TARGET):$(PKG_VSN)-$(OS)-$${arch})" ]; then \
 			docker save  $(TARGET):$(PKG_VSN)-$(OS)-$${arch} > $(EMQX_NAME)-docker-$(PKG_VSN)-$(OS)-$${arch}; \
@@ -97,8 +97,8 @@ docker-save:
 
 .PHONY: docker-push
 docker-push:
-	@echo "DOCKER PUSH: Push Docker image."; 
-	@echo "DOCKER PUSH: pushing - $(TARGET):$(PKG_VSN)."; 
+	@echo "DOCKER PUSH: Push Docker image.";
+	@echo "DOCKER PUSH: pushing - $(TARGET):$(PKG_VSN).";
 
 	@if [ -n "$$(docker images -q $(TARGET):$(PKG_VSN))" ]; then \
 		docker push $(TARGET):$(PKG_VSN); \
@@ -123,7 +123,7 @@ docker-manifest-list:
 		fi; \
 	done; \
 	eval $$version; \
-	eval $$latest; 
+	eval $$latest;
 
 	for arch in $(ARCH_LIST); do \
 		case $${arch} in \
