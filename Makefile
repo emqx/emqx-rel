@@ -58,7 +58,6 @@ all: $(REBAR) $(PROFILES)
 .PHONY: distclean
 distclean: remove-build-meta-files
 	@rm -rf _build
-	@rm -rf _checkouts
 
 .PHONY: distclean-deps
 distclean-deps: remove-deps remove-build-meta-files
@@ -76,15 +75,14 @@ remove-build-meta-files:
 .PHONY: emqx
 emqx: $(REBAR)
 ifneq ($(OS),Windows_NT)
-	@ln -snf _build/$(@)/lib ./_checkouts
+	@ln -snf _build/$(@)/lib
 endif
-	@git submodule update --init
 	EMQX_DESC="EMQ X Broker" $(REBAR) as $(@) release
 
 .PHONY: emqx-edge
 emqx-edge: $(REBAR)
 ifneq ($(OS),Windows_NT)
-	ln -snf _build/$(@)/lib ./_checkouts
+	ln -snf _build/$(@)/lib
 endif
 	EMQX_DESC="EMQ X Edge" $(REBAR) as $(@) release
 
@@ -96,7 +94,7 @@ $(PROFILES:%=build-%): $(REBAR)
 run: run-$(PROFILE)
 $(PROFILES:%=run-%): $(REBAR)
 ifneq ($(OS),Windows_NT)
-	@ln -snf _build/$(@:run-%=%)/lib ./_checkouts
+	@ln -snf _build/$(@:run-%=%)/lib
 endif
 	$(REBAR) as $(@:run-%=%) run
 
@@ -106,19 +104,10 @@ $(PROFILES:%=clean-%): $(REBAR)
 	@rm -rf _build/$(@:clean-%=%)
 	@rm -rf _build/$(@:clean-%=%)+test
 
-.PHONY: $(PROFILES:%=checkout-%)
-$(PROFILES:%=checkout-%): $(REBAR) build-$(PROFILE)
-	ln -s -f _build/$(@:checkout-%=%)/lib ./_checkouts
-
-# Checkout current profile
-.PHONY: checkout
-checkout:
-	@ln -s -f _build/$(PROFILE)/lib ./_checkouts
-
 # Run ct for an app in current profile
-.PHONY: $(REBAR) $(CT_APPS:%=ct-%)
+.PHONY: $(CT_APPS:%=ct-%)
 ct: $(CT_APPS:%=ct-%)
-$(CT_APPS:%=ct-%): checkout-$(PROFILE)
+$(CT_APPS:%=ct-%):
 	-make -C _build/emqx/lib/$(@:ct-%=%) ct
 	@mkdir -p tests/logs/$(@:ct-%=%)
 	@if [ -d _build/emqx/lib/$(@:ct-%=%)/_build/test/logs ]; then cp -r _build/emqx/lib/$(@:ct-%=%)/_build/test/logs/* tests/logs/$(@:ct-%=%); fi
@@ -136,7 +125,6 @@ deps-emqx deps-emqx-pkg: $(REBAR)
 .PHONY: deps-emqx-edge deps-emqx-edge-pkg
 deps-emqx-edge deps-emqx-edge-pkg: $(REBAR)
 	EMQX_DESC="EMQ X Edge" $(REBAR) as $(@:deps-%=%) get-deps
-
 
 include packages.mk
 include docker.mk
