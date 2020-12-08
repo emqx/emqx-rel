@@ -90,5 +90,3 @@ copy_file(Src, Dst) ->
         {ok, _Bytes} -> ok;
         {error, Reason} -> error({Reason, Src, Dst})
     end.
-
-
