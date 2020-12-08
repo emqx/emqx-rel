@@ -42,11 +42,11 @@ LABEL org.label-schema.docker.dockerfile="Dockerfile" \
 ARG QEMU_ARCH=x86_64
 ARG EMQX_NAME=emqx
 
-RUN ln -s /opt/emqx/bin/* /usr/local/bin/
-RUN apk add --no-cache curl ncurses-libs openssl sudo libstdc++ bash
-
 COPY deploy/docker/docker-entrypoint.sh deploy/docker/start.sh tmp/qemu-$QEMU_ARCH-stati* /usr/bin/
 COPY --from=builder /emqx-rel/_build/$EMQX_NAME/rel/emqx /opt/emqx
+
+RUN ln -s /opt/emqx/bin/* /usr/local/bin/
+RUN apk add --no-cache curl ncurses-libs openssl sudo libstdc++ bash
 
 WORKDIR /opt/emqx
 
