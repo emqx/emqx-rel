@@ -35,7 +35,6 @@ base_deps() ->
   [ {emqx_dashboard, [{re, "emqx_.*"}]}
   , {emqx_management, [{re, "emqx_.*"}, {exclude, emqx_dashboard}]}
   , {{re, "emqx_.*"}, [emqx]}
-  , {{re, "emqx_auth_.*"}, [emqx_passwd]}
   ].
 
 main([Profile | _]) ->
