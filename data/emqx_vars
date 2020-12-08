@@ -3,7 +3,7 @@
 ##       Update the vars to the end of this file instead.
 ######################################################################
 ## constants from relx template
-REL_VSN="{{ rel_vsn }}"
+REL_VSN="{{ release_version }}"
 ERTS_VSN="{{ erts_vsn }}"
 ERL_OPTS="{{ erl_opts }}"
 RUNNER_ROOT_DIR="{{ runner_root_dir }}"
