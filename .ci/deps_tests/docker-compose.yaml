@@ -25,6 +25,7 @@ services:
       - emqx_bridge
     volumes:
       - ../../.:/emqx-rel
+    working_dir: /emqx-rel
     tty: true
 
   python:
