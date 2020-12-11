@@ -35,7 +35,8 @@ The following table lists the configurable parameters of the emqx chart and thei
 | ---        |  ---        | ---           |
 | `replicaCount` | It is recommended to have odd number of nodes in a cluster, otherwise the emqx cluster cannot be automatically healed in case of net-split. |3|
 | `image.repository` | EMQ X Image name |emqx/emqx|
-| `image.pullPolicy`  | Global Docker registry secret names as an array |IfNotPresent|
+| `image.pullPolicy`  | The image pull policy  |IfNotPresent|
+| `image.pullSecrets `  | The image pull secrets  |`[]` (does not add image pull secrets to deployed pods)|
 | `persistence.enabled` | Enable EMQX persistence using PVC |false|
 | `persistence.storageClass` | Storage class of backing PVC |`nil` (uses alpha storage class annotation)|
 | `persistence.existingClaim` | EMQ X data Persistent Volume existing claim name, evaluated as a template |""|
