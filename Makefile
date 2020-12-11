@@ -5,7 +5,7 @@ export REBAR_GIT_CLONE_OPTIONS
 export LC_ALL=en_US.UTF-8
 
 REBAR_VERSION = 3.13.2-emqx-4
-REBAR = ./rebar3
+REBAR = $(CURDIR)/rebar3
 
 PROFILE ?= emqx
 PROFILES := emqx emqx-edge
