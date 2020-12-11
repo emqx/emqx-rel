@@ -122,7 +122,7 @@ $(CT_APPS:%=ct-%): checkout-$(PROFILE)
 
 .PHONY: $(REBAR)
 $(REBAR):
-	@./ensure-rebar3.sh $(REBAR_VERSION)
+	$(CURDIR)/ensure-rebar3.sh $(REBAR_VERSION)
 
 .PHONY: deps-all
 deps-all: $(REBAR) $(PROFILES:%=deps-%) $(PKG_PROFILES:%=deps-%)
