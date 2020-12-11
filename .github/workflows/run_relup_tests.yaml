@@ -1,0 +1,130 @@
+name: Run relup tests
+
+on:
+  push:
+    tags:
+      - v*
+  schedule:
+    - cron: '03 20 * * *'
+  workflow_dispatch:
+    inputs:
+      version:
+        required: true
+
+jobs:
+    run_relup_test:
+        runs-on: ubuntu-20.04
+        defaults:
+          run:
+            shell: bash
+        steps:
+        - uses: bajankristof/setup-erlang@master
+          with:
+            otp-version: 22.3
+            allow-cache: false
+        - uses: actions/setup-python@v2
+          with:
+            python-version: '3.8'
+            architecture: 'x64'
+        - uses: actions/checkout@v2
+          with:
+            repository: emqx/paho.mqtt.testing
+            ref: develop-4.0
+            path: paho.mqtt.testing
+        - uses: actions/checkout@v2
+          with:
+            repository: terry-xiaoyu/one_more_emqx
+            ref: master
+            path: one_more_emqx
+        - uses: actions/checkout@v2
+          with:
+            repository: emqx/emqtt-bench
+            ref: master
+            path: emqtt-bench
+        - uses: actions/checkout@v2
+          with:
+            repository: hawk/lux
+            ref: lux-2.4
+            path: lux
+        - uses: actions/checkout@v2
+          with:
+            repository: emqx/emqx-rel
+            path: emqx-rel
+            fetch-depth: 0
+        - name: get version
+          run: |
+            set -e -x -u
+            cd emqx-rel
+            if [ $(echo $GITHUB_REF | grep -o -E "[ev0-9]+.[0-9]+.[0-9]?") ]; then
+                tag="$(echo $GITHUB_REF | grep -oE '[ev0-9]+.[0-9]+.[0-9]?')"
+            else
+                tag=$(./get-lastest-tag.escript tag)
+            fi
+            echo "TAG=$tag" >> $GITHUB_ENV
+            pre_tag="$(echo $tag | grep -oE '^[ev0-9]+.[0-9]')"
+            old_tags="$(git tag -l "$pre_tag.[0-9]" | grep -v $tag | tr "\n" " " )"
+            echo "OLD_TAGS=$old_tags" >> $GITHUB_ENV
+        - name: download emqx
+          run: |
+            set -e -x -u
+            cd emqx-rel
+            old_tags=($(echo $OLD_TAGS | tr ' ' ' '))
+            for old_tag in ${old_tags[@]}; do
+              wget https://s3-us-west-2.amazonaws.com/packages.emqx/emqx-ce/$old_tag/emqx-ubuntu20.04-${old_tag#[e|v]}-x86_64.zip
+            done
+        - name: build emqx
+          run: |
+           set -e -x -u
+           cd emqx-rel
+           make deps-emqx
+           docker run -i --rm \
+             -e EMQX_DEPS_DEFAULT_VSN=$TAG \
+             -v $(pwd):/emqx-rel \
+             emqx/build-env:erl22.3-ubuntu20.04 \
+             bash -c "make -C /emqx-rel emqx-zip"
+           sudo chown -R $USER:$USER _packages/emqx
+           # - name: run paho test
+           #   run: |
+           #    set -e -x -u
+           #    unzip -q emqx-rel/_packages/emqx/emqx-ubuntu20.04-${TAG#[e|v]}-x86_64.zip
+           #    sed -i 's|listener.wss.external[ \t]*=.*|listener.wss.external = 8085|g' emqx/etc/listeners.conf
+           #    sed -i 's|mqtt.max_topic_alias[ \t]*=.*|mqtt.max_topic_alias = 10|g' emqx/etc/emqx.conf
+           #    sed -i 's|zone.external.retry_interval[ \t]*=.*|zone.external.retry_interval = 2s|g' emqx/etc/zones.conf
+           #    ./emqx/bin/emqx start || cat emqx/log/erlang.log.1
+           #    pip install pytest
+           #    pytest -v paho.mqtt.testing/interoperability/test_client/ --host 127.0.0.1
+           #    ./emqx/bin/emqx stop
+           #    rm -rf emqx
+        - name: build emqtt-bench
+          run: |
+            set -e -u -x
+            cd emqtt-bench
+            make
+        - name: build lux
+          run: |
+            set -e -u -x
+            cd lux
+            autoconf
+            ./configure
+            make
+            sudo make install
+        - name: run relup test
+          run: |
+            set -e -x -u
+            cp emqx-rel/*.zip .
+            cp emqx-rel/_packages/emqx/*.zip .
+            if [ -n "$OLD_TAGS" ]; then
+                lux -v \
+                --timeout 600000 \
+                --var PACKAGE_PATH=$(pwd) \
+                --var BENCH_PATH=$(pwd)/emqtt-bench \
+                --var ONE_MORE_EMQX_PATH=$(pwd)/one_more_emqx \
+                --var TAG=${TAG#[e|v]} \
+                --var OLD_TAGS="${OLD_TAGS//[e|v]}" \
+                emqx-rel/.ci/nightly_build/relup.lux
+            fi
+        - uses: actions/upload-artifact@v1
+          if: failure()
+          with:
+            name: lux_logs
+            path: lux_logs
