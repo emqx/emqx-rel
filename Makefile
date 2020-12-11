@@ -4,9 +4,8 @@ REBAR_GIT_CLONE_OPTIONS += --depth 1
 export REBAR_GIT_CLONE_OPTIONS
 export LC_ALL=en_US.UTF-8
 
+REBAR_VERSION = 3.13.2-emqx-4
 REBAR = $(CURDIR)/rebar3
-
-REBAR_URL = https://s3.amazonaws.com/rebar3/rebar3
 
 PROFILE ?= emqx
 PROFILES := emqx emqx-edge
@@ -121,11 +120,9 @@ $(CT_APPS:%=ct-%): checkout-$(PROFILE)
 	@mkdir -p tests/logs/$(@:ct-%=%)
 	@if [ -d _build/emqx/lib/$(@:ct-%=%)/_build/test/logs ]; then cp -r _build/emqx/lib/$(@:ct-%=%)/_build/test/logs/* tests/logs/$(@:ct-%=%); fi
 
+.PHONY: $(REBAR)
 $(REBAR):
-ifneq ($(wildcard rebar3),rebar3)
-	@curl -Lo rebar3 $(REBAR_URL) || wget $(REBAR_URL)
-endif
-	@chmod a+x rebar3
+	$(CURDIR)/ensure-rebar3.sh $(REBAR_VERSION)
 
 .PHONY: deps-all
 deps-all: $(REBAR) $(PROFILES:%=deps-%) $(PKG_PROFILES:%=deps-%)
