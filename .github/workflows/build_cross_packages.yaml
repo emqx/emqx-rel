@@ -367,14 +367,13 @@ jobs:
         set -e -x -u
         version=$(echo ${{ github.ref }} | sed -r  "s ^refs/heads/|^refs/tags/(.*) \1 g")
         if [ ! -z $(echo $version | grep -oE "^[ev0-9]+\.[0-9]+(\.[0-9]+)?") ]; then
-          cd emqx-rel
-          sudo make docker-prepare
-          cd ./packages && for var in $(ls |grep docker |grep -v sha256); do unzip $var; sudo docker load < ${var%.*}; rm -f ${var%.*}; done && cd -
+          sudo make -C emqx-rel docker-prepare
+          cd packages && for var in $(ls |grep docker |grep -v sha256); do unzip $var; sudo docker load < ${var%.*}; rm -f ${var%.*}; done && cd -
           echo ${{ secrets.DOCKER_HUB_TOKEN }} |sudo docker login -u ${{ secrets.DOCKER_HUB_USER }} --password-stdin
-          sudo EMQX_DEPS_DEFAULT_VSN=$version TARGET=emqx/emqx make docker-push
-          sudo EMQX_DEPS_DEFAULT_VSN=$version TARGET=emqx/emqx make docker-manifest-list
-          sudo EMQX_DEPS_DEFAULT_VSN=$version TARGET=emqx/emqx-edge make docker-push
-          sudo EMQX_DEPS_DEFAULT_VSN=$version TARGET=emqx/emqx-edge make docker-manifest-list
+          sudo EMQX_DEPS_DEFAULT_VSN=$version TARGET=emqx/emqx make -C emqx-rel docker-push
+          sudo EMQX_DEPS_DEFAULT_VSN=$version TARGET=emqx/emqx make -C emqx-rel docker-manifest-list
+          sudo EMQX_DEPS_DEFAULT_VSN=$version TARGET=emqx/emqx-edge make -C emqx-rel docker-push
+          sudo EMQX_DEPS_DEFAULT_VSN=$version TARGET=emqx/emqx-edge make -C emqx-rel docker-manifest-list
         fi
     - name: update repo.emqx.io
       run: |
