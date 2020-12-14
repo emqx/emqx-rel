@@ -176,22 +176,22 @@ Profiles =
 [ {emqx,
     [ {deps, MakeDeps(CloudDeps, DefaultDepRef, [])}
     , {relx, RelxCloud([cloud, bin])}
-    , {post_hooks, [{compile, "./inject-deps.escript emqx"}]}
+    , {post_hooks, [{"(linux|darwin|solaris|freebsd|netbsd|openbsd)", compile, "./inject-deps.escript emqx"}]}
     ]}
 , {'emqx-pkg',
     [ {deps, MakeDeps(CloudDeps, DefaultDepRef, [])}
     , {relx, RelxCloud([cloud, pkg])}
-    , {post_hooks, [{compile, "./inject-deps.escript emqx-pkg"}]}
+    , {post_hooks, [{"(linux|darwin|solaris|freebsd|netbsd|openbsd)", compile, "./inject-deps.escript emqx-pkg"}]}
     ]}
 , {'emqx-edge',
     [ {deps, MakeDeps(EdgeDeps, DefaultDepRef, [])}
     , {relx, RelxEdge([edge, bin])}
-    , {post_hooks, [{compile, "./inject-deps.escript emqx-edge"}]}
+    , {post_hooks, [{"(linux|darwin|solaris|freebsd|netbsd|openbsd)", compile, "./inject-deps.escript emqx-edge"}]}
     ]}
 , {'emqx-edge-pkg',
     [ {deps, MakeDeps(EdgeDeps, DefaultDepRef, [])}
     , {relx, RelxEdge([edge, pkg])}
-    , {post_hooks, [{compile, "./inject-deps.escript emqx-edge-pkg"}]}
+    , {post_hooks, [{"(linux|darwin|solaris|freebsd|netbsd|openbsd)", compile, "./inject-deps.escript emqx-edge-pkg"}]}
     ]}
 ],
 
