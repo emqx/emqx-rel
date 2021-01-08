@@ -58,6 +58,8 @@ docker-build:
 		--build-arg RUN_FROM=$(ARCH)/alpine:3.11 \
 		--build-arg EMQX_NAME=$(EMQX_NAME) \
 		--build-arg QEMU_ARCH=$(QEMU_ARCH) \
+		--build-arg GITHUB_USER=$(GITHUB_USER) \
+        --build-arg GITHUB_TOKEN=$(GITHUB_TOKEN) \
 		--tag $(TARGET):build-$(OS)-$(ARCH) \
 		-f deploy/docker/Dockerfile .
 

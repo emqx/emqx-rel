@@ -23,7 +23,19 @@ COPY . /emqx-rel
 
 ARG EMQX_DEPS_DEFAULT_VSN=develop
 ARG EMQX_NAME=emqx
+ARG GITHUB_USER
+ARG GITHUB_TOKEN
 
+# Create a netrc file using the specified credential
+RUN printf "machine github.com\n\
+  login ${GITHUB_USER}\n\
+  password ${GITHUB_TOKEN}\n\
+  \n\
+  machine api.github.com\n\
+  login ${GITHUB_USER}\n\
+  password ${GITHUB_TOKEN}\n"\
+  >> /root/.netrc
+RUN chmod 600 /root/.netrc
 RUN cd /emqx-rel && make $EMQX_NAME
 
 FROM $RUN_FROM
