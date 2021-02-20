@@ -33,7 +33,7 @@ Kf = fun(K, L) -> {K, V} = lists:keyfind(K, 1, L), V end,
                             ElixirDeps0 ->
                                 Plugins = Kf(plugins, CONFIG0),
                                 NewConfig = lists:keydelete(plugins, 1, CONFIG0),
-                                Plugins1 = {plugins, PluginsNeededByElixir ++ Plugins},
+                                Plugins1 = {plugins, Plugins ++ PluginsNeededByElixir},
                                 {ElixirDeps0,
                                  [Plugins1, HooksNeededByElixir, OptsNeededByElixir | NewConfig]}
                         end,
