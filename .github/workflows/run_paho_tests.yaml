@@ -22,11 +22,9 @@ jobs:
         - name: set env
           run: |
             if [ ${{ github.event_name}} == 'repository_dispatch' ]; then version=${{ github.event.client_payload.version }}; else version=$(echo ${{ github.ref }} | sed -r  "s .*/.*/(.*) \1 g"); fi
-            echo "::set-env name=version::$version"
+            echo "version=$version" >> $GITHUB_ENV
             if [ ! -z $(echo $version | grep -oE "v[0-9]+\.[0-9]+(\.[0-9]+)?") ]; then
-              echo "::set-env name=EMQX_DEPS_DEFAULT_VSN::$version"
-            else
-              echo "::set-env name=EMQX_DEPS_DEFAULT_VSN::"
+              echo "EMQX_DEPS_DEFAULT_VSN=$version" >> $GITHUB_ENV
             fi
         - name: get deps
           run: make deps-emqx
