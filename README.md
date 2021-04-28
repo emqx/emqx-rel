@@ -3,7 +3,9 @@
 
 The Release Project for EMQ X Broker.
 
-NOTICE: Requires Erlang/OTP 21.3 to build since EMQ X 3.2
+NOTICE: Requires Erlang/OTP 21.3 .. 22 to build since EMQ X 3.2
+
+EMQ X no longer uses this repository since version 4.3. Use https://github.com/emqx/emqx/ instead.
 
 
 There are 4 target profiles for building emqx-rel: emqx, emqx-pkg, emqx-edge,and emqx-edge-pkg. The default target profile is emqx. User can build specified target release by execute command `make ${target-release}` in emqx_rel.
