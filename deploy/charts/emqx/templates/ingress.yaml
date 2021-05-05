@@ -22,7 +22,7 @@ spec:
   - host: {{ $host }}
     http:
       paths:
-      - path: /
+      - path: {{ .Values.ingress.dashboard.path }}
         backend:
           serviceName: {{ include "emqx.fullname" $ }}
           servicePort: {{ $.Values.service.dashboard }}
@@ -57,7 +57,7 @@ spec:
   - host: {{ $host }}
     http:
       paths:
-      - path: /
+      - path: {{ .Values.ingress.mgmt.path }}
         backend:
           serviceName: {{ include "emqx.fullname" $ }}
           servicePort: {{ $.Values.service.mgmt }}
