@@ -134,7 +134,7 @@ jobs:
       run: |
         set -e -u -x
         version=$(echo ${{ github.ref }} | sed -r  "s ^refs/heads/|^refs/tags/(.*) \1 g")
-        if [ "$(echo $version | grep -oE "^[ev0-9]+\.[0-9]+\.[1-9]?")" = "$version" ]; then
+        if [ "$(echo $version | grep -oE "^[ev0-9]+\.[0-9]+\.[1-9]+?")" = "$version" ]; then
            tags=$(git tag -l "$(echo $version | grep -oE "^[ev0-9]+\.[0-9]").*" |grep -v "$version")
            for tag in ${tags[@]};do
              for arch in x86_64 aarch64; do
