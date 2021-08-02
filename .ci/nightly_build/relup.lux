@@ -116,9 +116,9 @@
 [shell bench]
     ???publish complete
     ??SH-PROMPT:
-    !curl http://127.0.0.1:8080/counter
-    ???{"data":600,"code":0}
-    ?SH-PROMPT
+#     !curl http://127.0.0.1:8080/counter
+#     ???{"data":600,"code":0}
+#     ?SH-PROMPT
 
 [shell http_server]
     !http_server:stop().
