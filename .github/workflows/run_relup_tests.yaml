@@ -12,23 +12,24 @@ on:
 jobs:
     run_relup_test:
         runs-on: ubuntu-20.04
+        container: emqx/build-env:erl22.3-ubuntu20.04
         defaults:
           run:
             shell: bash
         steps:
-        - uses: bajankristof/setup-erlang@master
-          with:
-            otp-version: 22.3
-            allow-cache: false
-        - uses: actions/setup-python@v2
-          with:
-            python-version: '3.8'
-            architecture: 'x64'
-        - uses: actions/checkout@v2
-          with:
-            repository: emqx/paho.mqtt.testing
-            ref: develop-4.0
-            path: paho.mqtt.testing
+        # - uses: bajankristof/setup-erlang@master
+        #   with:
+        #     otp-version: 22.3
+        #     allow-cache: false
+        # - uses: actions/setup-python@v2
+        #   with:
+        #     python-version: '3.8'
+        #     architecture: 'x64'
+        # - uses: actions/checkout@v2
+        #   with:
+        #     repository: emqx/paho.mqtt.testing
+        #     ref: develop-4.0
+        #     path: paho.mqtt.testing
         - uses: actions/checkout@v2
           with:
             repository: terry-xiaoyu/one_more_emqx
@@ -53,14 +54,14 @@ jobs:
           run: |
             set -e -x -u
             cd emqx-rel
-            if [ $(echo $GITHUB_REF | grep -o -E "[ev0-9]+.[0-9]+.[0-9]?") ]; then
-                tag="$(echo $GITHUB_REF | grep -oE '[ev0-9]+.[0-9]+.[0-9]?')"
+            if [ $(echo $GITHUB_REF | grep -o -E "[ev0-9]+.[0-9]+.[0-9]+?") ]; then
+                tag="$(echo $GITHUB_REF | grep -oE '[ev0-9]+.[0-9]+.[0-9]+?')"
             else
                 tag=$(./get-lastest-tag.escript tag)
             fi
             echo "TAG=$tag" >> $GITHUB_ENV
-            pre_tag="$(echo $tag | grep -oE '^[ev0-9]+.[0-9]')"
-            old_tags="$(git tag -l "$pre_tag.[0-9]" | grep -v $tag | tr "\n" " " )"
+            pre_tag="$(echo $tag | grep -oE '^[ev0-9]+.[0-9]+')"
+            old_tags="$(git tag -l "$pre_tag.[0-9]*" | grep -v $tag | tr "\n" " " )"
             echo "OLD_TAGS=$old_tags" >> $GITHUB_ENV
         - name: download emqx
           run: |
@@ -73,14 +74,14 @@ jobs:
         - name: build emqx
           run: |
            set -e -x -u
-           cd emqx-rel
-           make deps-emqx
-           docker run -i --rm \
-             -e EMQX_DEPS_DEFAULT_VSN=$TAG \
-             -v $(pwd):/emqx-rel \
-             emqx/build-env:erl22.3-ubuntu20.04 \
-             bash -c "make -C /emqx-rel emqx-zip"
-           sudo chown -R $USER:$USER _packages/emqx
+           make -C emqx-rel emqx-zip
+           # make deps-emqx
+           # docker run -i --rm \
+           #   -e EMQX_DEPS_DEFAULT_VSN=$TAG \
+           #   -v $(pwd):/emqx-rel \
+           #   emqx/build-env:erl22.3-ubuntu20.04 \
+           #   bash -c "make -C /emqx-rel emqx-zip"
+           # sudo chown -R $USER:$USER _packages/emqx
            # - name: run paho test
            #   run: |
            #    set -e -x -u
@@ -96,8 +97,7 @@ jobs:
         - name: build emqtt-bench
           run: |
             set -e -u -x
-            cd emqtt-bench
-            make
+            make -C emqtt-bench
         - name: build lux
           run: |
             set -e -u -x
@@ -105,7 +105,7 @@ jobs:
             autoconf
             ./configure
             make
-            sudo make install
+            make install
         - name: run relup test
           run: |
             set -e -x -u
@@ -113,7 +113,7 @@ jobs:
             cp emqx-rel/_packages/emqx/*.zip .
             if [ -n "$OLD_TAGS" ]; then
                 lux -v \
-                --timeout 600000 \
+                --case_timeout infinity \
                 --var PACKAGE_PATH=$(pwd) \
                 --var BENCH_PATH=$(pwd)/emqtt-bench \
                 --var ONE_MORE_EMQX_PATH=$(pwd)/one_more_emqx \
