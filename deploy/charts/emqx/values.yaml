@@ -136,6 +136,7 @@ ingress:
   ## ingress for EMQX Dashboard
   dashboard:
     enabled: false
+    className: ""
     annotations: {}
       # kubernetes.io/ingress.class: nginx
       # kubernetes.io/tls-acme: "true"
@@ -147,6 +148,7 @@ ingress:
   ## ingress for EMQX Mgmt API
   mgmt:
     enabled: false
+    className: ""
     annotations: {}
       # kubernetes.io/ingress.class: nginx
       # kubernetes.io/tls-acme: "true"
