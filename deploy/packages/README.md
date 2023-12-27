@@ -1,7 +1,7 @@
 emqx-packages
 =============
 
-EMQ X RPM/Debian Packages
+EMQX RPM/Debian Packages
 
 NOTICE: Requires Erlang/OTP R21+ to build since 3.0 release.
 
@@ -21,4 +21,4 @@ Apache License Version 2.0
 Author
 ------
 
-EMQ X Team.
+EMQX Team.
